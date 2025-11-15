@@ -1,0 +1,118 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --primary: 102 255 0;
+    --primary-dark: 82 204 0;
+    --background: 0 0 0;
+    --foreground: 255 255 255;
+  }
+
+  * {
+    @apply border-border;
+  }
+  
+  body {
+    @apply bg-background text-foreground;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-dark-200;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-primary rounded-full;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-primary-dark;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-primary text-black font-semibold px-6 py-3 rounded-full hover:bg-primary-dark transition-colors duration-200;
+  }
+
+  .btn-secondary {
+    @apply bg-dark-300 text-white font-semibold px-6 py-3 rounded-full hover:bg-dark-400 transition-colors duration-200;
+  }
+
+  .card {
+    @apply bg-dark-100 rounded-2xl overflow-hidden hover:bg-dark-200 transition-colors duration-200;
+  }
+
+  .input {
+    @apply bg-dark-200 text-white px-4 py-3 rounded-xl border border-dark-300 focus:border-primary focus:outline-none transition-colors duration-200;
+  }
+
+  .badge {
+    @apply inline-block px-3 py-1 rounded-full text-sm font-medium;
+  }
+
+  .gradient-primary {
+    @apply bg-gradient-to-r from-primary to-primary-light;
+  }
+
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary-light;
+  }
+}
+
+@layer utilities {
+  .animate-fade-in {
+    animation: fade-in 0.5s ease-in-out;
+  }
+
+  .animate-slide-up {
+    animation: slide-up 0.3s ease-out;
+  }
+
+  .glass {
+    @apply backdrop-blur-lg bg-black/50 border border-white/10;
+  }
+
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* Leaflet Map Fixes */
+.leaflet-container {
+  @apply rounded-2xl;
+}
+
+.leaflet-popup-content-wrapper {
+  @apply bg-dark-100 text-white rounded-xl;
+}
+
+.leaflet-popup-tip {
+  @apply bg-dark-100;
+}
+
+/* Loading animation */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.loading-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
