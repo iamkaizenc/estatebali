@@ -1,35 +1,40 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import { mockProperties } from "@/data/mockData";
-import { Property } from "@/types";
+import { useProperty } from "@/hooks/useProperties";
 import { MapPin, Bed, Bath, Square, Calendar, Phone, Mail, MessageCircle, Heart, Share2, CheckCircle } from "lucide-react";
 import { motion } from "framer-motion";
 
 export default function PropertyDetailPage() {
   const params = useParams();
-  const [property, setProperty] = useState<Property | null>(null);
+  const { property, loading, error } = useProperty(params.id as string);
   const [liked, setLiked] = useState(false);
 
-  useEffect(() => {
-    const foundProperty = mockProperties.find(p => p.id === params.id);
-    if (foundProperty) {
-      setProperty(foundProperty);
-    }
-  }, [params.id]);
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-black">
+        <Header />
+        <main className="container mx-auto px-4 pt-24 pb-20 text-center">
+          <div className="h-8 w-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-gray-400">Loading property...</p>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
 
-  if (!property) {
+  if (error || !property) {
     return (
       <div className="min-h-screen bg-black">
         <Header />
         <main className="container mx-auto px-4 pt-24 pb-20 text-center">
           <h1 className="text-4xl font-bold mb-4">Property Not Found</h1>
-          <p className="text-gray-400 mb-8">The property you're looking for doesn't exist.</p>
+          <p className="text-gray-400 mb-8">{error || "The property you're looking for doesn't exist."}</p>
           <Link href="/" className="btn-primary">
             Go Home
           </Link>

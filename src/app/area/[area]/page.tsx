@@ -1,45 +1,19 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import PropertyCard from "@/components/PropertyCard";
-import { mockProperties } from "@/data/mockData";
+import { useProperties } from "@/hooks/useProperties";
 
 export default function AreaPage() {
   const params = useParams();
   const area = params.area as string;
-  const [properties] = useState(mockProperties);
-
-  const filterPropertiesByArea = useCallback((props: typeof mockProperties, areaParam: string) => {
-    const searchArea = areaParam.toLowerCase().replace(/-/g, '').replace(/\s+/g, '');
-    return props.filter(p => {
-      const propertyArea = p.location.area.toLowerCase();
-      // Check if area name contains the search term or vice versa
-      // Also handle cases like "Uluwatu, Pecatu" -> "uluwatu"
-      const areaParts = propertyArea.split(',').map(part => part.trim().replace(/\s+/g, ''));
-      const normalizedPropertyArea = propertyArea.replace(/\s+/g, '').replace(/,/g, '');
-      
-      const matches = areaParts.some(part => 
-        part === searchArea || 
-        part.includes(searchArea) || 
-        searchArea.includes(part)
-      ) || normalizedPropertyArea.includes(searchArea) || searchArea.includes(normalizedPropertyArea);
-      
-      return matches;
-    });
-  }, []);
-
-  const [areaProperties, setAreaProperties] = useState(
-    filterPropertiesByArea(properties, area)
-  );
-
-  useEffect(() => {
-    const filtered = filterPropertiesByArea(properties, area);
-    setAreaProperties(filtered);
-  }, [area, properties, filterPropertiesByArea]);
+  
+  // Normalize area name for search (e.g., "uluwatu" or "uluwatu-pecatu" -> search for "uluwatu")
+  const normalizedArea = area.toLowerCase().replace(/-/g, ' ').split(' ')[0];
+  const { properties: areaProperties, loading, error } = useProperties({ area: normalizedArea });
 
   // Get the actual area name from the first property if available
   const areaName = areaProperties.length > 0 
@@ -58,7 +32,19 @@ export default function AreaPage() {
           </p>
         </div>
 
-        {areaProperties.length > 0 ? (
+        {loading ? (
+          <div className="text-center py-20">
+            <div className="h-8 w-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+            <p className="text-gray-400">Loading properties...</p>
+          </div>
+        ) : error ? (
+          <div className="text-center py-20">
+            <p className="text-red-400 mb-4">{error}</p>
+            <Link href="/" className="btn-primary mt-4">
+              Browse All Properties
+            </Link>
+          </div>
+        ) : areaProperties.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {areaProperties.map((property) => (
               <PropertyCard key={property.id} property={property} />

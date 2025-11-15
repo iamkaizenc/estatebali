@@ -1,0 +1,7 @@
+<svg width="120" height="40" viewBox="0 0 120 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="120" height="40" rx="5" fill="#000000"/>
+  <path d="M20 12C20 10.8954 20.8954 10 22 10H98C99.1046 10 100 10.8954 100 12V28C100 29.1046 99.1046 30 98 30H22C20.8954 30 20 29.1046 20 28V12Z" fill="white"/>
+  <path d="M30 18L35 16L40 20L45 18L50 22L55 20L60 24L65 22L70 26L75 24L80 28L85 26L90 28L95 26L90 22L85 20L80 18L75 16L70 14L65 12L60 14L55 16L50 18L45 16L40 14L35 12L30 14L30 18Z" fill="#000000"/>
+  <text x="60" y="32" font-family="Arial, sans-serif" font-size="8" fill="#000000" text-anchor="middle" font-weight="bold">App Store</text>
+</svg>
+

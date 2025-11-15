@@ -55,11 +55,11 @@
   }
 
   .gradient-primary {
-    @apply bg-gradient-to-r from-primary to-primary-light;
+    @apply bg-gradient-to-r from-primary to-primary/80;
   }
 
   .text-gradient {
-    @apply bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary-light;
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/60;
   }
 }
 

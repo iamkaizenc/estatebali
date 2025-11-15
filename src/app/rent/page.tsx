@@ -1,14 +1,12 @@
 "use client";
 
-import { useState } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import PropertyCard from "@/components/PropertyCard";
-import { mockProperties } from "@/data/mockData";
+import { useProperties } from "@/hooks/useProperties";
 
 export default function RentPage() {
-  const [properties] = useState(mockProperties);
-  const rentProperties = properties.filter(p => p.listingType === "rent");
+  const { properties: rentProperties, loading, error } = useProperties({ listingType: "rent" });
 
   return (
     <div className="min-h-screen bg-black">
@@ -20,13 +18,22 @@ export default function RentPage() {
           <p className="text-gray-400">Find your perfect rental property in Bali</p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {rentProperties.map((property) => (
-            <PropertyCard key={property.id} property={property} />
-          ))}
-        </div>
-
-        {rentProperties.length === 0 && (
+        {loading ? (
+          <div className="text-center py-20">
+            <div className="h-8 w-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+            <p className="text-gray-400">Loading properties...</p>
+          </div>
+        ) : error ? (
+          <div className="text-center py-20">
+            <p className="text-red-400 mb-4">{error}</p>
+          </div>
+        ) : rentProperties.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {rentProperties.map((property) => (
+              <PropertyCard key={property.id} property={property} />
+            ))}
+          </div>
+        ) : (
           <div className="text-center py-20">
             <p className="text-gray-400 text-lg">No properties found for rent.</p>
           </div>

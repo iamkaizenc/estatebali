@@ -7,13 +7,15 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import SearchBar from "@/components/SearchBar";
 import PropertyCard from "@/components/PropertyCard";
-import { mockProperties, areas } from "@/data/mockData";
+import { useProperties } from "@/hooks/useProperties";
+import { areas } from "@/data/mockData";
 import { motion } from "framer-motion";
 import { TrendingUp, Shield, Clock, Award } from "lucide-react";
 
 export default function HomePage() {
-  const [properties] = useState(mockProperties);
-  const featuredProperties = properties.filter(p => p.featured);
+  const { properties, loading: propertiesLoading } = useProperties();
+  const { properties: featuredPropertiesList, loading: featuredLoading } = useProperties({ featured: true });
+  const featuredProperties = featuredPropertiesList;
 
   return (
     <div className="min-h-screen bg-black">
@@ -83,11 +85,22 @@ export default function HomePage() {
           </Link>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {featuredProperties.map((property) => (
-            <PropertyCard key={property.id} property={property} />
-          ))}
-        </div>
+        {featuredLoading ? (
+          <div className="text-center py-20">
+            <div className="h-8 w-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+            <p className="text-gray-400">Loading properties...</p>
+          </div>
+        ) : featuredProperties.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {featuredProperties.map((property) => (
+              <PropertyCard key={property.id} property={property} />
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-20">
+            <p className="text-gray-400">No featured properties found.</p>
+          </div>
+        )}
       </section>
 
       {/* Why Choose Us */}
@@ -168,11 +181,22 @@ export default function HomePage() {
           </Link>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {properties.slice(0, 6).map((property) => (
-            <PropertyCard key={property.id} property={property} />
-          ))}
-        </div>
+        {propertiesLoading ? (
+          <div className="text-center py-20">
+            <div className="h-8 w-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+            <p className="text-gray-400">Loading properties...</p>
+          </div>
+        ) : properties.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {properties.slice(0, 6).map((property) => (
+              <PropertyCard key={property.id} property={property} />
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-20">
+            <p className="text-gray-400">No properties found.</p>
+          </div>
+        )}
       </section>
 
       {/* Popular Areas */}
@@ -186,28 +210,36 @@ export default function HomePage() {
           </div>
           
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-            {areas.slice(0, 10).map((area) => (
-              <Link key={area} href={`/area/${area.toLowerCase()}`}>
-                <motion.div
-                  whileHover={{ scale: 1.05 }}
-                  className="relative h-32 rounded-xl overflow-hidden group cursor-pointer"
-                >
-                  <Image
-                    src={`https://images.unsplash.com/photo-${Math.random() > 0.5 ? '1537996194783-970b5d545f7d' : '1555400038-63f5ba517a47'}?w=400`}
-                    alt={area}
-                    fill
-                    className="object-cover group-hover:scale-110 transition-transform duration-500"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
-                  <div className="absolute bottom-0 left-0 right-0 p-4">
-                    <h3 className="font-semibold">{area}</h3>
-                    <p className="text-xs text-gray-300">
-                      {Math.floor(Math.random() * 50 + 20)} properties
-                    </p>
-                  </div>
-                </motion.div>
-              </Link>
-            ))}
+            {areas.slice(0, 10).map((area, index) => {
+              // Deterministic image selection based on index
+              const imageId = index % 2 === 0 ? '1537996194783-970b5d545f7d' : '1555400038-63f5ba517a47';
+              // Deterministic property count based on area name hash
+              const areaHash = area.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+              const propertyCount = (areaHash % 50) + 20;
+              
+              return (
+                <Link key={area} href={`/area/${area.toLowerCase()}`}>
+                  <motion.div
+                    whileHover={{ scale: 1.05 }}
+                    className="relative h-32 rounded-xl overflow-hidden group cursor-pointer"
+                  >
+                    <Image
+                      src={`https://images.unsplash.com/photo-${imageId}?w=400`}
+                      alt={area}
+                      fill
+                      className="object-cover group-hover:scale-110 transition-transform duration-500"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
+                    <div className="absolute bottom-0 left-0 right-0 p-4">
+                      <h3 className="font-semibold">{area}</h3>
+                      <p className="text-xs text-gray-300">
+                        {propertyCount} properties
+                      </p>
+                    </div>
+                  </motion.div>
+                </Link>
+              );
+            })}
           </div>
         </div>
       </section>

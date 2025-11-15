@@ -2,11 +2,18 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Home, Menu, X, Bell, Heart, MessageSquare, User, Plus } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { Home, Menu, X, Bell, Heart, MessageSquare, User, Plus, LogOut, Settings } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { isAuthenticated, user, isAdmin, logout } = useAuth();
+
+  const handleLogout = () => {
+    logout();
+    setMobileMenuOpen(false);
+  };
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 glass border-b border-white/10">
@@ -39,25 +46,76 @@ export default function Header() {
 
           {/* Desktop Actions */}
           <div className="hidden lg:flex items-center gap-4">
-            <button className="p-2 hover:bg-dark-200 rounded-lg transition-colors">
-              <Heart className="h-5 w-5" />
-            </button>
-            <button className="p-2 hover:bg-dark-200 rounded-lg transition-colors">
-              <MessageSquare className="h-5 w-5" />
-            </button>
-            <button className="p-2 hover:bg-dark-200 rounded-lg transition-colors">
-              <Bell className="h-5 w-5" />
-            </button>
-            <Link 
-              href="/create" 
-              className="btn-primary flex items-center gap-2"
-            >
-              <Plus className="h-4 w-4" />
-              Create Listing
-            </Link>
-            <button className="p-2 hover:bg-dark-200 rounded-lg transition-colors">
-              <User className="h-5 w-5" />
-            </button>
+            {isAuthenticated ? (
+              <>
+                {isAdmin ? (
+                  <>
+                    <Link 
+                      href="/admin" 
+                      className="px-4 py-2 bg-primary/20 hover:bg-primary/30 text-primary rounded-lg transition-colors"
+                    >
+                      Admin Panel
+                    </Link>
+                    <button
+                      onClick={handleLogout}
+                      className="p-2 hover:bg-dark-200 rounded-lg transition-colors"
+                      title="Logout"
+                    >
+                      <LogOut className="h-5 w-5" />
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <Link 
+                      href="/user" 
+                      className="px-4 py-2 bg-primary/20 hover:bg-primary/30 text-primary rounded-lg transition-colors"
+                    >
+                      My Dashboard
+                    </Link>
+                    <Link 
+                      href="/create" 
+                      className="btn-primary flex items-center gap-2"
+                    >
+                      <Plus className="h-4 w-4" />
+                      Create Listing
+                    </Link>
+                    <button className="p-2 hover:bg-dark-200 rounded-lg transition-colors">
+                      <Heart className="h-5 w-5" />
+                    </button>
+                    <button className="p-2 hover:bg-dark-200 rounded-lg transition-colors">
+                      <MessageSquare className="h-5 w-5" />
+                    </button>
+                    <button
+                      onClick={handleLogout}
+                      className="p-2 hover:bg-dark-200 rounded-lg transition-colors"
+                      title="Logout"
+                    >
+                      <LogOut className="h-5 w-5" />
+                    </button>
+                  </>
+                )}
+                <div className="flex items-center gap-2 px-3 py-1.5 bg-dark-200 rounded-lg">
+                  <User className="h-4 w-4 text-gray-400" />
+                  <span className="text-sm">{user?.name || user?.email}</span>
+                </div>
+              </>
+            ) : (
+              <>
+                <Link 
+                  href="/create" 
+                  className="btn-primary flex items-center gap-2"
+                >
+                  <Plus className="h-4 w-4" />
+                  Create Listing
+                </Link>
+                <Link 
+                  href="/login" 
+                  className="px-4 py-2 bg-dark-200 hover:bg-dark-300 rounded-lg transition-colors"
+                >
+                  Login
+                </Link>
+              </>
+            )}
           </div>
 
           {/* Mobile Menu Toggle */}
@@ -119,13 +177,68 @@ export default function Header() {
               >
                 About
               </Link>
-              <Link 
-                href="/create" 
-                className="btn-primary text-center"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Create Listing
-              </Link>
+              
+              {isAuthenticated ? (
+                <>
+                  {isAdmin ? (
+                    <>
+                      <Link 
+                        href="/admin" 
+                        className="btn-primary text-center"
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        Admin Panel
+                      </Link>
+                      <button
+                        onClick={handleLogout}
+                        className="px-4 py-2 bg-red-500/20 hover:bg-red-500/30 text-red-500 rounded-lg transition-colors text-center"
+                      >
+                        Logout
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <Link 
+                        href="/user" 
+                        className="btn-primary text-center"
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        My Dashboard
+                      </Link>
+                      <Link 
+                        href="/create" 
+                        className="btn-primary text-center"
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        Create Listing
+                      </Link>
+                      <button
+                        onClick={handleLogout}
+                        className="px-4 py-2 bg-red-500/20 hover:bg-red-500/30 text-red-500 rounded-lg transition-colors text-center"
+                      >
+                        Logout
+                      </button>
+                    </>
+                  )}
+                </>
+              ) : (
+                <>
+                  <Link 
+                    href="/create" 
+                    className="btn-primary text-center"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    Create Listing
+                  </Link>
+                  <Link 
+                    href="/login" 
+                    className="px-4 py-2 bg-dark-200 hover:bg-dark-300 rounded-lg transition-colors text-center"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    Login
+                  </Link>
+                </>
+              )}
             </nav>
           </motion.div>
         )}

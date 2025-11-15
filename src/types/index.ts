@@ -100,15 +100,27 @@ export interface SearchFilters {
 }
 
 // User Types
+export type UserRole = "admin" | "super_admin" | "owner" | "agent" | "customer" | "user";
+
 export interface User {
   id: string;
   name: string;
   email: string;
   phone?: string;
   avatar?: string;
-  role: "owner" | "agent" | "customer";
+  role: UserRole;
   verified?: boolean;
   createdAt: Date;
+}
+
+// Auth User (for authentication context)
+export interface AuthUser {
+  id: string;
+  email: string;
+  name: string;
+  role: UserRole;
+  phone?: string;
+  avatar?: string;
 }
 
 // Message Interface

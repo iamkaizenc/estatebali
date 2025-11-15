@@ -1,0 +1,9 @@
+<svg width="135" height="40" viewBox="0 0 135 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="135" height="40" rx="5" fill="#000000"/>
+  <path d="M25 10L35 20L25 30V10Z" fill="#00FF66"/>
+  <path d="M35 20L50 28L50 12L35 20Z" fill="#00FF66" opacity="0.8"/>
+  <path d="M35 20L50 12V28L35 20Z" fill="#00FF66" opacity="0.6"/>
+  <path d="M55 22L65 20L70 25L75 23L80 27L85 25L90 29L95 27L100 29L105 27L100 23L95 21L90 19L85 17L80 15L75 17L70 19L65 17L60 19L55 17L55 22Z" fill="white" opacity="0.9"/>
+  <text x="67.5" y="32" font-family="Arial, sans-serif" font-size="7" fill="white" text-anchor="middle" font-weight="bold">Google Play</text>
+</svg>
+
