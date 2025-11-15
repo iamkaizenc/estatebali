@@ -17,26 +17,38 @@ export default function Footer() {
             </p>
             <div className="flex gap-3">
               <a 
-                href="#" 
+                href="https://facebook.com/estatebali" 
+                target="_blank"
+                rel="noopener noreferrer"
                 className="p-2 bg-dark-200 rounded-lg hover:bg-primary hover:text-black transition-colors"
+                aria-label="Facebook"
               >
                 <Facebook className="h-5 w-5" />
               </a>
               <a 
-                href="#" 
+                href="https://instagram.com/estatebali" 
+                target="_blank"
+                rel="noopener noreferrer"
                 className="p-2 bg-dark-200 rounded-lg hover:bg-primary hover:text-black transition-colors"
+                aria-label="Instagram"
               >
                 <Instagram className="h-5 w-5" />
               </a>
               <a 
-                href="#" 
+                href="https://twitter.com/estatebali" 
+                target="_blank"
+                rel="noopener noreferrer"
                 className="p-2 bg-dark-200 rounded-lg hover:bg-primary hover:text-black transition-colors"
+                aria-label="Twitter"
               >
                 <Twitter className="h-5 w-5" />
               </a>
               <a 
-                href="#" 
+                href="https://linkedin.com/company/estatebali" 
+                target="_blank"
+                rel="noopener noreferrer"
                 className="p-2 bg-dark-200 rounded-lg hover:bg-primary hover:text-black transition-colors"
+                aria-label="LinkedIn"
               >
                 <Linkedin className="h-5 w-5" />
               </a>

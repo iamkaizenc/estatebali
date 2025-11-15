@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import SearchBar from "@/components/SearchBar";
@@ -77,9 +78,9 @@ export default function HomePage() {
             <h2 className="text-3xl font-bold mb-2">Featured Properties</h2>
             <p className="text-gray-400">Hand-picked luxury properties in prime locations</p>
           </div>
-          <a href="/featured" className="btn-primary hidden md:block">
+          <Link href="/featured" className="btn-primary hidden md:block">
             View All Featured
-          </a>
+          </Link>
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -162,9 +163,9 @@ export default function HomePage() {
             <h2 className="text-3xl font-bold mb-2">Recent Properties</h2>
             <p className="text-gray-400">Latest additions to our collection</p>
           </div>
-          <a href="/properties" className="btn-primary hidden md:block">
+          <Link href="/properties" className="btn-primary hidden md:block">
             View All Properties
-          </a>
+          </Link>
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -186,26 +187,26 @@ export default function HomePage() {
           
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
             {areas.slice(0, 10).map((area) => (
-              <motion.a
-                key={area}
-                href={`/area/${area.toLowerCase()}`}
-                whileHover={{ scale: 1.05 }}
-                className="relative h-32 rounded-xl overflow-hidden group"
-              >
-                <Image
-                  src={`https://images.unsplash.com/photo-${Math.random() > 0.5 ? '1537996194783-970b5d545f7d' : '1555400038-63f5ba517a47'}?w=400`}
-                  alt={area}
-                  fill
-                  className="object-cover group-hover:scale-110 transition-transform duration-500"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
-                <div className="absolute bottom-0 left-0 right-0 p-4">
-                  <h3 className="font-semibold">{area}</h3>
-                  <p className="text-xs text-gray-300">
-                    {Math.floor(Math.random() * 50 + 20)} properties
-                  </p>
-                </div>
-              </motion.a>
+              <Link key={area} href={`/area/${area.toLowerCase()}`}>
+                <motion.div
+                  whileHover={{ scale: 1.05 }}
+                  className="relative h-32 rounded-xl overflow-hidden group cursor-pointer"
+                >
+                  <Image
+                    src={`https://images.unsplash.com/photo-${Math.random() > 0.5 ? '1537996194783-970b5d545f7d' : '1555400038-63f5ba517a47'}?w=400`}
+                    alt={area}
+                    fill
+                    className="object-cover group-hover:scale-110 transition-transform duration-500"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
+                  <div className="absolute bottom-0 left-0 right-0 p-4">
+                    <h3 className="font-semibold">{area}</h3>
+                    <p className="text-xs text-gray-300">
+                      {Math.floor(Math.random() * 50 + 20)} properties
+                    </p>
+                  </div>
+                </motion.div>
+              </Link>
             ))}
           </div>
         </div>
@@ -221,12 +222,12 @@ export default function HomePage() {
             Join thousands of happy customers who found their perfect property in Bali with Estate Bali
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <a href="/properties" className="btn-secondary">
+            <Link href="/properties" className="btn-secondary">
               Browse Properties
-            </a>
-            <a href="/create" className="bg-black text-white px-8 py-3 rounded-full font-semibold hover:bg-gray-900 transition-colors">
+            </Link>
+            <Link href="/create" className="bg-black text-white px-8 py-3 rounded-full font-semibold hover:bg-gray-900 transition-colors">
               List Your Property
-            </a>
+            </Link>
           </div>
         </div>
       </section>
