@@ -114,6 +114,8 @@ export async function POST(request: NextRequest) {
             missingColumn = "verified";
           } else if (insertError.message.toLowerCase().includes("role")) {
             missingColumn = "role";
+          } else if (insertError.message.toLowerCase().includes("id")) {
+            missingColumn = "id";
           }
         }
         

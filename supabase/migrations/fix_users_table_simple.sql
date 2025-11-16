@@ -45,15 +45,21 @@ BEGIN
         ALTER COLUMN id SET NOT NULL,
         ALTER COLUMN id SET DEFAULT uuid_generate_v4();
       
-      -- Check if there's already a primary key constraint
-      IF EXISTS (
-        SELECT 1 FROM pg_constraint 
-        WHERE conrelid = 'users'::regclass 
-        AND contype = 'p'
-      ) THEN
-        -- Drop existing primary key if it exists
-        ALTER TABLE users DROP CONSTRAINT users_pkey;
-      END IF;
+      -- Check if there's already a primary key constraint and drop it
+      DO $$
+      DECLARE
+        pk_constraint_name TEXT;
+      BEGIN
+        SELECT constraint_name INTO pk_constraint_name
+        FROM information_schema.table_constraints
+        WHERE table_schema = 'public'
+        AND table_name = 'users'
+        AND constraint_type = 'PRIMARY KEY';
+        
+        IF pk_constraint_name IS NOT NULL THEN
+          EXECUTE format('ALTER TABLE users DROP CONSTRAINT %I', pk_constraint_name);
+        END IF;
+      END $$;
       
       -- Add primary key constraint
       ALTER TABLE users ADD PRIMARY KEY (id);
