@@ -89,10 +89,10 @@ export default function RegisterPage() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          email: formData.email,
+          email: formData.email.trim(),
           password: formData.password,
-          name: formData.name,
-          phone: formData.phone || undefined,
+          name: formData.name.trim(),
+          phone: formData.phone?.trim() || undefined,
         }),
       });
 

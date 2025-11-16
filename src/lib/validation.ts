@@ -19,8 +19,8 @@ export const propertySchema = z.object({
     area: z.number().int().positive("Area must be positive"),
     furnished: z.boolean().optional(),
   }).optional(),
-  features: z.record(z.any()).optional(),
-  images: z.array(z.string().url("Invalid image URL")).optional(),
+  features: z.record(z.string(), z.any()).optional(),
+  images: z.array(z.string()).optional(),
   contact: z.object({
     name: z.string().min(2),
     email: z.string().email("Invalid email"),
@@ -34,13 +34,16 @@ export const propertySchema = z.object({
 
 // User registration schema
 export const registerSchema = z.object({
-  email: z.string().email("Invalid email address"),
+  email: z.string().min(1, "Email is required").email("Invalid email address"),
   password: z.string().min(8, "Password must be at least 8 characters")
     .regex(/[a-z]/, "Password must contain at least one lowercase letter")
     .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
     .regex(/[0-9]/, "Password must contain at least one number"),
   name: z.string().min(2, "Name must be at least 2 characters").max(100, "Name must be less than 100 characters"),
-  phone: z.string().optional(),
+  phone: z.preprocess((val) => {
+    if (val === "" || val === null || val === undefined) return undefined;
+    return val;
+  }, z.string().optional()),
 });
 
 // Login schema
@@ -91,8 +94,25 @@ export function validateData<T>(schema: z.ZodSchema<T>, data: unknown): { succes
     return { success: true, data: validated };
   } catch (error) {
     if (error instanceof z.ZodError) {
-      const firstError = error.errors && error.errors.length > 0 ? error.errors[0] : null;
-      return { success: false, error: firstError?.message || "Validation failed" };
+      // Get all errors and format them nicely
+      const errors = error.issues && error.issues.length > 0 ? error.issues : [];
+      
+      if (errors.length > 0) {
+        // Format error message with field name
+        const errorMessages = errors.map((err: z.ZodIssue) => {
+          const field = err.path && err.path.length > 0 ? err.path.join(".") : "";
+          return field ? `${field}: ${err.message}` : err.message;
+        });
+        
+        // Return first error or combined message if multiple
+        const errorMessage = errorMessages.length === 1 
+          ? errorMessages[0] 
+          : `Validation errors: ${errorMessages.join(", ")}`;
+        
+        return { success: false, error: errorMessage };
+      }
+      
+      return { success: false, error: "Validation failed" };
     }
     return { success: false, error: "Validation failed" };
   }
