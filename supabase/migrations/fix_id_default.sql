@@ -7,6 +7,8 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 -- Fix id column: Ensure it has DEFAULT value
 DO $$ 
+DECLARE
+  current_default TEXT;
 BEGIN
   -- Check if id column exists
   IF EXISTS (
@@ -31,7 +33,7 @@ BEGIN
       
       RAISE NOTICE 'Set DEFAULT uuid_generate_v4() for id column';
     ELSE
-      RAISE NOTICE 'id column already has correct DEFAULT value';
+      RAISE NOTICE 'id column already has correct DEFAULT value: %', current_default;
     END IF;
     
     -- Ensure it's NOT NULL (should already be, but just in case)
