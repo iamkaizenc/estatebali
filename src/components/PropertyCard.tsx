@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Heart, MapPin, Bed, Bath, Square, Clock } from "lucide-react";
+import { Heart, MapPin, Bed, Bath, Square, Clock, Home } from "lucide-react";
 import { Property } from "@/types";
 import { motion } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
@@ -115,13 +115,32 @@ export default function PropertyCard({ property }: PropertyCardProps) {
     >
       <Link href={`/property/${property.id}`}>
         {/* Image Container */}
-        <div className="relative h-64 overflow-hidden">
-          <Image
-            src={property.images[0]}
-            alt={property.title}
-            fill
-            className="object-cover group-hover:scale-110 transition-transform duration-500"
-          />
+        <div className="relative h-64 overflow-hidden bg-dark-200">
+          {property.images && property.images.length > 0 && property.images[0] ? (
+            <Image
+              src={property.images[0]}
+              alt={property.title}
+              fill
+              className="object-cover group-hover:scale-110 transition-transform duration-500"
+              onError={(e) => {
+                // Fallback to placeholder if image fails
+                const target = e.target as HTMLImageElement;
+                target.style.display = 'none';
+                const placeholder = target.nextElementSibling as HTMLElement;
+                if (placeholder) placeholder.style.display = 'flex';
+              }}
+            />
+          ) : null}
+          
+          {/* Placeholder for missing images */}
+          <div 
+            className={`absolute inset-0 bg-gradient-to-br from-dark-200 via-dark-300 to-dark-200 flex items-center justify-center ${property.images && property.images.length > 0 && property.images[0] ? 'hidden' : ''}`}
+          >
+            <div className="text-center">
+              <Home className="h-16 w-16 text-gray-500 mx-auto mb-2 opacity-50" />
+              <p className="text-xs text-gray-500">No Image Available</p>
+            </div>
+          </div>
           
           {/* Badges */}
           <div className="absolute top-4 left-4 flex gap-2">

@@ -7,6 +7,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import SearchBar from "@/components/SearchBar";
 import PropertyCard from "@/components/PropertyCard";
+import { EmptyState } from "@/components/EmptyState";
 import { useProperties } from "@/hooks/useProperties";
 import { areas } from "@/data/mockData";
 import { getAreaImage } from "@/data/areaImages";
@@ -24,17 +25,80 @@ export default function HomePage() {
       
       {/* Hero Section */}
       <section className="relative h-screen flex items-center justify-center bg-black overflow-hidden">
-        {/* Background Image */}
+        {/* Dynamic Background Layers */}
         <div className="absolute inset-0 z-0">
-          <Image
-            src="https://images.unsplash.com/photo-1540541011368-8fc88765bbab?w=1920&q=80"
-            alt="Bali Villa"
-            fill
-            priority
-            className="object-cover opacity-40"
-            sizes="100vw"
+          {/* Video Background */}
+          <video
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="absolute inset-0 w-full h-full object-cover opacity-50"
+            onError={(e) => {
+              // Fallback to image if video fails to load
+              const videoElement = e.currentTarget;
+              videoElement.style.display = 'none';
+              const imgFallback = videoElement.nextElementSibling as HTMLElement;
+              if (imgFallback) imgFallback.style.display = 'block';
+            }}
+          >
+            <source src="/hero-background.mp4" type="video/mp4" />
+          </video>
+          
+          {/* Fallback Image Layer */}
+          <div className="absolute inset-0 w-full h-full hidden">
+            <Image
+              src="https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=1920&q=80"
+              alt="Bali Luxury Villa"
+              fill
+              priority
+              className="object-cover"
+              sizes="100vw"
+            />
+          </div>
+
+          {/* Animated Gradient Overlays */}
+          <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/80" />
+          <motion.div
+            animate={{
+              background: [
+                "radial-gradient(circle at 20% 50%, rgba(34,197,94,0.1) 0%, transparent 50%)",
+                "radial-gradient(circle at 80% 50%, rgba(34,197,94,0.1) 0%, transparent 50%)",
+                "radial-gradient(circle at 20% 50%, rgba(34,197,94,0.1) 0%, transparent 50%)",
+              ],
+            }}
+            transition={{
+              duration: 8,
+              repeat: Infinity,
+              ease: "easeInOut",
+            }}
+            className="absolute inset-0 mix-blend-overlay"
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/20 to-black" />
+          
+          {/* Floating Particles Effect */}
+          <div className="absolute inset-0 overflow-hidden">
+            {[...Array(20)].map((_, i) => (
+              <motion.div
+                key={i}
+                className="absolute w-1 h-1 bg-primary/30 rounded-full"
+                initial={{
+                  x: Math.random() * 100 + "%",
+                  y: Math.random() * 100 + "%",
+                  opacity: 0,
+                }}
+                animate={{
+                  y: ["0%", "-100%"],
+                  opacity: [0, 1, 0],
+                }}
+                transition={{
+                  duration: Math.random() * 10 + 10,
+                  repeat: Infinity,
+                  delay: Math.random() * 5,
+                  ease: "linear",
+                }}
+              />
+            ))}
+          </div>
         </div>
         
         <div className="relative z-10 container mx-auto px-4 text-center">
@@ -101,9 +165,13 @@ export default function HomePage() {
             ))}
           </div>
         ) : (
-          <div className="text-center py-20">
-            <p className="text-gray-400">No featured properties found.</p>
-          </div>
+          <EmptyState
+            variant="property"
+            title="No Featured Properties"
+            description="We're adding new featured properties regularly. Check back soon!"
+            actionLabel="View All Properties"
+            actionHref="/properties"
+          />
         )}
       </section>
 
@@ -197,9 +265,13 @@ export default function HomePage() {
             ))}
           </div>
         ) : (
-          <div className="text-center py-20">
-            <p className="text-gray-400">No properties found.</p>
-          </div>
+          <EmptyState
+            variant="property"
+            title="No Properties Available"
+            description="New properties are added daily. Check back soon or adjust your search filters."
+            actionLabel="Browse All Properties"
+            actionHref="/properties"
+          />
         )}
       </section>
 
