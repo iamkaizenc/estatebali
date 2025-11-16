@@ -47,44 +47,12 @@ export async function loginUser(email: string, password: string): Promise<{ succ
       return { success: false, error: "Authentication service is not configured. Please contact administrator." };
     }
 
-    // If Supabase is not configured, use fallback authentication (development only)
+    // Supabase is required for authentication
     if (!supabaseAdmin) {
-      // Only allow fallback in development mode
-      if (process.env.NODE_ENV === 'production') {
-        return { success: false, error: "Authentication service is not configured." };
-      }
-
-      // Fallback to hardcoded credentials (DEVELOPMENT ONLY - NOT FOR PRODUCTION)
-      const DEFAULT_ADMIN_EMAIL = "admin@estatebali.app";
-      const DEFAULT_ADMIN_PASSWORD = "admin123";
-      const DEFAULT_USER_EMAIL = "user@estatebali.app";
-      const DEFAULT_USER_PASSWORD = "user123";
-
-      // Check admin
-      if (email === DEFAULT_ADMIN_EMAIL && password === DEFAULT_ADMIN_PASSWORD) {
-        const adminUser: AuthUser = {
-          id: "admin-1",
-          email: DEFAULT_ADMIN_EMAIL,
-          name: "Admin User",
-          role: "admin",
-        };
-        const token = createToken(adminUser);
-        return { success: true, token };
-      }
-      
-      // Check regular user
-      if (email === DEFAULT_USER_EMAIL && password === DEFAULT_USER_PASSWORD) {
-        const regularUser: AuthUser = {
-          id: "user-1",
-          email: DEFAULT_USER_EMAIL,
-          name: "Regular User",
-          role: "user",
-        };
-        const token = createToken(regularUser);
-        return { success: true, token };
-      }
-      
-      return { success: false, error: "Invalid email or password" };
+      return { 
+        success: false, 
+        error: "Authentication service is not configured. Please contact administrator." 
+      };
     }
 
     // First, try to find in admin_users table
@@ -96,16 +64,17 @@ export async function loginUser(email: string, password: string): Promise<{ succ
       .single();
 
     if (adminUser && !adminError) {
-      // Verify password
+      // Verify password - password_hash is required
+      if (!adminUser.password_hash) {
+        return { 
+          success: false, 
+          error: "Account configuration error. Please contact administrator." 
+        };
+      }
+
       const passwordMatch = await bcrypt.compare(password, adminUser.password_hash);
       
-      // Fallback for development: if password hash is not set, check plain text
-      if (!passwordMatch && adminUser.password_hash === password) {
-        if (process.env.NODE_ENV === 'development') {
-          // eslint-disable-next-line no-console
-          console.warn("Using plain text password - CHANGE IN PRODUCTION!");
-        }
-      } else if (!passwordMatch) {
+      if (!passwordMatch) {
         return { success: false, error: "Invalid email or password" };
       }
 

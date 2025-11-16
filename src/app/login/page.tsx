@@ -150,16 +150,6 @@ export default function LoginPage() {
               </Link>
             </p>
           </div>
-
-          <div className="mt-6 pt-6 border-t border-dark-300">
-            <p className="text-xs text-gray-500 text-center mb-2">
-              Test Credentials:
-            </p>
-            <div className="text-xs text-gray-500 text-center space-y-1">
-              <div>Admin: admin@estatebali.app / admin123</div>
-              <div>User: user@estatebali.app / user123</div>
-            </div>
-          </div>
         </div>
       </div>
     </div>
