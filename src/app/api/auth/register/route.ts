@@ -153,11 +153,17 @@ export async function POST(request: NextRequest) {
         
         // If we still can't find it, provide a helpful message
         if (missingColumn) {
+          const migrationFile = missingColumn === "id" 
+            ? "supabase/migrations/ensure_users_id_column.sql"
+            : "supabase/migrations/fix_users_table_simple.sql";
+          
           return NextResponse.json(
             { 
               success: false, 
-              error: `Database schema needs to be updated. Please add "${missingColumn}" column to users table. Run the migration: supabase/migrations/fix_users_table_simple.sql`,
-              details: insertError.message
+              error: `Database schema needs to be updated. Please add "${missingColumn}" column to users table. Run the migration: ${migrationFile}`,
+              details: insertError.message,
+              errorCode: insertError.code,
+              hint: insertError.hint
             },
             { status: 500 }
           );
