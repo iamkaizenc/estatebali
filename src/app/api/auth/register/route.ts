@@ -53,7 +53,7 @@ export async function POST(request: NextRequest) {
     // Check if email exists in admin_users table
     const { data: existingAdmin } = await supabaseAdmin
       .from("admin_users")
-      .select("id, email")
+      .select("email")
       .eq("email", email)
       .single();
 
