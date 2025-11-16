@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
+import Link from "next/link";
 import { Lock, User, AlertCircle } from "lucide-react";
 
 export default function LoginPage() {
@@ -131,6 +132,24 @@ export default function LoginPage() {
               {loading ? "Logging in..." : "Sign In"}
             </button>
           </form>
+
+          <div className="mt-6 text-center">
+            <Link 
+              href="/forgot-password" 
+              className="text-sm text-primary hover:underline"
+            >
+              Forgot password?
+            </Link>
+          </div>
+
+          <div className="mt-4 text-center">
+            <p className="text-gray-400 text-sm">
+              Don't have an account?{" "}
+              <Link href="/register" className="text-primary hover:underline font-medium">
+                Sign up
+              </Link>
+            </p>
+          </div>
 
           <div className="mt-6 pt-6 border-t border-dark-300">
             <p className="text-xs text-gray-500 text-center mb-2">

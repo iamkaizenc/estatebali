@@ -1,13 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Property } from "@/types";
+import { Property, SearchFilters } from "@/types";
 
-interface UsePropertiesOptions {
-  listingType?: "sale" | "rent";
+interface UsePropertiesOptions extends SearchFilters {
   featured?: boolean;
-  area?: string;
-  type?: string;
+  userId?: string;
 }
 
 export function useProperties(options: UsePropertiesOptions = {}) {
@@ -24,8 +22,15 @@ export function useProperties(options: UsePropertiesOptions = {}) {
         const params = new URLSearchParams();
         if (options.listingType) params.append("listingType", options.listingType);
         if (options.featured) params.append("featured", "true");
-        if (options.area) params.append("area", options.area);
-        if (options.type) params.append("type", options.type);
+        if (options.location) params.append("area", options.location);
+        if (options.propertyType && options.propertyType.length > 0) {
+          params.append("type", options.propertyType[0]);
+        }
+        if (options.userId) params.append("userId", options.userId);
+        if (options.priceMin) params.append("priceMin", options.priceMin.toString());
+        if (options.priceMax) params.append("priceMax", options.priceMax.toString());
+        if (options.bedrooms) params.append("bedrooms", options.bedrooms.toString());
+        if (options.bathrooms) params.append("bathrooms", options.bathrooms.toString());
 
         const response = await fetch(`/api/properties?${params.toString()}`);
         const result = await response.json();

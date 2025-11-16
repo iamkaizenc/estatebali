@@ -1,0 +1,164 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import { useAuth } from "@/contexts/AuthContext";
+import { ProtectedUserRoute } from "@/components/ProtectedUserRoute";
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
+import PropertyCard from "@/components/PropertyCard";
+import { Property } from "@/types";
+import { Heart, Loader2 } from "lucide-react";
+import Link from "next/link";
+
+function FavoritesPage() {
+  const { user } = useAuth();
+  const [favorites, setFavorites] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchFavorites = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        const token = localStorage.getItem('auth_token') || localStorage.getItem('admin_token');
+        const response = await fetch("/api/favorites", {
+          headers: {
+            "Authorization": `Bearer ${token}`,
+          },
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+          // Transform favorites data to Property format
+          const properties = result.data.map((fav: any) => {
+            const prop = fav.properties;
+            return {
+              id: prop.id,
+              title: prop.title,
+              type: prop.type,
+              listingType: prop.listing_type,
+              price: prop.price,
+              location: {
+                area: prop.area,
+                city: prop.city,
+                address: "",
+              },
+              details: {
+                bedrooms: 0,
+                bathrooms: 0,
+                area: 0,
+              },
+              images: prop.images || [],
+              featured: prop.featured,
+              verified: prop.verified,
+            } as Property;
+          });
+          setFavorites(properties);
+        } else {
+          setError(result.error || "Failed to fetch favorites");
+        }
+      } catch (err: any) {
+        setError(err.message || "Failed to fetch favorites");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (user) {
+      fetchFavorites();
+    }
+  }, [user]);
+
+  const handleRemoveFavorite = async (propertyId: string) => {
+    try {
+      const token = localStorage.getItem('auth_token') || localStorage.getItem('admin_token');
+      const response = await fetch(`/api/favorites/property/${propertyId}`, {
+        method: "DELETE",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+        },
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        // Remove from local state
+        setFavorites(favorites.filter(fav => fav.id !== propertyId));
+      } else {
+        alert(result.error || "Failed to remove favorite");
+      }
+    } catch (err: any) {
+      alert(err.message || "Failed to remove favorite");
+    }
+  };
+
+  return (
+    <ProtectedUserRoute>
+      <div className="min-h-screen bg-black">
+        <Header />
+
+        <main className="container mx-auto px-4 pt-24 pb-20">
+          <div className="mb-8">
+            <h1 className="text-4xl font-bold mb-2 flex items-center gap-3">
+              <Heart className="h-8 w-8 text-primary fill-primary" />
+              My Favorites
+            </h1>
+            <p className="text-gray-400">Properties you've saved</p>
+          </div>
+
+          {loading ? (
+            <div className="text-center py-20">
+              <Loader2 className="h-8 w-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+              <p className="text-gray-400">Loading favorites...</p>
+            </div>
+          ) : error ? (
+            <div className="text-center py-20">
+              <p className="text-red-400 mb-4">{error}</p>
+              <Link href="/properties" className="btn-primary">
+                Browse Properties
+              </Link>
+            </div>
+          ) : favorites.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {favorites.map((property) => (
+                <div key={property.id} className="relative">
+                  <PropertyCard property={property} />
+                  <button
+                    onClick={() => handleRemoveFavorite(property.id)}
+                    className="absolute top-2 right-2 p-2 bg-red-500/90 hover:bg-red-500 rounded-lg transition-colors"
+                    title="Remove from favorites"
+                  >
+                    <Heart className="h-4 w-4 text-white fill-white" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-20 card">
+              <Heart className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+              <h2 className="text-2xl font-bold mb-2">No favorites yet</h2>
+              <p className="text-gray-400 mb-6">Start exploring and save your favorite properties</p>
+              <Link href="/properties" className="btn-primary">
+                Browse Properties
+              </Link>
+            </div>
+          )}
+        </main>
+
+        <Footer />
+      </div>
+    </ProtectedUserRoute>
+  );
+}
+
+export default function FavoritesPageWrapper() {
+  return (
+    <ProtectedUserRoute>
+      <FavoritesPage />
+    </ProtectedUserRoute>
+  );
+}
+

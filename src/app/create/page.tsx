@@ -1,11 +1,19 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/contexts/AuthContext";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import { Home, Upload } from "lucide-react";
+import { ImageUpload } from "@/components/ImageUpload";
+import { Home, Upload, AlertCircle, Loader2 } from "lucide-react";
 
 export default function CreateListingPage() {
+  const router = useRouter();
+  const { user, isAuthenticated } = useAuth();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [images, setImages] = useState<string[]>([]);
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -18,12 +26,74 @@ export default function CreateListingPage() {
     bedrooms: "",
     bathrooms: "",
     propertyArea: "",
+    furnished: false,
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // Redirect if not authenticated
+  if (!isAuthenticated) {
+    router.push("/login");
+    return null;
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle form submission
-    alert("Listing creation feature coming soon! This form would submit to the backend.");
+    setError("");
+    setLoading(true);
+
+    try {
+      const token = localStorage.getItem('auth_token') || localStorage.getItem('admin_token');
+      
+      // Prepare property data
+      const propertyData = {
+        title: formData.title,
+        description: formData.description,
+        type: formData.type,
+        listingType: formData.listingType,
+        source: "owner" as const,
+        price: parseInt(formData.price),
+        location: {
+          address: formData.address,
+          area: formData.area,
+          city: formData.city,
+        },
+        details: {
+          bedrooms: formData.bedrooms ? parseInt(formData.bedrooms) : undefined,
+          bathrooms: formData.bathrooms ? parseInt(formData.bathrooms) : undefined,
+          area: parseInt(formData.propertyArea),
+          furnished: formData.furnished,
+        },
+        features: {},
+        images: images,
+        contact: {
+          name: user?.name || "",
+          email: user?.email || "",
+          phone: "",
+        },
+        available: true,
+      };
+
+      const response = await fetch('/api/properties', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify(propertyData),
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        // Redirect to user dashboard or property page
+        router.push(`/user?created=${result.data.id}`);
+      } else {
+        setError(result.error || "Failed to create property");
+        setLoading(false);
+      }
+    } catch (err: any) {
+      setError(err.message || "An error occurred while creating the property");
+      setLoading(false);
+    }
   };
 
   return (
@@ -36,6 +106,13 @@ export default function CreateListingPage() {
           <p className="text-gray-400">List your property on Estate Bali</p>
         </div>
 
+        {error && (
+          <div className="mb-6 p-4 bg-red-500/20 border border-red-500/50 rounded-lg flex items-center gap-2 text-red-400">
+            <AlertCircle className="h-5 w-5" />
+            <span>{error}</span>
+          </div>
+        )}
+
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="card p-6">
             <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
@@ -45,7 +122,7 @@ export default function CreateListingPage() {
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-medium mb-2">Property Title</label>
+                <label className="block text-sm font-medium mb-2">Property Title *</label>
                 <input
                   type="text"
                   value={formData.title}
@@ -53,16 +130,18 @@ export default function CreateListingPage() {
                   className="input w-full"
                   placeholder="e.g., Luxury Villa with Ocean View"
                   required
+                  disabled={loading}
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-2">Property Type</label>
+                <label className="block text-sm font-medium mb-2">Property Type *</label>
                 <select
                   value={formData.type}
                   onChange={(e) => setFormData({ ...formData, type: e.target.value })}
                   className="input w-full"
                   required
+                  disabled={loading}
                 >
                   <option value="">Select type</option>
                   <option value="villa">Villa</option>
@@ -73,12 +152,13 @@ export default function CreateListingPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-2">Listing Type</label>
+                <label className="block text-sm font-medium mb-2">Listing Type *</label>
                 <select
                   value={formData.listingType}
                   onChange={(e) => setFormData({ ...formData, listingType: e.target.value })}
                   className="input w-full"
                   required
+                  disabled={loading}
                 >
                   <option value="">Select listing type</option>
                   <option value="sale">For Sale</option>
@@ -87,7 +167,7 @@ export default function CreateListingPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-2">Price (IDR)</label>
+                <label className="block text-sm font-medium mb-2">Price (IDR) *</label>
                 <input
                   type="number"
                   value={formData.price}
@@ -95,6 +175,8 @@ export default function CreateListingPage() {
                   className="input w-full"
                   placeholder="e.g., 8500000000"
                   required
+                  min="0"
+                  disabled={loading}
                 />
               </div>
 
@@ -106,6 +188,8 @@ export default function CreateListingPage() {
                   onChange={(e) => setFormData({ ...formData, bedrooms: e.target.value })}
                   className="input w-full"
                   placeholder="e.g., 4"
+                  min="0"
+                  disabled={loading}
                 />
               </div>
 
@@ -117,11 +201,13 @@ export default function CreateListingPage() {
                   onChange={(e) => setFormData({ ...formData, bathrooms: e.target.value })}
                   className="input w-full"
                   placeholder="e.g., 5"
+                  min="0"
+                  disabled={loading}
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-2">Area (m²)</label>
+                <label className="block text-sm font-medium mb-2">Area (m²) *</label>
                 <input
                   type="number"
                   value={formData.propertyArea}
@@ -129,18 +215,35 @@ export default function CreateListingPage() {
                   className="input w-full"
                   placeholder="e.g., 450"
                   required
+                  min="0"
+                  disabled={loading}
                 />
+              </div>
+
+              <div className="flex items-center gap-2 pt-6">
+                <input
+                  type="checkbox"
+                  id="furnished"
+                  checked={formData.furnished}
+                  onChange={(e) => setFormData({ ...formData, furnished: e.target.checked })}
+                  className="w-4 h-4 rounded border-dark-300"
+                  disabled={loading}
+                />
+                <label htmlFor="furnished" className="text-sm font-medium">
+                  Furnished
+                </label>
               </div>
             </div>
 
             <div className="mt-6">
-              <label className="block text-sm font-medium mb-2">Description</label>
+              <label className="block text-sm font-medium mb-2">Description *</label>
               <textarea
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 className="input w-full h-32"
                 placeholder="Describe your property..."
                 required
+                disabled={loading}
               />
             </div>
           </div>
@@ -150,7 +253,7 @@ export default function CreateListingPage() {
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-medium mb-2">Address</label>
+                <label className="block text-sm font-medium mb-2">Address *</label>
                 <input
                   type="text"
                   value={formData.address}
@@ -158,11 +261,12 @@ export default function CreateListingPage() {
                   className="input w-full"
                   placeholder="Street address"
                   required
+                  disabled={loading}
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-2">Area</label>
+                <label className="block text-sm font-medium mb-2">Area *</label>
                 <input
                   type="text"
                   value={formData.area}
@@ -170,11 +274,12 @@ export default function CreateListingPage() {
                   className="input w-full"
                   placeholder="e.g., Seminyak"
                   required
+                  disabled={loading}
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-2">City</label>
+                <label className="block text-sm font-medium mb-2">City *</label>
                 <input
                   type="text"
                   value={formData.city}
@@ -182,6 +287,7 @@ export default function CreateListingPage() {
                   className="input w-full"
                   placeholder="e.g., Badung"
                   required
+                  disabled={loading}
                 />
               </div>
             </div>
@@ -192,19 +298,35 @@ export default function CreateListingPage() {
               <Upload className="h-6 w-6 text-primary" />
               Photos
             </h2>
-            <div className="border-2 border-dashed border-dark-300 rounded-xl p-12 text-center">
-              <Upload className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-400 mb-2">Upload property photos</p>
-              <p className="text-sm text-gray-500">Feature coming soon</p>
-            </div>
+            <ImageUpload 
+              onImagesChange={setImages}
+              maxImages={10}
+              bucketName="property-images"
+            />
           </div>
 
           <div className="flex gap-4">
-            <button type="submit" className="btn-primary flex-1">
-              Create Listing
+            <button 
+              type="submit" 
+              className="btn-primary flex-1 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              disabled={loading}
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Creating...
+                </>
+              ) : (
+                "Create Listing"
+              )}
             </button>
-            <button type="button" className="btn-secondary flex-1">
-              Save Draft
+            <button 
+              type="button" 
+              className="btn-secondary flex-1"
+              onClick={() => router.back()}
+              disabled={loading}
+            >
+              Cancel
             </button>
           </div>
         </form>
@@ -214,4 +336,3 @@ export default function CreateListingPage() {
     </div>
   );
 }
-

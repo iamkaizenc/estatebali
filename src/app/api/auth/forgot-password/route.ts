@@ -1,0 +1,110 @@
+import { NextRequest, NextResponse } from "next/server";
+import { supabaseAdmin, isSupabaseConfigured } from "@/lib/supabase";
+import crypto from "crypto";
+
+// POST /api/auth/forgot-password - Send password reset email
+export async function POST(request: NextRequest) {
+  try {
+    if (!isSupabaseConfigured || !supabaseAdmin) {
+      return NextResponse.json(
+        { success: false, error: "Supabase is not configured. Please set up environment variables." },
+        { status: 503 }
+      );
+    }
+
+    // Rate limiting (prevent email spam)
+    const body = await request.json();
+    
+    const validation = validateData(forgotPasswordSchema, body);
+    if (!validation.success) {
+      return NextResponse.json(
+        { success: false, error: validation.error },
+        { status: 400 }
+      );
+    }
+
+    const { email } = validation.data;
+
+    // Rate limit by email (3 requests per hour)
+    const rateLimit = rateLimitByEmail(email, { windowMs: 60 * 60 * 1000, maxRequests: 3 });
+    if (!rateLimit.success) {
+      return NextResponse.json(
+        { success: false, error: rateLimit.error || "Too many password reset requests. Please try again later." },
+        { status: 429 }
+      );
+    }
+
+    // Check if user exists
+    const { data: user } = await supabaseAdmin
+      .from("users")
+      .select("id, email, name")
+      .eq("email", email)
+      .single();
+
+    // Also check admin_users
+    const { data: adminUser } = await supabaseAdmin
+      .from("admin_users")
+      .select("id, email, name")
+      .eq("email", email)
+      .single();
+
+    // Don't reveal if user exists or not (security best practice)
+    // But we'll still generate a token for valid emails
+    const targetUser = user || adminUser;
+
+    if (!targetUser) {
+      // Return success even if user doesn't exist (security best practice)
+      return NextResponse.json({
+        success: true,
+        message: "If an account exists with this email, a password reset link has been sent.",
+      });
+    }
+
+    // Generate reset token
+    const resetToken = crypto.randomBytes(32).toString("hex");
+    const tokenExpiry = new Date();
+    tokenExpiry.setHours(tokenExpiry.getHours() + 1); // Token expires in 1 hour
+
+    // Store reset token in password_reset_tokens table
+    const { error: tokenError } = await supabaseAdmin
+      .from("password_reset_tokens")
+      .insert({
+        user_id: targetUser.id,
+        token: resetToken,
+        expires_at: tokenExpiry.toISOString(),
+        used: false,
+      });
+
+    if (tokenError) {
+      // If table doesn't exist, log error but still return success (security best practice)
+      // eslint-disable-next-line no-console
+      console.error("Error storing reset token:", tokenError);
+      // In production, you should ensure the table exists
+    }
+
+    // Generate reset URL
+    const resetUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/reset-password?token=${resetToken}`;
+
+    // TODO: Implement email sending service (SendGrid, Resend, etc.)
+    // For now, in development mode, log the URL
+    if (process.env.NODE_ENV === "development") {
+      // eslint-disable-next-line no-console
+      console.log("Password reset link (DEV ONLY):", resetUrl);
+    }
+
+    return NextResponse.json({
+      success: true,
+      message: "If an account exists with this email, a password reset link has been sent.",
+      // Only return URL in development
+      devResetUrl: process.env.NODE_ENV === "development" ? resetUrl : undefined,
+    });
+  } catch (error: any) {
+    // eslint-disable-next-line no-console
+    console.error("Forgot password error:", error);
+    return NextResponse.json(
+      { success: false, error: error.message || "Failed to process password reset request" },
+      { status: 500 }
+    );
+  }
+}
+

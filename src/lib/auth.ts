@@ -42,9 +42,19 @@ function verifyToken(token: string): AuthUser | null {
 // Login function for both admin and regular users
 export async function loginUser(email: string, password: string): Promise<{ success: boolean; token?: string; error?: string }> {
   try {
-    // If Supabase is not configured, use fallback authentication
+    // In production, Supabase is required
+    if (process.env.NODE_ENV === 'production' && !supabaseAdmin) {
+      return { success: false, error: "Authentication service is not configured. Please contact administrator." };
+    }
+
+    // If Supabase is not configured, use fallback authentication (development only)
     if (!supabaseAdmin) {
-      // Fallback to hardcoded credentials (for development only)
+      // Only allow fallback in development mode
+      if (process.env.NODE_ENV === 'production') {
+        return { success: false, error: "Authentication service is not configured." };
+      }
+
+      // Fallback to hardcoded credentials (DEVELOPMENT ONLY - NOT FOR PRODUCTION)
       const DEFAULT_ADMIN_EMAIL = "admin@estatebali.app";
       const DEFAULT_ADMIN_PASSWORD = "admin123";
       const DEFAULT_USER_EMAIL = "user@estatebali.app";
@@ -91,7 +101,10 @@ export async function loginUser(email: string, password: string): Promise<{ succ
       
       // Fallback for development: if password hash is not set, check plain text
       if (!passwordMatch && adminUser.password_hash === password) {
-        console.warn("Using plain text password - CHANGE IN PRODUCTION!");
+        if (process.env.NODE_ENV === 'development') {
+          // eslint-disable-next-line no-console
+          console.warn("Using plain text password - CHANGE IN PRODUCTION!");
+        }
       } else if (!passwordMatch) {
         return { success: false, error: "Invalid email or password" };
       }
@@ -150,8 +163,10 @@ export async function loginUser(email: string, password: string): Promise<{ succ
 
     return { success: false, error: "Invalid email or password" };
   } catch (error: any) {
+    // Always log errors
+    // eslint-disable-next-line no-console
     console.error("Login error:", error);
-    return { success: false, error: "Login failed" };
+    return { success: false, error: "Login failed. Please try again." };
   }
 }
 

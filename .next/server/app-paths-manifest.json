@@ -1,8 +1,1 @@
-{
-  "/page": "app/page.js",
-  "/user/page": "app/user/page.js",
-  "/login/page": "app/login/page.js",
-  "/map/page": "app/map/page.js",
-  "/api/properties/route": "app/api/properties/route.js",
-  "/property/[id]/page": "app/property/[id]/page.js"
-}
+{}

@@ -5,8 +5,8 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { ProtectedUserRoute } from "@/components/ProtectedUserRoute";
 import { useAuth } from "@/contexts/AuthContext";
-import { useProperties } from "@/hooks/useProperties";
 import PropertyCard from "@/components/PropertyCard";
+import { Property } from "@/types";
 import { Plus, Edit, Trash2, LogOut, User as UserIcon, Home, Heart } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -14,14 +14,58 @@ import Link from "next/link";
 function UserDashboard() {
   const { user, logout } = useAuth();
   const router = useRouter();
-  const { properties, loading, error } = useProperties();
   
-  // Filter properties to show only user's own properties
-  // In a real app, you'd filter by user_id from the database
-  const userProperties = properties.filter(p => 
-    p.contact?.email === user?.email || 
-    p.source === "owner" // For now, show owner properties
-  );
+  // Get user's own properties by filtering with userId
+  // First, we need to get user_id from users table
+  const [userProperties, setUserProperties] = useState<Property[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchUserProperties = async () => {
+      if (!user?.email) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        setLoading(true);
+        setError(null);
+
+        // Get user_id from users table
+        const userResponse = await fetch(`/api/users?email=${user.email}`);
+        const userResult = await userResponse.json();
+        
+        if (userResult.success && userResult.data?.id) {
+          // Fetch properties for this user
+          const response = await fetch(`/api/properties?userId=${userResult.data.id}`);
+          const result = await response.json();
+
+          if (result.success) {
+            setUserProperties(result.data);
+          } else {
+            setError(result.error || "Failed to fetch properties");
+          }
+        } else {
+          // Fallback: filter by email if user_id not found
+          const response = await fetch('/api/properties');
+          const result = await response.json();
+          if (result.success) {
+            const filtered = result.data.filter((p: Property) => 
+              p.contact?.email === user.email
+            );
+            setUserProperties(filtered);
+          }
+        }
+      } catch (err: any) {
+        setError(err.message || "Failed to fetch properties");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUserProperties();
+  }, [user]);
 
   const handleLogout = () => {
     logout();
@@ -118,10 +162,28 @@ function UserDashboard() {
                       <Edit className="h-4 w-4 text-white" />
                     </Link>
                     <button
-                      onClick={() => {
+                      onClick={async () => {
                         if (confirm("Are you sure you want to delete this property?")) {
-                          // Delete logic here
-                          console.log("Delete property:", property.id);
+                          try {
+                            const token = localStorage.getItem('auth_token') || localStorage.getItem('admin_token');
+                            const response = await fetch(`/api/properties/${property.id}`, {
+                              method: 'DELETE',
+                              headers: {
+                                'Authorization': `Bearer ${token}`,
+                              },
+                            });
+
+                            if (response.ok) {
+                              // Remove from local state
+                              setUserProperties(userProperties.filter(p => p.id !== property.id));
+                            } else {
+                              const result = await response.json();
+                              alert(result.error || 'Failed to delete property');
+                            }
+                          } catch (error: any) {
+                            console.error('Delete error:', error);
+                            alert('Error deleting property: ' + (error.message || 'Unknown error'));
+                          }
                         }
                       }}
                       className="p-2 bg-red-500/90 hover:bg-red-500 rounded-lg transition-colors"

@@ -9,6 +9,7 @@ import SearchBar from "@/components/SearchBar";
 import PropertyCard from "@/components/PropertyCard";
 import { useProperties } from "@/hooks/useProperties";
 import { areas } from "@/data/mockData";
+import { getAreaImage } from "@/data/areaImages";
 import { motion } from "framer-motion";
 import { TrendingUp, Shield, Clock, Award } from "lucide-react";
 
@@ -210,9 +211,9 @@ export default function HomePage() {
           </div>
           
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-            {areas.slice(0, 10).map((area, index) => {
-              // Deterministic image selection based on index
-              const imageId = index % 2 === 0 ? '1537996194783-970b5d545f7d' : '1555400038-63f5ba517a47';
+            {areas.slice(0, 10).map((area) => {
+              // Get area-specific image
+              const areaImage = getAreaImage(area);
               // Deterministic property count based on area name hash
               const areaHash = area.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
               const propertyCount = (areaHash % 50) + 20;
@@ -224,7 +225,7 @@ export default function HomePage() {
                     className="relative h-32 rounded-xl overflow-hidden group cursor-pointer"
                   >
                     <Image
-                      src={`https://images.unsplash.com/photo-${imageId}?w=400`}
+                      src={areaImage}
                       alt={area}
                       fill
                       className="object-cover group-hover:scale-110 transition-transform duration-500"

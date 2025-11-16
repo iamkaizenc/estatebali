@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin, isSupabaseConfigured } from "@/lib/supabase";
 import { dbPropertyToProperty, propertyToDbProperty } from "@/lib/supabase";
-import { verifyAdminAuth } from "@/lib/api-auth";
+import { verifyAdminAuth, verifyAuth } from "@/lib/api-auth";
+import { propertySchema, validateData } from "@/lib/validation";
+import { rateLimitByIP } from "@/lib/rate-limit";
 import { mockProperties } from "@/data/mockData";
 
 // GET /api/properties - Get all properties
@@ -41,13 +43,24 @@ export async function GET(request: NextRequest) {
     const featured = searchParams.get("featured");
     const area = searchParams.get("area");
     const type = searchParams.get("type");
+    const userId = searchParams.get("userId");
     const limit = searchParams.get("limit");
     const offset = searchParams.get("offset");
+    const search = searchParams.get("search") || searchParams.get("query"); // Search query
+    const priceMin = searchParams.get("priceMin");
+    const priceMax = searchParams.get("priceMax");
+    const bedrooms = searchParams.get("bedrooms");
+    const bathrooms = searchParams.get("bathrooms");
 
     let query = supabaseAdmin
       .from("properties")
       .select("*")
       .order("created_at", { ascending: false });
+
+    // Filter by user_id (for user's own properties)
+    if (userId) {
+      query = query.eq("user_id", userId);
+    }
 
     // Filter by listing type
     if (listingType) {
@@ -67,6 +80,29 @@ export async function GET(request: NextRequest) {
     // Filter by type
     if (type) {
       query = query.eq("type", type);
+    }
+
+    // Search query (title or description)
+    if (search) {
+      query = query.or(`title.ilike.%${search}%,description.ilike.%${search}%,area.ilike.%${search}%`);
+    }
+
+    // Price filters
+    if (priceMin) {
+      query = query.gte("price", parseInt(priceMin));
+    }
+    if (priceMax) {
+      query = query.lte("price", parseInt(priceMax));
+    }
+
+    // Bedrooms filter
+    if (bedrooms) {
+      query = query.gte("bedrooms", parseInt(bedrooms));
+    }
+
+    // Bathrooms filter
+    if (bathrooms) {
+      query = query.gte("bathrooms", parseInt(bathrooms));
     }
 
     // Pagination
@@ -101,11 +137,20 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST /api/properties - Create a new property (Admin only)
+// POST /api/properties - Create a new property (Authenticated users)
 export async function POST(request: NextRequest) {
   try {
-    // Verify admin authentication
-    const auth = verifyAdminAuth(request);
+    // Rate limiting
+    const rateLimit = rateLimitByIP(request, { windowMs: 60 * 1000, maxRequests: 10 });
+    if (!rateLimit.success) {
+      return NextResponse.json(
+        { success: false, error: rateLimit.error || "Too many requests" },
+        { status: 429 }
+      );
+    }
+
+    // Verify authentication (both admin and regular users can create properties)
+    const auth = verifyAuth(request);
     if (!auth.success) {
       return NextResponse.json(
         { success: false, error: auth.error || "Unauthorized" },
@@ -122,9 +167,33 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
+
+    // Input validation
+    const validation = validateData(propertySchema, body);
+    if (!validation.success) {
+      return NextResponse.json(
+        { success: false, error: validation.error },
+        { status: 400 }
+      );
+    }
     
-    // Convert app property to database property
-    const dbProperty = propertyToDbProperty(body);
+        // Convert app property to database property
+        const dbProperty = propertyToDbProperty(validation.data);
+    
+    // Add user_id if user is not admin (admin can create for others)
+    if (auth.user && auth.user.role !== 'admin' && auth.user.role !== 'super_admin') {
+      // For regular users, set their user_id
+      // Note: We need to get user_id from users table by email
+      const { data: userData } = await supabaseAdmin
+        .from("users")
+        .select("id")
+        .eq("email", auth.user.email)
+        .single();
+      
+      if (userData) {
+        (dbProperty as any).user_id = userData.id;
+      }
+    }
     
     // Insert into database
     const { data, error } = await supabaseAdmin
@@ -133,23 +202,25 @@ export async function POST(request: NextRequest) {
       .select()
       .single();
 
-    if (error) {
-      console.error("Supabase error:", error);
-      throw error;
+        if (error) {
+          // eslint-disable-next-line no-console
+          console.error("Supabase error:", error);
+          throw error;
+        }
+
+        // Convert back to app property
+        const property = dbPropertyToProperty(data);
+
+        return NextResponse.json({
+          success: true,
+          data: property,
+        }, { status: 201 });
+      } catch (error: any) {
+        // eslint-disable-next-line no-console
+        console.error("Error creating property:", error);
+        return NextResponse.json(
+          { success: false, error: error.message || "Failed to create property" },
+          { status: 500 }
+        );
+      }
     }
-
-    // Convert back to app property
-    const property = dbPropertyToProperty(data);
-
-    return NextResponse.json({
-      success: true,
-      data: property,
-    }, { status: 201 });
-  } catch (error: any) {
-    console.error("Error creating property:", error);
-    return NextResponse.json(
-      { success: false, error: error.message || "Failed to create property" },
-      { status: 500 }
-    );
-  }
-}

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useAuth } from "@/contexts/AuthContext";
 import { Home, Menu, X, Bell, Heart, MessageSquare, User, Plus, LogOut, Settings } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -20,9 +21,16 @@ export default function Header() {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2">
-            <Home className="h-6 w-6 text-primary" />
-            <span className="text-xl font-bold">Estate Bali</span>
+          <Link href="/" className="flex items-center gap-3">
+            <Image 
+              src="/logo.svg" 
+              alt="Estate Bali Logo" 
+              width={200} 
+              height={80}
+              className="h-10 w-auto"
+              priority
+            />
+            <span className="text-xl font-bold hidden sm:inline">Estate Bali</span>
           </Link>
 
           {/* Desktop Navigation */}

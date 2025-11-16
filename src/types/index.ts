@@ -85,6 +85,7 @@ export interface Property {
 
 // Search Filters
 export interface SearchFilters {
+  query?: string; // General search query
   listingType?: ListingType;
   propertyType?: PropertyType[];
   source?: ListingSource;

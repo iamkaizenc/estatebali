@@ -1,12 +1,18 @@
 "use client";
 
+import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import PropertyCard from "@/components/PropertyCard";
+import SearchBar from "@/components/SearchBar";
 import { useProperties } from "@/hooks/useProperties";
+import { SearchFilters } from "@/types";
 
 export default function PropertiesPage() {
-  const { properties, loading, error } = useProperties();
+  const searchParams = useSearchParams();
+  const [filters, setFilters] = useState<SearchFilters>({});
+  const { properties, loading, error } = useProperties(filters);
 
   return (
     <div className="min-h-screen bg-black">
@@ -16,6 +22,21 @@ export default function PropertiesPage() {
         <div className="mb-8">
           <h1 className="text-4xl font-bold mb-2">All Properties</h1>
           <p className="text-gray-400">Browse all available properties in Bali</p>
+        </div>
+
+        {/* Search Bar */}
+        <div className="mb-8">
+          <SearchBar onSearch={(searchFilters) => {
+            setFilters({
+              listingType: searchFilters.listingType,
+              propertyType: searchFilters.propertyType,
+              priceMin: searchFilters.priceMin,
+              priceMax: searchFilters.priceMax,
+              bedrooms: searchFilters.bedrooms,
+              location: searchFilters.location || searchFilters.query,
+              query: searchFilters.query,
+            });
+          }} />
         </div>
 
         {loading ? (

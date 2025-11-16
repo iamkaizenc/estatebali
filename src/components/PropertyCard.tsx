@@ -1,18 +1,100 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Heart, MapPin, Bed, Bath, Square, Clock } from "lucide-react";
 import { Property } from "@/types";
 import { motion } from "framer-motion";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface PropertyCardProps {
   property: Property;
 }
 
 export default function PropertyCard({ property }: PropertyCardProps) {
+  const { isAuthenticated, user } = useAuth();
   const [liked, setLiked] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  // Check if property is in favorites
+  useEffect(() => {
+    const checkFavorite = async () => {
+      if (!isAuthenticated || !user) {
+        setLiked(false);
+        return;
+      }
+
+      try {
+        const token = localStorage.getItem('auth_token') || localStorage.getItem('admin_token');
+        const response = await fetch("/api/favorites", {
+          headers: {
+            "Authorization": `Bearer ${token}`,
+          },
+        });
+
+        const result = await response.json();
+        if (result.success) {
+          const isFavorite = result.data.some((fav: any) => fav.property_id === property.id);
+          setLiked(isFavorite);
+        }
+      } catch (err) {
+        // Silently fail
+      }
+    };
+
+    checkFavorite();
+  }, [isAuthenticated, user, property.id]);
+
+  const handleFavoriteToggle = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (!isAuthenticated) {
+      // Redirect to login
+      window.location.href = "/login";
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const token = localStorage.getItem('auth_token') || localStorage.getItem('admin_token');
+
+      if (liked) {
+        // Remove from favorites
+        const response = await fetch(`/api/favorites/property/${property.id}`, {
+          method: "DELETE",
+          headers: {
+            "Authorization": `Bearer ${token}`,
+          },
+        });
+
+        const result = await response.json();
+        if (result.success) {
+          setLiked(false);
+        }
+      } else {
+        // Add to favorites
+        const response = await fetch("/api/favorites", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`,
+          },
+          body: JSON.stringify({ propertyId: property.id }),
+        });
+
+        const result = await response.json();
+        if (result.success) {
+          setLiked(true);
+        }
+      }
+    } catch (err) {
+      console.error("Error toggling favorite:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const formatPrice = (price: number) => {
     if (price >= 1000000000) {
@@ -59,17 +141,18 @@ export default function PropertyCard({ property }: PropertyCardProps) {
           </div>
 
           {/* Like Button */}
-          <button
-            onClick={(e) => {
-              e.preventDefault();
-              setLiked(!liked);
-            }}
-            className="absolute top-4 right-4 p-2 glass rounded-full hover:bg-white/20 transition-colors"
-          >
-            <Heart 
-              className={`h-5 w-5 ${liked ? "fill-red-500 text-red-500" : "text-white"}`} 
-            />
-          </button>
+          {isAuthenticated && (
+            <button
+              onClick={handleFavoriteToggle}
+              disabled={loading}
+              className="absolute top-4 right-4 p-2 glass rounded-full hover:bg-white/20 transition-colors disabled:opacity-50"
+              title={liked ? "Remove from favorites" : "Add to favorites"}
+            >
+              <Heart 
+                className={`h-5 w-5 transition-colors ${liked ? "fill-red-500 text-red-500" : "text-white"}`} 
+              />
+            </button>
+          )}
 
           {/* Image Counter */}
           <div className="absolute bottom-4 left-4 px-2 py-1 glass rounded-lg text-xs">

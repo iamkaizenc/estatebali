@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { Home, Mail, Phone, MapPin, Facebook, Instagram, Twitter, Linkedin } from "lucide-react";
 
 export default function Footer() {
@@ -8,10 +9,15 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {/* Company Info */}
           <div>
-            <div className="flex items-center gap-2 mb-4">
-              <Home className="h-6 w-6 text-primary" />
-              <span className="text-xl font-bold">Estate Bali</span>
-            </div>
+            <Link href="/" className="flex items-center gap-2 mb-4">
+              <Image 
+                src="/logo.svg" 
+                alt="Estate Bali Logo" 
+                width={200} 
+                height={80}
+                className="h-8 w-auto"
+              />
+            </Link>
             <p className="text-gray-400 mb-4">
               Bali's premier real estate platform. Find your dream property in paradise.
             </p>
