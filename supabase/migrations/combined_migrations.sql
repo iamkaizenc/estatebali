@@ -341,7 +341,21 @@ BEGIN
     WHERE table_name = 'properties' 
     AND column_name = 'listing_type'
   ) THEN
-    ALTER TABLE properties ADD COLUMN listing_type VARCHAR(20) NOT NULL DEFAULT 'sale' CHECK (listing_type IN ('sale', 'rent'));
+    -- First add column as nullable
+    ALTER TABLE properties ADD COLUMN listing_type VARCHAR(20);
+    
+    -- Update existing rows to have default value
+    UPDATE properties SET listing_type = 'sale' WHERE listing_type IS NULL;
+    
+    -- Now make it NOT NULL with default
+    ALTER TABLE properties 
+      ALTER COLUMN listing_type SET DEFAULT 'sale',
+      ALTER COLUMN listing_type SET NOT NULL;
+    
+    -- Add check constraint
+    ALTER TABLE properties ADD CONSTRAINT check_listing_type 
+      CHECK (listing_type IN ('sale', 'rent'));
+    
     CREATE INDEX IF NOT EXISTS idx_properties_listing_type ON properties(listing_type);
   END IF;
 END $$;

@@ -264,7 +264,25 @@ BEGIN
     WHERE table_name = 'properties' 
     AND column_name = 'listing_type'
   ) THEN
-    ALTER TABLE properties ADD COLUMN listing_type VARCHAR(20) NOT NULL DEFAULT 'sale' CHECK (listing_type IN ('sale', 'rent'));
+    -- First add column as nullable
+    ALTER TABLE properties ADD COLUMN listing_type VARCHAR(20);
+    
+    -- Update existing rows to have default value
+    UPDATE properties SET listing_type = 'sale' WHERE listing_type IS NULL;
+    
+    -- Now make it NOT NULL with default
+    ALTER TABLE properties 
+      ALTER COLUMN listing_type SET DEFAULT 'sale',
+      ALTER COLUMN listing_type SET NOT NULL;
+    
+    -- Add check constraint if it doesn't exist
+    IF NOT EXISTS (
+      SELECT 1 FROM pg_constraint WHERE conname = 'check_listing_type'
+    ) THEN
+      ALTER TABLE properties ADD CONSTRAINT check_listing_type 
+        CHECK (listing_type IN ('sale', 'rent'));
+    END IF;
+    
     CREATE INDEX IF NOT EXISTS idx_properties_listing_type ON properties(listing_type);
     COMMENT ON COLUMN properties.listing_type IS 'Property listing type: sale or rent';
   END IF;
