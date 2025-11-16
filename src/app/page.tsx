@@ -23,16 +23,27 @@ export default function HomePage() {
       <Header />
       
       {/* Hero Section */}
-      <section className="relative h-screen flex items-center justify-center bg-black">
+      <section className="relative h-screen flex items-center justify-center bg-black overflow-hidden">
+        {/* Video Background */}
         <div className="absolute inset-0 z-0">
-          <Image
-            src="https://images.unsplash.com/photo-1540541011368-8fc88765bbab?w=1920&q=80"
-            alt="Bali Villa"
-            fill
-            priority
-            className="object-cover opacity-40"
-            sizes="100vw"
-          />
+          <video
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="absolute inset-0 w-full h-full object-cover opacity-40"
+          >
+            <source src="/hero-background.mp4" type="video/mp4" />
+            {/* Fallback to image if video fails to load */}
+            <Image
+              src="https://images.unsplash.com/photo-1540541011368-8fc88765bbab?w=1920&q=80"
+              alt="Bali Villa"
+              fill
+              priority
+              className="object-cover opacity-40"
+              sizes="100vw"
+            />
+          </video>
           <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/20 to-black" />
         </div>
         
