@@ -1,4 +1,4 @@
-# ✅ Yayına Hazırlık Checklist
+   # ✅ Yayına Hazırlık Checklist
 
 ## 🚀 Vercel Deployment Adımları
 

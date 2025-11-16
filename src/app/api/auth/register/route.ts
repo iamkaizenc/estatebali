@@ -88,16 +88,25 @@ export async function POST(request: NextRequest) {
       
       // If column doesn't exist, we need to add it
       if (insertError.message?.includes("column")) {
-        const missingColumn = insertError.message.includes("password_hash") 
-          ? "password_hash" 
-          : insertError.message.includes("verified")
-          ? "verified"
-          : "unknown column";
+        let missingColumn = "unknown";
+        
+        // Extract column name from error message
+        const columnMatch = insertError.message.match(/column "([^"]+)" does not exist/i);
+        if (columnMatch && columnMatch[1]) {
+          missingColumn = columnMatch[1];
+        } else if (insertError.message.includes("password_hash")) {
+          missingColumn = "password_hash";
+        } else if (insertError.message.includes("verified")) {
+          missingColumn = "verified";
+        } else if (insertError.message.includes("role")) {
+          missingColumn = "role";
+        }
         
         return NextResponse.json(
           { 
             success: false, 
-            error: `Database schema needs to be updated. Please add ${missingColumn} column to users table. Run the migration: supabase/migrations/combined_migrations.sql` 
+            error: `Database schema needs to be updated. Please add "${missingColumn}" column to users table. Run the migration: supabase/migrations/combined_migrations.sql`,
+            details: insertError.message
           },
           { status: 500 }
         );
