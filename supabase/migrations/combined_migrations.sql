@@ -361,9 +361,13 @@ BEGIN
       ALTER COLUMN listing_type SET DEFAULT 'sale',
       ALTER COLUMN listing_type SET NOT NULL;
     
-    -- Add check constraint
-    ALTER TABLE properties ADD CONSTRAINT check_listing_type 
-      CHECK (listing_type IN ('sale', 'rent'));
+    -- Add check constraint if it doesn't exist
+    IF NOT EXISTS (
+      SELECT 1 FROM pg_constraint WHERE conname = 'check_listing_type'
+    ) THEN
+      ALTER TABLE properties ADD CONSTRAINT check_listing_type 
+        CHECK (listing_type IN ('sale', 'rent'));
+    END IF;
     
     CREATE INDEX IF NOT EXISTS idx_properties_listing_type ON properties(listing_type);
   END IF;
