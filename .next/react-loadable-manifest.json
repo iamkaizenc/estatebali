@@ -1,1 +1,14 @@
-{}
+{
+  "app/map/page.tsx -> @/components/MapComponent": {
+    "id": 6218,
+    "files": [
+      "static/chunks/218.56347be21c4966b2.js"
+    ]
+  },
+  "components/MapComponent.tsx -> leaflet": {
+    "id": 7691,
+    "files": [
+      "static/chunks/d0deef33.afff9b3bf7059c8b.js"
+    ]
+  }
+}
