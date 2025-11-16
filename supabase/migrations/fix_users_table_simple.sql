@@ -34,8 +34,29 @@ BEGIN
       AND table_name = 'users' 
       AND column_name = 'id'
     ) THEN
-      -- Add id column as primary key (this might fail if there's data, but we'll try)
-      ALTER TABLE users ADD COLUMN id UUID PRIMARY KEY DEFAULT uuid_generate_v4();
+      -- Add id column (first as nullable, then update existing rows, then make it primary key)
+      ALTER TABLE users ADD COLUMN id UUID;
+      
+      -- Update existing rows with UUIDs
+      UPDATE users SET id = uuid_generate_v4() WHERE id IS NULL;
+      
+      -- Make it NOT NULL and set default
+      ALTER TABLE users 
+        ALTER COLUMN id SET NOT NULL,
+        ALTER COLUMN id SET DEFAULT uuid_generate_v4();
+      
+      -- Check if there's already a primary key constraint
+      IF EXISTS (
+        SELECT 1 FROM pg_constraint 
+        WHERE conrelid = 'users'::regclass 
+        AND contype = 'p'
+      ) THEN
+        -- Drop existing primary key if it exists
+        ALTER TABLE users DROP CONSTRAINT users_pkey;
+      END IF;
+      
+      -- Add primary key constraint
+      ALTER TABLE users ADD PRIMARY KEY (id);
     END IF;
   END IF;
 END $$;
