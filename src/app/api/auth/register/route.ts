@@ -84,11 +84,26 @@ export async function POST(request: NextRequest) {
     // If insert was successful, fetch the user back
     let newUser = null;
     if (!insertError) {
-      const { data: fetchedUser } = await supabaseAdmin
+      const { data: fetchedUser, error: fetchError } = await supabaseAdmin
         .from("users")
         .select("email, name, phone, role, verified, created_at")
         .eq("email", email)
         .single();
+      
+      if (fetchError) {
+        // eslint-disable-next-line no-console
+        console.error("Error fetching created user:", fetchError);
+        // User was created but we can't fetch it - that's okay, they can login
+        return NextResponse.json({
+          success: true,
+          message: "User registered successfully. Please try logging in.",
+          data: {
+            email: email,
+            name: name,
+          },
+        }, { status: 201 });
+      }
+      
       newUser = fetchedUser;
     }
 
