@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import Header from "@/components/Header";
@@ -29,14 +29,14 @@ export default function CreateListingPage() {
     furnished: false,
   });
 
-  // Redirect if not authenticated
-  useState(() => {
-    if (typeof window !== 'undefined' && !isAuthenticated) {
+  // Redirect if not authenticated - only on client side
+  useEffect(() => {
+    if (!isAuthenticated) {
       router.push("/login");
     }
-  });
+  }, [isAuthenticated, router]);
   
-  if (typeof window !== 'undefined' && !isAuthenticated) {
+  if (!isAuthenticated) {
     return null;
   }
 
