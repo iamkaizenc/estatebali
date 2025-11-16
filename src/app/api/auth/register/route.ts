@@ -87,29 +87,58 @@ export async function POST(request: NextRequest) {
       console.error("Error creating user:", insertError);
       
       // If column doesn't exist, we need to add it
-      if (insertError.message?.includes("column")) {
-        let missingColumn = "unknown";
+      if (insertError.message?.includes("column") || insertError.message?.includes("does not exist")) {
+        let missingColumn = null;
         
-        // Extract column name from error message
-        const columnMatch = insertError.message.match(/column "([^"]+)" does not exist/i);
-        if (columnMatch && columnMatch[1]) {
-          missingColumn = columnMatch[1];
-        } else if (insertError.message.includes("password_hash")) {
-          missingColumn = "password_hash";
-        } else if (insertError.message.includes("verified")) {
-          missingColumn = "verified";
-        } else if (insertError.message.includes("role")) {
-          missingColumn = "role";
+        // Try multiple patterns to extract column name
+        const patterns = [
+          /column\s+"([^"]+)"\s+does not exist/i,
+          /column\s+([a-z_]+)\s+does not exist/i,
+          /column\s+"([^"]+)"/i,
+          /column\s+([a-z_]+)/i,
+        ];
+        
+        for (const pattern of patterns) {
+          const match = insertError.message.match(pattern);
+          if (match && match[1]) {
+            missingColumn = match[1];
+            break;
+          }
         }
         
-        return NextResponse.json(
-          { 
-            success: false, 
-            error: `Database schema needs to be updated. Please add "${missingColumn}" column to users table. Run the migration: supabase/migrations/combined_migrations.sql`,
-            details: insertError.message
-          },
-          { status: 500 }
-        );
+        // Fallback: check for common column names in error message
+        if (!missingColumn) {
+          if (insertError.message.toLowerCase().includes("password_hash")) {
+            missingColumn = "password_hash";
+          } else if (insertError.message.toLowerCase().includes("verified")) {
+            missingColumn = "verified";
+          } else if (insertError.message.toLowerCase().includes("role")) {
+            missingColumn = "role";
+          }
+        }
+        
+        // If we still can't find it, provide a helpful message
+        if (missingColumn) {
+          return NextResponse.json(
+            { 
+              success: false, 
+              error: `Database schema needs to be updated. Please add "${missingColumn}" column to users table. Run the migration: supabase/migrations/fix_users_table_simple.sql`,
+              details: insertError.message
+            },
+            { status: 500 }
+          );
+        } else {
+          // Generic error with full details
+          return NextResponse.json(
+            { 
+              success: false, 
+              error: `Database schema error. Please run the migration: supabase/migrations/fix_users_table_simple.sql to add missing columns (password_hash, verified, role) to users table.`,
+              details: insertError.message,
+              hint: "The users table needs password_hash, verified, and role columns."
+            },
+            { status: 500 }
+          );
+        }
       }
       
       throw insertError;
