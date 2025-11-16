@@ -79,15 +79,16 @@ export async function POST(request: NextRequest) {
         role: "customer", // Default role
         verified: false,
       })
-      .select()
+      .select("id, email, name, phone, role, verified, created_at")
       .single();
 
     if (insertError) {
       // eslint-disable-next-line no-console
       console.error("Error creating user:", insertError);
+      console.error("Full error object:", JSON.stringify(insertError, null, 2));
       
       // If column doesn't exist, we need to add it
-      if (insertError.message?.includes("column") || insertError.message?.includes("does not exist")) {
+      if (insertError.message?.includes("column") || insertError.message?.includes("does not exist") || insertError.code === "42703") {
         let missingColumn = null;
         
         // Try multiple patterns to extract column name
