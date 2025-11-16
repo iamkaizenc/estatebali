@@ -73,7 +73,7 @@ export default function AboutPage() {
             </p>
             <ul className="text-gray-300 space-y-2 mb-12">
               <li>Email: info@estatebali.app</li>
-              <li>Phone: +62 812 3456 7890</li>
+              <li>Phone: <a href="https://wa.me/306989273327" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">+30 698 927 3327</a></li>
               <li>Location: Bali, Indonesia</li>
             </ul>
           </div>

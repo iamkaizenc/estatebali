@@ -221,17 +221,15 @@ export default function PropertyDetailPage() {
                       <Mail className="h-4 w-4" />
                       Email
                     </a>
-                    {property.contact.whatsapp && (
-                      <a
-                        href={`https://wa.me/${property.contact.whatsapp.replace(/\D/g, '')}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="bg-green-500 text-white px-6 py-3 rounded-full font-semibold hover:bg-green-600 transition-colors w-full flex items-center justify-center gap-2"
-                      >
-                        <MessageCircle className="h-4 w-4" />
-                        WhatsApp
-                      </a>
-                    )}
+                    <a
+                      href="https://wa.me/306989273327"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="bg-green-500 text-white px-6 py-3 rounded-full font-semibold hover:bg-green-600 transition-colors w-full flex items-center justify-center gap-2"
+                    >
+                      <MessageCircle className="h-4 w-4" />
+                      WhatsApp
+                    </a>
                   </div>
                 </div>
 

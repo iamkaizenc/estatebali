@@ -255,6 +255,21 @@ BEGIN
   END IF;
 END $$;
 
+-- 18. Add listing_type column if it doesn't exist
+DO $$ 
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 
+    FROM information_schema.columns 
+    WHERE table_name = 'properties' 
+    AND column_name = 'listing_type'
+  ) THEN
+    ALTER TABLE properties ADD COLUMN listing_type VARCHAR(20) NOT NULL DEFAULT 'sale' CHECK (listing_type IN ('sale', 'rent'));
+    CREATE INDEX IF NOT EXISTS idx_properties_listing_type ON properties(listing_type);
+    COMMENT ON COLUMN properties.listing_type IS 'Property listing type: sale or rent';
+  END IF;
+END $$;
+
 -- Verify all columns exist
 DO $$
 DECLARE

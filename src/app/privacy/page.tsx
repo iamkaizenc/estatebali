@@ -56,7 +56,7 @@ export default function PrivacyPage() {
             </p>
             <p className="text-gray-300 mt-2">
               Email: privacy@estatebali.app<br />
-              Phone: +62 812 3456 7890
+              Phone: <a href="https://wa.me/306989273327" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">+30 698 927 3327</a>
             </p>
           </section>
 
