@@ -117,7 +117,7 @@ export default function PropertyCard({ property }: PropertyCardProps) {
         {/* Image Container */}
         <div className="relative h-64 overflow-hidden">
           <Image
-            src={property.images[0]}
+            src={property.images && property.images.length > 0 ? property.images[0] : "https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=800"}
             alt={property.title}
             fill
             className="object-cover group-hover:scale-110 transition-transform duration-500"

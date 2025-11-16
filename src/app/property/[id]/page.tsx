@@ -53,9 +53,11 @@ export default function PropertyDetailPage() {
     return `Rp ${price.toLocaleString()}`;
   };
 
-  const featuresList = Object.entries(property.features)
-    .filter(([_, value]) => value === true)
-    .map(([key, _]) => key);
+  const featuresList = property.features 
+    ? Object.entries(property.features)
+        .filter(([_, value]) => value === true)
+        .map(([key, _]) => key)
+    : [];
 
   return (
     <div className="min-h-screen bg-black">
@@ -66,7 +68,7 @@ export default function PropertyDetailPage() {
         <section className="relative h-[60vh] md:h-[70vh]">
           <div className="relative w-full h-full">
             <Image
-              src={property.images[0]}
+              src={property.images && property.images.length > 0 ? property.images[0] : "https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=800"}
               alt={property.title}
               fill
               className="object-cover"
