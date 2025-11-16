@@ -138,6 +138,19 @@ export async function POST(request: NextRequest) {
       console.error("Full error object:", JSON.stringify(insertError, null, 2));
       console.error("===========================");
       
+      // Check for NOT NULL constraint violation (id column missing default)
+      if (insertError.code === "23502" && insertError.message?.includes("id")) {
+        return NextResponse.json(
+          { 
+            success: false, 
+            error: "Database schema error: id column is missing DEFAULT value. Please run the migration: supabase/migrations/fix_id_default.sql",
+            details: insertError.message,
+            hint: "The id column needs DEFAULT uuid_generate_v4() to work properly."
+          },
+          { status: 500 }
+        );
+      }
+      
       // Check if this is actually an RLS (Row Level Security) issue
       if (insertError.code === "42501" || insertError.message?.includes("permission") || insertError.message?.includes("policy")) {
         return NextResponse.json(
