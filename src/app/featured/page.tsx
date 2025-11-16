@@ -3,6 +3,7 @@
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import PropertyCard from "@/components/PropertyCard";
+import EmptyState from "@/components/EmptyState";
 import { useProperties } from "@/hooks/useProperties";
 
 export default function FeaturedPage() {
@@ -34,9 +35,13 @@ export default function FeaturedPage() {
             ))}
           </div>
         ) : (
-          <div className="text-center py-20">
-            <p className="text-gray-400 text-lg">No featured properties available.</p>
-          </div>
+          <EmptyState
+            icon="home"
+            title="No Featured Properties Available"
+            description="We're currently curating the best properties in Bali. Check back soon or browse all available properties."
+            actionLabel="Browse All Properties"
+            actionHref="/properties"
+          />
         )}
       </main>
 

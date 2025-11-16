@@ -7,7 +7,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import SearchBar from "@/components/SearchBar";
 import PropertyCard from "@/components/PropertyCard";
-import { EmptyState } from "@/components/EmptyState";
+import EmptyState from "@/components/EmptyState";
 import { useProperties } from "@/hooks/useProperties";
 import { areas } from "@/data/mockData";
 import { getAreaImage } from "@/data/areaImages";
@@ -25,8 +25,23 @@ export default function HomePage() {
       
       {/* Hero Section */}
       <section className="relative h-screen flex items-center justify-center bg-black overflow-hidden">
-        {/* Dynamic Background Layers */}
+        {/* Animated Gradient Background */}
         <div className="absolute inset-0 z-0">
+          {/* Base gradient */}
+          <div className="absolute inset-0 bg-gradient-to-br from-black via-dark-100 to-black" />
+          
+          {/* Animated gradient overlay */}
+          <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-primary/5 animate-pulse" />
+          
+          {/* Geometric pattern */}
+          <div className="absolute inset-0 opacity-20" style={{
+            backgroundImage: `
+              linear-gradient(30deg, transparent 40%, rgba(0, 255, 102, 0.1) 50%, transparent 60%),
+              linear-gradient(-30deg, transparent 40%, rgba(0, 255, 102, 0.05) 50%, transparent 60%)
+            `,
+            backgroundSize: '100px 100px',
+          }} />
+          
           {/* Video Background */}
           <video
             autoPlay
@@ -45,60 +60,25 @@ export default function HomePage() {
             <source src="/hero-background.mp4" type="video/mp4" />
           </video>
           
-          {/* Fallback Image Layer */}
+          {/* Fallback image if video doesn't load */}
           <div className="absolute inset-0 w-full h-full hidden">
             <Image
-              src="https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=1920&q=80"
-              alt="Bali Luxury Villa"
+              src="https://images.unsplash.com/photo-1540541011368-8fc88765bbab?w=1920&q=80"
+              alt="Bali Villa"
               fill
               priority
-              className="object-cover"
+              className="object-cover opacity-50"
               sizes="100vw"
             />
           </div>
-
-          {/* Animated Gradient Overlays */}
-          <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/80" />
-          <motion.div
-            animate={{
-              background: [
-                "radial-gradient(circle at 20% 50%, rgba(34,197,94,0.1) 0%, transparent 50%)",
-                "radial-gradient(circle at 80% 50%, rgba(34,197,94,0.1) 0%, transparent 50%)",
-                "radial-gradient(circle at 20% 50%, rgba(34,197,94,0.1) 0%, transparent 50%)",
-              ],
-            }}
-            transition={{
-              duration: 8,
-              repeat: Infinity,
-              ease: "easeInOut",
-            }}
-            className="absolute inset-0 mix-blend-overlay"
-          />
           
-          {/* Floating Particles Effect */}
-          <div className="absolute inset-0 overflow-hidden">
-            {[...Array(20)].map((_, i) => (
-              <motion.div
-                key={i}
-                className="absolute w-1 h-1 bg-primary/30 rounded-full"
-                initial={{
-                  x: Math.random() * 100 + "%",
-                  y: Math.random() * 100 + "%",
-                  opacity: 0,
-                }}
-                animate={{
-                  y: ["0%", "-100%"],
-                  opacity: [0, 1, 0],
-                }}
-                transition={{
-                  duration: Math.random() * 10 + 10,
-                  repeat: Infinity,
-                  delay: Math.random() * 5,
-                  ease: "linear",
-                }}
-              />
-            ))}
-          </div>
+          {/* Floating orbs */}
+          <div className="absolute top-20 left-10 w-72 h-72 bg-primary/10 rounded-full blur-3xl animate-pulse" />
+          <div className="absolute bottom-20 right-10 w-96 h-96 bg-primary/5 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-primary/5 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }} />
+          
+          {/* Final gradient overlay */}
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/30 to-black" />
         </div>
         
         <div className="relative z-10 container mx-auto px-4 text-center">
@@ -166,10 +146,10 @@ export default function HomePage() {
           </div>
         ) : (
           <EmptyState
-            variant="property"
-            title="No Featured Properties"
-            description="We're adding new featured properties regularly. Check back soon!"
-            actionLabel="View All Properties"
+            icon="home"
+            title="No Featured Properties Yet"
+            description="Our team is curating the best properties in Bali. Check back soon to discover premium listings."
+            actionLabel="Browse All Properties"
             actionHref="/properties"
           />
         )}
@@ -266,9 +246,9 @@ export default function HomePage() {
           </div>
         ) : (
           <EmptyState
-            variant="property"
-            title="No Properties Available"
-            description="New properties are added daily. Check back soon or adjust your search filters."
+            icon="search"
+            title="No Properties Found"
+            description="We couldn't find any properties matching your criteria. Try adjusting your search filters or browse all properties."
             actionLabel="Browse All Properties"
             actionHref="/properties"
           />

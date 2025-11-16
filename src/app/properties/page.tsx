@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import PropertyCard from "@/components/PropertyCard";
+import EmptyState from "@/components/EmptyState";
 import SearchBar from "@/components/SearchBar";
 import { useProperties } from "@/hooks/useProperties";
 import { SearchFilters } from "@/types";
@@ -56,9 +57,16 @@ function PropertiesContent() {
             ))}
           </div>
         ) : (
-          <div className="text-center py-20">
-            <p className="text-gray-400">No properties found.</p>
-          </div>
+          <EmptyState
+            icon="search"
+            title="No Properties Found"
+            description="We couldn't find any properties matching your search criteria. Try adjusting your filters or clearing your search."
+            actionLabel="Clear Filters"
+            onAction={() => {
+              setFilters({});
+              window.location.href = "/properties";
+            }}
+          />
         )}
       </main>
 
