@@ -23,15 +23,17 @@ export default function HomePage() {
       <Header />
       
       {/* Hero Section */}
-      <section className="relative h-screen flex items-center justify-center">
+      <section className="relative h-screen flex items-center justify-center bg-black">
         <div className="absolute inset-0 z-0">
           <Image
-            src="https://images.unsplash.com/photo-1540541011368-8fc88765bbab?w=1920"
+            src="https://images.unsplash.com/photo-1540541011368-8fc88765bbab?w=1920&q=80"
             alt="Bali Villa"
             fill
+            priority
             className="object-cover opacity-40"
+            sizes="100vw"
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black" />
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/20 to-black" />
         </div>
         
         <div className="relative z-10 container mx-auto px-4 text-center">
