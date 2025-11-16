@@ -30,8 +30,13 @@ export default function CreateListingPage() {
   });
 
   // Redirect if not authenticated
-  if (!isAuthenticated) {
-    router.push("/login");
+  useState(() => {
+    if (typeof window !== 'undefined' && !isAuthenticated) {
+      router.push("/login");
+    }
+  });
+  
+  if (typeof window !== 'undefined' && !isAuthenticated) {
     return null;
   }
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -9,7 +9,7 @@ import SearchBar from "@/components/SearchBar";
 import { useProperties } from "@/hooks/useProperties";
 import { SearchFilters } from "@/types";
 
-export default function PropertiesPage() {
+function PropertiesContent() {
   const searchParams = useSearchParams();
   const [filters, setFilters] = useState<SearchFilters>({});
   const { properties, loading, error } = useProperties(filters);
@@ -64,6 +64,18 @@ export default function PropertiesPage() {
 
       <Footer />
     </div>
+  );
+}
+
+export default function PropertiesPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="h-8 w-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+      </div>
+    }>
+      <PropertiesContent />
+    </Suspense>
   );
 }
 
