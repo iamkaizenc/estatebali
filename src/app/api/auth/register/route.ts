@@ -86,12 +86,18 @@ export async function POST(request: NextRequest) {
       // eslint-disable-next-line no-console
       console.error("Error creating user:", insertError);
       
-      // If password_hash column doesn't exist, we need to add it
-      if (insertError.message?.includes("column") && insertError.message?.includes("password_hash")) {
+      // If column doesn't exist, we need to add it
+      if (insertError.message?.includes("column")) {
+        const missingColumn = insertError.message.includes("password_hash") 
+          ? "password_hash" 
+          : insertError.message.includes("verified")
+          ? "verified"
+          : "unknown column";
+        
         return NextResponse.json(
           { 
             success: false, 
-            error: "Database schema needs to be updated. Please add password_hash column to users table." 
+            error: `Database schema needs to be updated. Please add ${missingColumn} column to users table. Run the migration: supabase/migrations/combined_migrations.sql` 
           },
           { status: 500 }
         );

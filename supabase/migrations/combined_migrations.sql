@@ -15,6 +15,20 @@ BEGIN
   END IF;
 END $$;
 
+-- Add verified column to users table if it doesn't exist
+DO $$ 
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 
+    FROM information_schema.columns 
+    WHERE table_name = 'users' 
+    AND column_name = 'verified'
+  ) THEN
+    ALTER TABLE users ADD COLUMN verified BOOLEAN DEFAULT false;
+    COMMENT ON COLUMN users.verified IS 'Whether the user account is verified';
+  END IF;
+END $$;
+
 -- 2. Create password_reset_tokens table
 CREATE TABLE IF NOT EXISTS password_reset_tokens (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
