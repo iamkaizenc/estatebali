@@ -26,8 +26,17 @@ BEGIN
     WHERE table_name = 'properties' 
     AND column_name = 'user_id'
   ) THEN
-    ALTER TABLE properties 
-    ADD COLUMN user_id UUID REFERENCES users(id) ON DELETE SET NULL;
+    ALTER TABLE properties ADD COLUMN user_id UUID;
+    
+    -- Add foreign key constraint if it doesn't exist
+    IF NOT EXISTS (
+      SELECT 1 FROM pg_constraint WHERE conname = 'properties_user_id_fkey'
+    ) THEN
+      ALTER TABLE properties 
+        ADD CONSTRAINT properties_user_id_fkey 
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL;
+    END IF;
+    
     CREATE INDEX IF NOT EXISTS idx_properties_user_id ON properties(user_id);
     COMMENT ON COLUMN properties.user_id IS 'Owner of the property (from users table)';
   END IF;
