@@ -15,6 +15,31 @@ function PropertiesContent() {
   const [filters, setFilters] = useState<SearchFilters>({});
   const { properties, loading, error } = useProperties(filters);
 
+  // Load filters from URL on mount
+  useEffect(() => {
+    const urlFilters: SearchFilters = {};
+    
+    const query = searchParams.get("query");
+    const listingType = searchParams.get("listingType");
+    const type = searchParams.get("type");
+    const area = searchParams.get("area");
+    const priceMin = searchParams.get("priceMin");
+    const priceMax = searchParams.get("priceMax");
+    const bedrooms = searchParams.get("bedrooms");
+    const bathrooms = searchParams.get("bathrooms");
+    
+    if (query) urlFilters.query = query;
+    if (listingType) urlFilters.listingType = listingType as "sale" | "rent";
+    if (type) urlFilters.propertyType = [type as "villa" | "apartment" | "house" | "land"];
+    if (area) urlFilters.location = area;
+    if (priceMin) urlFilters.priceMin = parseInt(priceMin);
+    if (priceMax) urlFilters.priceMax = parseInt(priceMax);
+    if (bedrooms) urlFilters.bedrooms = parseInt(bedrooms);
+    if (bathrooms) urlFilters.bathrooms = parseInt(bathrooms);
+    
+    setFilters(urlFilters);
+  }, [searchParams]);
+
   return (
     <div className="min-h-screen bg-black">
       <Header />
@@ -28,15 +53,33 @@ function PropertiesContent() {
         {/* Search Bar */}
         <div className="mb-8">
           <SearchBar onSearch={(searchFilters) => {
-            setFilters({
+            const newFilters: SearchFilters = {
               listingType: searchFilters.listingType,
               propertyType: searchFilters.propertyType,
               priceMin: searchFilters.priceMin,
               priceMax: searchFilters.priceMax,
               bedrooms: searchFilters.bedrooms,
+              bathrooms: searchFilters.bathrooms,
               location: searchFilters.location || searchFilters.query,
               query: searchFilters.query,
-            });
+            };
+            setFilters(newFilters);
+            
+            // Update URL with new filters
+            const params = new URLSearchParams();
+            if (newFilters.query) params.append("query", newFilters.query);
+            if (newFilters.listingType) params.append("listingType", newFilters.listingType);
+            if (newFilters.propertyType && newFilters.propertyType.length > 0) {
+              params.append("type", newFilters.propertyType[0]);
+            }
+            if (newFilters.location) params.append("area", newFilters.location);
+            if (newFilters.priceMin) params.append("priceMin", newFilters.priceMin.toString());
+            if (newFilters.priceMax) params.append("priceMax", newFilters.priceMax.toString());
+            if (newFilters.bedrooms) params.append("bedrooms", newFilters.bedrooms.toString());
+            if (newFilters.bathrooms) params.append("bathrooms", newFilters.bathrooms.toString());
+            
+            const newUrl = `/properties?${params.toString()}`;
+            window.history.pushState({}, "", newUrl);
           }} />
         </div>
 

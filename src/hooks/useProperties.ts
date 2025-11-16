@@ -23,6 +23,7 @@ export function useProperties(options: UsePropertiesOptions = {}) {
         if (options.listingType) params.append("listingType", options.listingType);
         if (options.featured) params.append("featured", "true");
         if (options.location) params.append("area", options.location);
+        if (options.query) params.append("query", options.query);
         if (options.propertyType && options.propertyType.length > 0) {
           params.append("type", options.propertyType[0]);
         }
@@ -48,7 +49,7 @@ export function useProperties(options: UsePropertiesOptions = {}) {
     };
 
     fetchProperties();
-  }, [options.listingType, options.featured, options.area, options.type]);
+  }, [options.listingType, options.featured, options.area, options.type, options.query, options.location, options.priceMin, options.priceMax, options.bedrooms, options.bathrooms, options.userId]);
 
   return { properties, loading, error, refetch: () => {
     const fetchProperties = async () => {

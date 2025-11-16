@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import SearchBar from "@/components/SearchBar";
@@ -11,13 +12,34 @@ import EmptyState from "@/components/EmptyState";
 import { useProperties } from "@/hooks/useProperties";
 import { areas } from "@/data/mockData";
 import { getAreaImage } from "@/data/areaImages";
+import { SearchFilters } from "@/types";
 import { motion } from "framer-motion";
 import { TrendingUp, Shield, Clock, Award } from "lucide-react";
 
 export default function HomePage() {
+  const router = useRouter();
   const { properties, loading: propertiesLoading } = useProperties();
   const { properties: featuredPropertiesList, loading: featuredLoading } = useProperties({ featured: true });
   const featuredProperties = featuredPropertiesList;
+
+  const handleSearch = (filters: SearchFilters) => {
+    // Build query string from filters
+    const params = new URLSearchParams();
+    
+    if (filters.query) params.append("query", filters.query);
+    if (filters.listingType) params.append("listingType", filters.listingType);
+    if (filters.propertyType && filters.propertyType.length > 0) {
+      params.append("type", filters.propertyType[0]);
+    }
+    if (filters.location) params.append("area", filters.location);
+    if (filters.priceMin) params.append("priceMin", filters.priceMin.toString());
+    if (filters.priceMax) params.append("priceMax", filters.priceMax.toString());
+    if (filters.bedrooms) params.append("bedrooms", filters.bedrooms.toString());
+    if (filters.bathrooms) params.append("bathrooms", filters.bathrooms.toString());
+    
+    // Redirect to properties page with search filters
+    router.push(`/properties?${params.toString()}`);
+  };
 
   return (
     <div className="min-h-screen bg-black">
@@ -109,7 +131,7 @@ export default function HomePage() {
             transition={{ duration: 0.8, delay: 0.4 }}
             className="max-w-4xl mx-auto"
           >
-            <SearchBar />
+            <SearchBar onSearch={handleSearch} />
           </motion.div>
         </div>
         
