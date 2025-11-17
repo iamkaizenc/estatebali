@@ -42,21 +42,44 @@ function verifyToken(token: string): AuthUser | null {
 // Login function for both admin and regular users
 export async function loginUser(email: string, password: string): Promise<{ success: boolean; token?: string; error?: string }> {
   try {
-    // Check Supabase configuration
-    if (!supabaseAdmin) {
+    // Runtime check: Re-import or recreate supabaseAdmin if needed
+    // Sometimes module-level initialization happens before env vars are loaded
+    const runtimeSupabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const runtimeSupabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY 
+      || process.env.SUPABASE_SERVICE_KEY 
+      || process.env.NEXT_PUBLIC_SUPABASE_SERVICE_ROLE_KEY;
+    
+    // Use existing client if available, otherwise create new one
+    let adminClient = supabaseAdmin;
+    
+    if (!adminClient && runtimeSupabaseUrl && runtimeSupabaseServiceKey) {
+      // eslint-disable-next-line no-console
+      console.log('[Login] Creating runtime Supabase admin client');
+      const { createClient } = await import('@supabase/supabase-js');
+      adminClient = createClient(runtimeSupabaseUrl, runtimeSupabaseServiceKey, {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false
+        }
+      });
+    }
+    
+    // Final check
+    if (!adminClient) {
       const missingVars: string[] = [];
-      if (!process.env.NEXT_PUBLIC_SUPABASE_URL) missingVars.push('NEXT_PUBLIC_SUPABASE_URL');
-      if (!process.env.SUPABASE_SERVICE_ROLE_KEY) missingVars.push('SUPABASE_SERVICE_ROLE_KEY');
+      if (!runtimeSupabaseUrl) missingVars.push('NEXT_PUBLIC_SUPABASE_URL');
+      if (!runtimeSupabaseServiceKey) missingVars.push('SUPABASE_SERVICE_ROLE_KEY');
       
       const errorMsg = missingVars.length > 0
         ? `Supabase configuration error: Missing environment variables: ${missingVars.join(', ')}. Please check Vercel environment variables.`
         : "Authentication service is not configured. Please contact administrator.";
       
       // eslint-disable-next-line no-console
-      console.error("Supabase Admin Client Error:", {
-        hasUrl: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
-        hasServiceKey: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
-        missingVars
+      console.error("[Login] Supabase Admin Client Error:", {
+        hasUrl: !!runtimeSupabaseUrl,
+        hasServiceKey: !!runtimeSupabaseServiceKey,
+        missingVars,
+        moduleLevelClient: !!supabaseAdmin,
       });
       
       return { 
@@ -66,7 +89,7 @@ export async function loginUser(email: string, password: string): Promise<{ succ
     }
 
     // First, try to find in admin_users table
-    const { data: adminUser, error: adminError } = await supabaseAdmin
+    const { data: adminUser, error: adminError } = await adminClient
       .from("admin_users")
       .select("*")
       .eq("email", email)
@@ -89,7 +112,7 @@ export async function loginUser(email: string, password: string): Promise<{ succ
       }
 
       // Update last login
-      await supabaseAdmin
+      await adminClient
         .from("admin_users")
         .update({ last_login: new Date().toISOString() })
         .eq("id", adminUser.id);
@@ -106,7 +129,7 @@ export async function loginUser(email: string, password: string): Promise<{ succ
     }
 
     // If not found in admin_users, try users table
-    const { data: regularUser, error: userError } = await supabaseAdmin
+    const { data: regularUser, error: userError } = await adminClient
       .from("users")
       .select("*")
       .eq("email", email)
