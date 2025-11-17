@@ -12,7 +12,10 @@ export const supabase: SupabaseClient | null = supabaseUrl && supabaseAnonKey
 
 // Supabase client for server-side operations (with service role key)
 // IMPORTANT: SUPABASE_SERVICE_ROLE_KEY does NOT have NEXT_PUBLIC_ prefix (server-side only)
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+// Try multiple possible names (in case of typos or Vercel issues)
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY 
+  || process.env.SUPABASE_SERVICE_KEY 
+  || process.env.NEXT_PUBLIC_SUPABASE_SERVICE_ROLE_KEY; // Fallback (wrong but sometimes set)
 
 // Always log to help debug (will show in Vercel Function Logs)
 // eslint-disable-next-line no-console

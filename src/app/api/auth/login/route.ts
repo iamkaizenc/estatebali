@@ -28,6 +28,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Debug: Log environment variables in API route (runtime check)
+    // eslint-disable-next-line no-console
+    console.log('[Login API] Runtime Env Check:', {
+      hasUrl: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
+      hasServiceKey: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
+      serviceKeyLength: process.env.SUPABASE_SERVICE_ROLE_KEY?.length || 0,
+      allSupabaseKeys: Object.keys(process.env).filter(k => k.includes('SUPABASE')),
+    });
+
     // Attempt login
     const result = await loginUser(email, password);
 
