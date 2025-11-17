@@ -2,6 +2,7 @@
 import { supabaseAdmin } from "./supabase";
 import bcrypt from "bcryptjs";
 import { AuthUser, UserRole } from "@/types";
+import { createClient } from '@supabase/supabase-js';
 
 // Simple token creation (In production, use JWT)
 function createToken(user: AuthUser): string {
@@ -42,44 +43,35 @@ function verifyToken(token: string): AuthUser | null {
 // Login function for both admin and regular users
 export async function loginUser(email: string, password: string): Promise<{ success: boolean; token?: string; error?: string }> {
   try {
-    // Runtime check: Re-import or recreate supabaseAdmin if needed
-    // Sometimes module-level initialization happens before env vars are loaded
+    // ALWAYS create Supabase client at runtime (don't rely on module-level import)
+    // This ensures environment variables are loaded
     const runtimeSupabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const runtimeSupabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY 
       || process.env.SUPABASE_SERVICE_KEY 
       || process.env.NEXT_PUBLIC_SUPABASE_SERVICE_ROLE_KEY;
     
-    // Use existing client if available, otherwise create new one
-    let adminClient = supabaseAdmin;
+    // eslint-disable-next-line no-console
+    console.log('[Login] Runtime Env Check:', {
+      hasUrl: !!runtimeSupabaseUrl,
+      hasServiceKey: !!runtimeSupabaseServiceKey,
+      serviceKeyLength: runtimeSupabaseServiceKey?.length || 0,
+      moduleLevelClient: !!supabaseAdmin,
+    });
     
-    if (!adminClient && runtimeSupabaseUrl && runtimeSupabaseServiceKey) {
-      // eslint-disable-next-line no-console
-      console.log('[Login] Creating runtime Supabase admin client');
-      const { createClient } = await import('@supabase/supabase-js');
-      adminClient = createClient(runtimeSupabaseUrl, runtimeSupabaseServiceKey, {
-        auth: {
-          autoRefreshToken: false,
-          persistSession: false
-        }
-      });
-    }
-    
-    // Final check
-    if (!adminClient) {
+    // Create admin client at runtime
+    if (!runtimeSupabaseUrl || !runtimeSupabaseServiceKey) {
       const missingVars: string[] = [];
       if (!runtimeSupabaseUrl) missingVars.push('NEXT_PUBLIC_SUPABASE_URL');
       if (!runtimeSupabaseServiceKey) missingVars.push('SUPABASE_SERVICE_ROLE_KEY');
       
-      const errorMsg = missingVars.length > 0
-        ? `Supabase configuration error: Missing environment variables: ${missingVars.join(', ')}. Please check Vercel environment variables.`
-        : "Authentication service is not configured. Please contact administrator.";
+      const errorMsg = `Supabase configuration error: Missing environment variables: ${missingVars.join(', ')}. Please check Vercel environment variables.`;
       
       // eslint-disable-next-line no-console
-      console.error("[Login] Supabase Admin Client Error:", {
+      console.error("[Login] ❌ Missing env vars:", {
         hasUrl: !!runtimeSupabaseUrl,
         hasServiceKey: !!runtimeSupabaseServiceKey,
         missingVars,
-        moduleLevelClient: !!supabaseAdmin,
+        allSupabaseKeys: Object.keys(process.env).filter(k => k.includes('SUPABASE')),
       });
       
       return { 
@@ -87,6 +79,17 @@ export async function loginUser(email: string, password: string): Promise<{ succ
         error: errorMsg
       };
     }
+    
+    // Create Supabase admin client at runtime
+    const adminClient = createClient(runtimeSupabaseUrl, runtimeSupabaseServiceKey, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false
+      }
+    });
+    
+    // eslint-disable-next-line no-console
+    console.log('[Login] ✅ Runtime Supabase admin client created');
 
     // First, try to find in admin_users table
     const { data: adminUser, error: adminError } = await adminClient

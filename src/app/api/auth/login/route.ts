@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { loginUser } from "@/lib/auth";
 import { loginSchema, validateData } from "@/lib/validation";
 import { rateLimitByEmail } from "@/lib/rate-limit";
+import { createClient } from '@supabase/supabase-js';
 
 // POST /api/auth/login - Login endpoint
 export async function POST(request: NextRequest) {
@@ -29,13 +30,29 @@ export async function POST(request: NextRequest) {
     }
 
     // Debug: Log environment variables in API route (runtime check)
+    const runtimeUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const runtimeServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY 
+      || process.env.SUPABASE_SERVICE_KEY 
+      || process.env.NEXT_PUBLIC_SUPABASE_SERVICE_ROLE_KEY;
+    
     // eslint-disable-next-line no-console
     console.log('[Login API] Runtime Env Check:', {
-      hasUrl: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
-      hasServiceKey: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
-      serviceKeyLength: process.env.SUPABASE_SERVICE_ROLE_KEY?.length || 0,
+      hasUrl: !!runtimeUrl,
+      hasServiceKey: !!runtimeServiceKey,
+      serviceKeyLength: runtimeServiceKey?.length || 0,
       allSupabaseKeys: Object.keys(process.env).filter(k => k.includes('SUPABASE')),
     });
+
+    // If environment variables are available, ensure Supabase is configured
+    if (!runtimeUrl || !runtimeServiceKey) {
+      return NextResponse.json(
+        { 
+          success: false, 
+          error: `Supabase configuration error: Missing environment variables. URL: ${!!runtimeUrl}, ServiceKey: ${!!runtimeServiceKey}` 
+        },
+        { status: 500 }
+      );
+    }
 
     // Attempt login
     const result = await loginUser(email, password);
