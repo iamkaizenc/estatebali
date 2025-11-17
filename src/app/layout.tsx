@@ -3,6 +3,7 @@ import "./globals.css";
 import "leaflet/dist/leaflet.css";
 import { AuthProviderWrapper } from "@/components/AuthProviderWrapper";
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import { Analytics } from "@vercel/analytics/next";
 
 export const metadata: Metadata = {
   title: "Estate Bali - Bali's Premier Real Estate Platform",
@@ -34,6 +35,7 @@ export default function RootLayout({
           {children}
         </AuthProviderWrapper>
         <SpeedInsights />
+        <Analytics />
       </body>
     </html>
   );
