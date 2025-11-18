@@ -124,3 +124,22 @@ export function useAuth() {
   }
   return context;
 }
+
+// Safe version that doesn't throw during SSR/static generation
+// Use this in components that might be rendered during static generation
+export function useAuthSafe() {
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    // Return default values during SSR/static generation
+    return {
+      user: null,
+      loading: false,
+      login: async () => ({ success: false, error: "Not available during SSR" }),
+      logout: () => {},
+      isAuthenticated: false,
+      isAdmin: false,
+      isRegularUser: false,
+    };
+  }
+  return context;
+}

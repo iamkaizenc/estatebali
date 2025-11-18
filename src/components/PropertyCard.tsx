@@ -6,14 +6,14 @@ import Link from "next/link";
 import { Heart, MapPin, Bed, Bath, Square, Clock } from "lucide-react";
 import { Property } from "@/types";
 import { motion } from "framer-motion";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuthSafe } from "@/contexts/AuthContext";
 
 interface PropertyCardProps {
   property: Property;
 }
 
 export default function PropertyCard({ property }: PropertyCardProps) {
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated, user } = useAuthSafe();
   const [liked, setLiked] = useState(false);
   const [loading, setLoading] = useState(false);
 

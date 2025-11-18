@@ -3,13 +3,14 @@
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuthSafe } from "@/contexts/AuthContext";
 import { Home, Menu, X, Bell, Heart, MessageSquare, User, Plus, LogOut, Settings } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const { isAuthenticated, user, isAdmin, logout } = useAuth();
+  // Use useAuthSafe to handle SSR/static generation gracefully
+  const { isAuthenticated, user, isAdmin, logout } = useAuthSafe();
 
   const handleLogout = () => {
     logout();
