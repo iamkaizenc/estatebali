@@ -1,9 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import "leaflet/dist/leaflet.css";
-import { AuthProviderWrapper } from "@/components/AuthProviderWrapper";
-import { SpeedInsights } from "@vercel/speed-insights/next";
-import { Analytics } from "@vercel/analytics/next";
 
 export const metadata: Metadata = {
   title: "Estate Bali - Bali's Premier Real Estate Platform",
@@ -23,20 +20,11 @@ export const metadata: Metadata = {
   },
 };
 
+// Root layout - minimal, actual layout is in [locale]/layout.tsx
 export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  return (
-    <html lang="en">
-      <body className="bg-black text-white antialiased">
-        <AuthProviderWrapper>
-          {children}
-        </AuthProviderWrapper>
-        <SpeedInsights />
-        <Analytics />
-      </body>
-    </html>
-  );
+  return children;
 }
