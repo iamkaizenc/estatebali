@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { useRouter } from "next/navigation";
-import { loginUser, getUser } from "@/lib/auth";
+import { getUser } from "@/lib/auth";
 import { AuthUser } from "@/types";
 
 interface AuthContextType {
@@ -38,22 +38,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const login = async (email: string, password: string) => {
-    const result = await loginUser(email, password);
-    if (result.success && result.token) {
-      localStorage.setItem('auth_token', result.token);
-      // Also set admin_token for backward compatibility
-      if (typeof document !== 'undefined') {
-        const expiresIn = 7 * 24 * 60 * 60; // 7 days in seconds
-        document.cookie = `auth_token=${result.token}; path=/; max-age=${expiresIn}; SameSite=Lax`;
-        document.cookie = `admin_token=${result.token}; path=/; max-age=${expiresIn}; SameSite=Lax`;
+    try {
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const result = await response.json();
+
+      if (result.success && result.token) {
+        localStorage.setItem('auth_token', result.token);
+        // Also set admin_token for backward compatibility
+        if (typeof document !== 'undefined') {
+          const expiresIn = 7 * 24 * 60 * 60; // 7 days in seconds
+          document.cookie = `auth_token=${result.token}; path=/; max-age=${expiresIn}; SameSite=Lax`;
+          document.cookie = `admin_token=${result.token}; path=/; max-age=${expiresIn}; SameSite=Lax`;
+        }
+        const authUser = getUser(result.token);
+        if (authUser) {
+          setUser(authUser);
+          return { success: true };
+        }
       }
-      const authUser = getUser(result.token);
-      if (authUser) {
-        setUser(authUser);
-        return { success: true };
-      }
+      return { success: false, error: result.error || 'Login failed' };
+    } catch (error: any) {
+      return { success: false, error: error.message || 'Login failed. Please try again.' };
     }
-    return { success: false, error: result.error || 'Login failed' };
   };
 
   const logout = () => {

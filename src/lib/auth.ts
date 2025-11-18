@@ -57,15 +57,14 @@ export async function loginUser(email: string, password: string): Promise<{ succ
     });
     
     // Create admin client at runtime
+    // NOTE: This function should only be called from server-side (API routes)
     if (!runtimeSupabaseUrl || !runtimeSupabaseServiceKey) {
       const missingVars: string[] = [];
       if (!runtimeSupabaseUrl) missingVars.push('NEXT_PUBLIC_SUPABASE_URL');
       if (!runtimeSupabaseServiceKey) missingVars.push('SUPABASE_SERVICE_ROLE_KEY');
       
-      const errorMsg = `Supabase configuration error: Missing environment variables: ${missingVars.join(', ')}. Please check Vercel environment variables.`;
-      
       // eslint-disable-next-line no-console
-      console.error("[Login] ❌ Missing env vars:", {
+      console.error("[Login] ❌ Missing env vars (server-side):", {
         hasUrl: !!runtimeSupabaseUrl,
         hasServiceKey: !!runtimeSupabaseServiceKey,
         missingVars,
@@ -74,7 +73,7 @@ export async function loginUser(email: string, password: string): Promise<{ succ
       
       return { 
         success: false, 
-        error: errorMsg
+        error: "Authentication service is temporarily unavailable. Please try again later."
       };
     }
     
