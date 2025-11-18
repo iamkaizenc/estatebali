@@ -33,8 +33,15 @@ function FavoritesPage() {
 
         if (result.success) {
           // Transform favorites data to Property format
+          // NOTE: 'city' column doesn't exist in database, using 'area' or 'address' instead
           const properties = result.data.map((fav: any) => {
             const prop = fav.properties;
+            // Extract city from address if available, otherwise use area or empty string
+            const address = prop.address || "";
+            const area = prop.area || "";
+            // Try to extract city from address (e.g., "Bali, Indonesia" -> "Bali")
+            const city = address.split(",")[0]?.trim() || area || "";
+            
             return {
               id: prop.id,
               title: prop.title,
@@ -42,9 +49,9 @@ function FavoritesPage() {
               listingType: prop.listing_type,
               price: prop.price,
               location: {
-                area: prop.area,
-                city: prop.city,
-                address: "",
+                area: area,
+                city: city,
+                address: address,
               },
               details: {
                 bedrooms: 0,
