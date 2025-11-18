@@ -133,6 +133,11 @@ export async function POST(request: NextRequest) {
     }
 
     // Add favorite
+    // NOTE: This uses supabaseAdmin (service role) to bypass RLS policies
+    // RLS Policy required: INSERT policy on favorites table
+    // Example: CREATE POLICY "Users can insert their own favorites" ON favorites
+    //          FOR INSERT WITH CHECK (auth.uid() = user_id);
+    // Service role bypasses RLS by default
     const { data, error } = await supabaseAdmin
       .from("favorites")
       .insert({
@@ -144,6 +149,24 @@ export async function POST(request: NextRequest) {
 
     if (error) {
       console.error("Error adding favorite:", error);
+      
+      // Check if this is an RLS (Row Level Security) issue
+      if (error.code === "42501" || 
+          error.message?.includes("row-level security") || 
+          error.message?.includes("policy") ||
+          error.message?.includes("violates row-level security")) {
+        console.error("RLS Policy Error: favorites table needs INSERT policy");
+        return NextResponse.json(
+          { 
+            success: false, 
+            error: "Database permission error. Please check Row Level Security (RLS) policies for the favorites table.",
+            details: error.message,
+            hint: "RLS policies might be blocking the insert. Since we're using supabaseAdmin (service role), RLS should be bypassed. If you still see this error, check: 1) Service role key is correct, 2) RLS is properly configured on favorites table"
+          },
+          { status: 500 }
+        );
+      }
+      
       throw error;
     }
 

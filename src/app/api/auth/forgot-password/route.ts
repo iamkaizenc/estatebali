@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin, isSupabaseConfigured } from "@/lib/supabaseAdmin";
+import { forgotPasswordSchema, validateData } from "@/lib/validation";
+import { rateLimitByEmail } from "@/lib/rate-limit";
 import crypto from "crypto";
 
 // POST /api/auth/forgot-password - Send password reset email
@@ -66,6 +68,10 @@ export async function POST(request: NextRequest) {
     tokenExpiry.setHours(tokenExpiry.getHours() + 1); // Token expires in 1 hour
 
     // Store reset token in password_reset_tokens table
+    // NOTE: This uses supabaseAdmin (service role) to bypass RLS policies
+    // RLS Policy required: INSERT policy on password_reset_tokens table
+    // Example: CREATE POLICY "Allow service role to insert reset tokens" ON password_reset_tokens
+    //          FOR INSERT WITH CHECK (true);
     const { error: tokenError } = await supabaseAdmin
       .from("password_reset_tokens")
       .insert({
@@ -76,10 +82,18 @@ export async function POST(request: NextRequest) {
       });
 
     if (tokenError) {
-      // If table doesn't exist, log error but still return success (security best practice)
       // eslint-disable-next-line no-console
       console.error("Error storing reset token:", tokenError);
-      // In production, you should ensure the table exists
+      
+      // Check if this is an RLS (Row Level Security) issue
+      if (tokenError.code === "42501" || 
+          tokenError.message?.includes("row-level security") || 
+          tokenError.message?.includes("policy")) {
+        // eslint-disable-next-line no-console
+        console.error("RLS Policy Error: password_reset_tokens table needs INSERT policy");
+        // Still return success for security (don't reveal if user exists)
+      }
+      // In production, you should ensure the table exists and has proper RLS policies
     }
 
     // Generate reset URL

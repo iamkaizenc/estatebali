@@ -181,6 +181,7 @@ export async function POST(request: NextRequest) {
         const dbProperty = propertyToDbProperty(validation.data);
     
     // Add user_id if user is not admin (admin can create for others)
+    // NOTE: RLS policies may require user_id for INSERT operations
     if (auth.user && auth.user.role !== 'admin' && auth.user.role !== 'super_admin') {
       // For regular users, set their user_id
       // Note: We need to get user_id from users table by email
@@ -192,10 +193,20 @@ export async function POST(request: NextRequest) {
       
       if (userData) {
         (dbProperty as any).user_id = userData.id;
+      } else {
+        return NextResponse.json(
+          { success: false, error: "User not found. Cannot create property." },
+          { status: 404 }
+        );
       }
     }
     
     // Insert into database
+    // NOTE: This uses supabaseAdmin (service role) to bypass RLS policies
+    // RLS Policy required: INSERT policy on properties table
+    // Example for users: CREATE POLICY "Users can insert their own properties" ON properties
+    //                    FOR INSERT WITH CHECK (auth.uid() = user_id);
+    // Example for service role: Service role bypasses RLS by default
     const { data, error } = await supabaseAdmin
       .from("properties")
       .insert(dbProperty)
@@ -205,6 +216,25 @@ export async function POST(request: NextRequest) {
         if (error) {
           // eslint-disable-next-line no-console
           console.error("Supabase error:", error);
+          
+          // Check if this is an RLS (Row Level Security) issue
+          if (error.code === "42501" || 
+              error.message?.includes("row-level security") || 
+              error.message?.includes("policy") ||
+              error.message?.includes("violates row-level security")) {
+            // eslint-disable-next-line no-console
+            console.error("RLS Policy Error: properties table needs INSERT policy");
+            return NextResponse.json(
+              { 
+                success: false, 
+                error: "Database permission error. Please check Row Level Security (RLS) policies for the properties table.",
+                details: error.message,
+                hint: "RLS policies might be blocking the insert. Since we're using supabaseAdmin (service role), RLS should be bypassed. If you still see this error, check: 1) Service role key is correct, 2) RLS is properly configured on properties table"
+              },
+              { status: 500 }
+            );
+          }
+          
           throw error;
         }
 

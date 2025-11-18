@@ -156,13 +156,18 @@ export async function POST(request: NextRequest) {
       }
       
       // Check if this is actually an RLS (Row Level Security) issue
-      if (insertError.code === "42501" || insertError.message?.includes("permission") || insertError.message?.includes("policy")) {
+      if (insertError.code === "42501" || 
+          insertError.message?.includes("row-level security") || 
+          insertError.message?.includes("policy") ||
+          insertError.message?.includes("violates row-level security")) {
+        // eslint-disable-next-line no-console
+        console.error("RLS Policy Error: users table needs INSERT policy");
         return NextResponse.json(
           { 
             success: false, 
             error: "Database permission error. Please check Row Level Security (RLS) policies for the users table.",
             details: insertError.message,
-            hint: "RLS policies might be blocking the insert. Check Supabase Dashboard → Authentication → Policies"
+            hint: "RLS policies might be blocking the insert. Since we're using supabaseAdmin (service role), RLS should be bypassed. If you still see this error, check: 1) RLS is enabled on users table, 2) Service role key is correct, 3) Supabase Dashboard → Authentication → Policies → users table has INSERT policy for service role"
           },
           { status: 500 }
         );
