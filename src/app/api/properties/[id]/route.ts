@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { supabaseAdmin, isSupabaseConfigured } from "@/lib/supabase";
+import { supabaseAdmin, isSupabaseConfigured } from "@/lib/supabaseAdmin";
 import { dbPropertyToProperty, propertyToDbProperty } from "@/lib/supabase";
 import { verifyAdminAuth, verifyAuth } from "@/lib/api-auth";
 import { mockProperties } from "@/data/mockData";

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { supabaseAdmin, isSupabaseConfigured } from "@/lib/supabase";
+import { supabaseAdmin, isSupabaseConfigured } from "@/lib/supabaseAdmin";
 import { registerSchema, validateData } from "@/lib/validation";
 import { rateLimitByIP } from "@/lib/rate-limit";
 import bcrypt from "bcryptjs";

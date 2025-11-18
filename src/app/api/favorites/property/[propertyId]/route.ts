@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { supabaseAdmin, isSupabaseConfigured } from "@/lib/supabase";
+import { supabaseAdmin, isSupabaseConfigured } from "@/lib/supabaseAdmin";
 import { verifyAuth } from "@/lib/api-auth";
 
 // DELETE /api/favorites/property/[propertyId] - Remove favorite by property ID

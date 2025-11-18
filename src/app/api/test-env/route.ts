@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { isSupabaseConfigured, supabaseAdmin } from "@/lib/supabase";
+import { isSupabaseConfigured, supabaseAdmin } from "@/lib/supabaseAdmin";
 
 // GET /api/test-env - Test environment variables (for debugging)
 export async function GET(request: NextRequest) {

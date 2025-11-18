@@ -1,5 +1,4 @@
 // Authentication utility with role-based access (admin and user)
-import { supabaseAdmin } from "./supabase";
 import bcrypt from "bcryptjs";
 import { AuthUser, UserRole } from "@/types";
 import { createClient } from '@supabase/supabase-js';
@@ -55,7 +54,6 @@ export async function loginUser(email: string, password: string): Promise<{ succ
       hasUrl: !!runtimeSupabaseUrl,
       hasServiceKey: !!runtimeSupabaseServiceKey,
       serviceKeyLength: runtimeSupabaseServiceKey?.length || 0,
-      moduleLevelClient: !!supabaseAdmin,
     });
     
     // Create admin client at runtime
