@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin, isSupabaseConfigured } from "@/lib/supabaseAdmin";
 import { verifyAuth } from "@/lib/api-auth";
+import { rateLimitByIP } from "@/lib/rate-limit";
 
 // GET /api/favorites - Get user's favorites
 export async function GET(request: NextRequest) {
@@ -80,6 +81,15 @@ export async function GET(request: NextRequest) {
 // POST /api/favorites - Add a favorite
 export async function POST(request: NextRequest) {
   try {
+    // Rate limiting
+    const rateLimit = rateLimitByIP(request, { windowMs: 60 * 1000, maxRequests: 20 });
+    if (!rateLimit.success) {
+      return NextResponse.json(
+        { success: false, error: rateLimit.error || "Too many requests" },
+        { status: 429 }
+      );
+    }
+
     const auth = verifyAuth(request);
     if (!auth.success) {
       return NextResponse.json(

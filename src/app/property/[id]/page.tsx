@@ -1,19 +1,45 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { useProperty } from "@/hooks/useProperties";
 import { MapPin, Bed, Bath, Square, Calendar, Phone, Mail, MessageCircle, Heart, Share2, CheckCircle } from "lucide-react";
 import { motion } from "framer-motion";
 
+// Dynamically import MapComponent to avoid SSR issues with Leaflet
+const MapComponent = dynamic(() => import("@/components/MapComponent"), {
+  ssr: false,
+  loading: () => (
+    <div className="h-64 bg-dark-100 rounded-2xl flex items-center justify-center">
+      <p className="text-gray-400">Loading map...</p>
+    </div>
+  ),
+});
+
 export default function PropertyDetailPage() {
   const params = useParams();
   const { property, loading, error } = useProperty(params.id as string);
   const [liked, setLiked] = useState(false);
+
+  // Increment view count when property is loaded
+  useEffect(() => {
+    if (property?.id) {
+      // Increment view count
+      fetch(`/api/properties/${property.id}/increment-view`, {
+        method: 'POST',
+      }).catch((err) => {
+        // Silently fail - view counting is not critical
+        if (process.env.NODE_ENV === 'development') {
+          console.error('Failed to increment view count:', err);
+        }
+      });
+    }
+  }, [property?.id]);
 
   if (loading) {
     return (
@@ -188,9 +214,12 @@ export default function PropertyDetailPage() {
               {property.location.coordinates && (
                 <div className="mb-8">
                   <h2 className="text-2xl font-bold mb-4">Location</h2>
-                  <div className="h-64 bg-dark-100 rounded-2xl flex items-center justify-center">
-                    <p className="text-gray-400">Map will be displayed here</p>
-                    <p className="text-xs text-gray-500 ml-2">({property.location.coordinates.lat}, {property.location.coordinates.lng})</p>
+                  <div className="h-96 rounded-2xl overflow-hidden">
+                    <MapComponent
+                      properties={[property]}
+                      center={property.location.coordinates}
+                      zoom={15}
+                    />
                   </div>
                 </div>
               )}

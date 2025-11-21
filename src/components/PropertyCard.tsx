@@ -7,6 +7,7 @@ import { Heart, MapPin, Bed, Bath, Square, Clock } from "lucide-react";
 import { Property } from "@/types";
 import { motion } from "framer-motion";
 import { useAuthSafe } from "@/contexts/AuthContext";
+import { getPropertyImage } from "@/lib/constants";
 
 interface PropertyCardProps {
   property: Property;
@@ -117,7 +118,7 @@ export default function PropertyCard({ property }: PropertyCardProps) {
         {/* Image Container */}
         <div className="relative h-64 overflow-hidden">
           <Image
-            src={property.images && property.images.length > 0 ? property.images[0] : "https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=800"}
+            src={getPropertyImage(property)}
             alt={property.title}
             fill
             className="object-cover group-hover:scale-110 transition-transform duration-500"
@@ -156,7 +157,7 @@ export default function PropertyCard({ property }: PropertyCardProps) {
 
           {/* Image Counter */}
           <div className="absolute bottom-4 left-4 px-2 py-1 glass rounded-lg text-xs">
-            {property.images.length} photos
+            {property.images?.length || 0} photos
           </div>
         </div>
 

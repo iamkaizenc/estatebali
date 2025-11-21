@@ -6,8 +6,9 @@ import { ProtectedUserRoute } from "@/components/ProtectedUserRoute";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import PropertyCard from "@/components/PropertyCard";
+import LoadingState, { PropertyGridSkeleton } from "@/components/LoadingState";
 import { Property } from "@/types";
-import { Heart, Loader2 } from "lucide-react";
+import { Heart } from "lucide-react";
 import Link from "next/link";
 
 function FavoritesPage() {
@@ -117,10 +118,7 @@ function FavoritesPage() {
           </div>
 
           {loading ? (
-            <div className="text-center py-20">
-              <Loader2 className="h-8 w-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-              <p className="text-gray-400">Loading favorites...</p>
-            </div>
+            <PropertyGridSkeleton count={6} />
           ) : error ? (
             <div className="text-center py-20">
               <p className="text-red-400 mb-4">{error}</p>

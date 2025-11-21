@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin, isSupabaseConfigured } from "@/lib/supabaseAdmin";
 import { verifyAuth } from "@/lib/api-auth";
+import { rateLimitByIP } from "@/lib/rate-limit";
 
 // DELETE /api/favorites/property/[propertyId] - Remove favorite by property ID
 export async function DELETE(
@@ -8,6 +9,15 @@ export async function DELETE(
   { params }: { params: { propertyId: string } }
 ) {
   try {
+    // Rate limiting
+    const rateLimit = rateLimitByIP(request, { windowMs: 60 * 1000, maxRequests: 20 });
+    if (!rateLimit.success) {
+      return NextResponse.json(
+        { success: false, error: rateLimit.error || "Too many requests" },
+        { status: 429 }
+      );
+    }
+
     const auth = verifyAuth(request);
     if (!auth.success) {
       return NextResponse.json(

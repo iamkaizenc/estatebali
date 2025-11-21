@@ -29,49 +29,24 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Debug: Log ALL environment variables (to see what's actually available)
-    // eslint-disable-next-line no-console
-    console.log('[Login API] ALL Environment Variables:', {
-      allEnvKeys: Object.keys(process.env).filter(k => k.includes('SUPABASE') || k.includes('VERCEL')),
-      hasNextPublicSupabaseUrl: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
-      hasSupabaseServiceRoleKey: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
-      hasSupabaseServiceKey: !!process.env.SUPABASE_SERVICE_KEY,
-      hasNextPublicSupabaseServiceRoleKey: !!process.env.NEXT_PUBLIC_SUPABASE_SERVICE_ROLE_KEY,
-      vercelEnv: process.env.VERCEL_ENV,
-      nodeEnv: process.env.NODE_ENV,
-    });
-
     // Try multiple possible environment variable names
     const runtimeUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const runtimeServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY 
-      || process.env.SUPABASE_SERVICE_KEY 
+    const runtimeServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+      || process.env.SUPABASE_SERVICE_KEY
       || process.env.NEXT_PUBLIC_SUPABASE_SERVICE_ROLE_KEY;
-    
-    // eslint-disable-next-line no-console
-    console.log('[Login API] Runtime Env Check:', {
-      hasUrl: !!runtimeUrl,
-      urlValue: runtimeUrl ? `${runtimeUrl.substring(0, 30)}...` : 'MISSING',
-      hasServiceKey: !!runtimeServiceKey,
-      serviceKeyLength: runtimeServiceKey?.length || 0,
-      serviceKeyPreview: runtimeServiceKey ? `${runtimeServiceKey.substring(0, 30)}...` : 'MISSING',
-    });
 
-    // If environment variables are NOT available, return detailed error
+    // If environment variables are NOT available, return error
     if (!runtimeUrl || !runtimeServiceKey) {
       const missing = [];
       if (!runtimeUrl) missing.push('NEXT_PUBLIC_SUPABASE_URL');
       if (!runtimeServiceKey) missing.push('SUPABASE_SERVICE_ROLE_KEY');
-      
-      // eslint-disable-next-line no-console
-      console.error('[Login API] ❌ Missing environment variables:', {
-        missing,
-        availableSupabaseKeys: Object.keys(process.env).filter(k => k.includes('SUPABASE')),
-      });
-      
+
+      console.error('[Login API] Missing environment variables:', missing.join(', '));
+
       return NextResponse.json(
-        { 
-          success: false, 
-          error: `Supabase configuration error: Missing environment variables: ${missing.join(', ')}. Please check Vercel environment variables. Available SUPABASE keys: ${Object.keys(process.env).filter(k => k.includes('SUPABASE')).join(', ') || 'NONE'}` 
+        {
+          success: false,
+          error: "Authentication service is temporarily unavailable. Please try again later."
         },
         { status: 500 }
       );
