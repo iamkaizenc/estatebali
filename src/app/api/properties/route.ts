@@ -4,6 +4,7 @@ import { dbPropertyToProperty, propertyToDbProperty } from "@/lib/supabase";
 import { verifyAdminAuth, verifyAuth } from "@/lib/api-auth";
 import { propertySchema, validateData } from "@/lib/validation";
 import { rateLimitByIP } from "@/lib/rate-limit";
+import { sanitizeString, sanitizeHTML } from "@/lib/sanitization";
 import { mockProperties } from "@/data/mockData";
 
 // GET /api/properties - Get all properties
@@ -176,9 +177,28 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
-    
+
+    // Sanitize input to prevent XSS attacks
+    const sanitizedData = {
+      ...validation.data,
+      title: sanitizeString(validation.data.title),
+      description: sanitizeHTML(validation.data.description || ''),
+      location: {
+        ...validation.data.location,
+        address: sanitizeString(validation.data.location.address || ''),
+        area: sanitizeString(validation.data.location.area || ''),
+        city: sanitizeString(validation.data.location.city || ''),
+      },
+      contact: {
+        ...validation.data.contact,
+        name: sanitizeString(validation.data.contact.name),
+        email: sanitizeString(validation.data.contact.email),
+        phone: sanitizeString(validation.data.contact.phone),
+      },
+    };
+
         // Convert app property to database property
-        const dbProperty = propertyToDbProperty(validation.data);
+        const dbProperty = propertyToDbProperty(sanitizedData);
     
     // Add user_id if user is not admin (admin can create for others)
     // NOTE: RLS policies may require user_id for INSERT operations

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin, isSupabaseConfigured } from "@/lib/supabaseAdmin";
 import { dbPropertyToProperty, propertyToDbProperty } from "@/lib/supabase";
 import { verifyAdminAuth, verifyAuth } from "@/lib/api-auth";
+import { rateLimitByIP } from "@/lib/rate-limit";
 import { mockProperties } from "@/data/mockData";
 
 // GET /api/properties/[id] - Get a single property
@@ -60,6 +61,15 @@ export async function PUT(
   { params }: { params: { id: string } }
 ) {
   try {
+    // Rate limiting
+    const rateLimit = rateLimitByIP(request, { windowMs: 60 * 1000, maxRequests: 10 });
+    if (!rateLimit.success) {
+      return NextResponse.json(
+        { success: false, error: rateLimit.error || "Too many requests" },
+        { status: 429 }
+      );
+    }
+
     // Verify authentication (both admin and property owner can update)
     const auth = verifyAuth(request);
     if (!auth.success) {
@@ -153,6 +163,15 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
+    // Rate limiting
+    const rateLimit = rateLimitByIP(request, { windowMs: 60 * 1000, maxRequests: 5 });
+    if (!rateLimit.success) {
+      return NextResponse.json(
+        { success: false, error: rateLimit.error || "Too many requests" },
+        { status: 429 }
+      );
+    }
+
     // Verify authentication (both admin and property owner can delete)
     const auth = verifyAuth(request);
     if (!auth.success) {
