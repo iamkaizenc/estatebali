@@ -7,6 +7,7 @@ import Link from "next/link";
 interface Props {
   children: ReactNode;
   fallback?: ReactNode;
+  onError?: (error: Error, errorInfo: ErrorInfo) => void;
 }
 
 interface State {
@@ -40,8 +41,15 @@ export class ErrorBoundary extends Component<Props, State> {
       errorInfo,
     });
 
-    // Log error to error reporting service (e.g., Sentry, LogRocket)
-    // Example: logErrorToService(error, errorInfo);
+    // Call custom error handler if provided
+    if (this.props.onError) {
+      this.props.onError(error, errorInfo);
+    }
+
+    // In production, send to error reporting service (e.g., Sentry, LogRocket)
+    if (process.env.NODE_ENV === "production") {
+      // logErrorToService(error, errorInfo);
+    }
   }
 
   handleReset = () => {
@@ -110,3 +118,58 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 }
 
+/**
+ * Property-specific Error Boundary
+ * Use this for property-related components
+ */
+export function PropertyErrorBoundary({ children }: { children: ReactNode }) {
+  return (
+    <ErrorBoundary
+      fallback={
+        <div className="card p-6 text-center">
+          <AlertTriangle className="h-12 w-12 text-red-500 mx-auto mb-3" />
+          <h3 className="text-lg font-semibold mb-2">Failed to load property</h3>
+          <p className="text-gray-400 text-sm mb-4">
+            There was an error loading this property. Please try again later.
+          </p>
+          <Link href="/properties" className="btn-primary inline-block">
+            Browse All Properties
+          </Link>
+        </div>
+      }
+    >
+      {children}
+    </ErrorBoundary>
+  );
+}
+
+/**
+ * Form Error Boundary
+ * Use this for form components
+ */
+export function FormErrorBoundary({ children }: { children: ReactNode }) {
+  return (
+    <ErrorBoundary
+      fallback={
+        <div className="card p-6 text-center">
+          <AlertTriangle className="h-12 w-12 text-red-500 mx-auto mb-3" />
+          <h3 className="text-lg font-semibold mb-2">Form Error</h3>
+          <p className="text-gray-400 text-sm mb-4">
+            There was an error with the form. Please refresh the page and try again.
+          </p>
+          <button
+            onClick={() => window.location.reload()}
+            className="btn-primary inline-flex items-center gap-2"
+          >
+            <RefreshCw className="h-4 w-4" />
+            Refresh Page
+          </button>
+        </div>
+      }
+    >
+      {children}
+    </ErrorBoundary>
+  );
+}
+
+export default ErrorBoundary;

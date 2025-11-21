@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAuthSafe } from "@/contexts/AuthContext";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import { FormErrorBoundary } from "@/components/ErrorBoundary";
 import { ImageUpload } from "@/components/ImageUpload";
 import { Home, Upload, AlertCircle, Loader2 } from "lucide-react";
 
@@ -118,7 +119,8 @@ export default function CreateListingPage() {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <FormErrorBoundary>
+          <form onSubmit={handleSubmit} className="space-y-6">
           <div className="card p-6">
             <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
               <Home className="h-6 w-6 text-primary" />
@@ -335,6 +337,7 @@ export default function CreateListingPage() {
             </button>
           </div>
         </form>
+        </FormErrorBoundary>
       </main>
 
       <Footer />

@@ -7,6 +7,7 @@ import Link from "next/link";
 import dynamic from "next/dynamic";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import { PropertyErrorBoundary } from "@/components/ErrorBoundary";
 import { useProperty } from "@/hooks/useProperties";
 import { MapPin, Bed, Bath, Square, Calendar, Phone, Mail, MessageCircle, Heart, Share2, CheckCircle } from "lucide-react";
 import { motion } from "framer-motion";
@@ -88,8 +89,9 @@ export default function PropertyDetailPage() {
   return (
     <div className="min-h-screen bg-black">
       <Header />
-      
-      <main className="pt-16">
+
+      <PropertyErrorBoundary>
+        <main className="pt-16">
         {/* Image Gallery */}
         <section className="relative h-[60vh] md:h-[70vh]">
           <div className="relative w-full h-full">
@@ -289,6 +291,7 @@ export default function PropertyDetailPage() {
           </div>
         </div>
       </main>
+      </PropertyErrorBoundary>
 
       <Footer />
     </div>
