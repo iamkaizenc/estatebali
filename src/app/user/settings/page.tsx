@@ -1,14 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuthSafe } from "@/contexts/AuthContext";
 import { ProtectedUserRoute } from "@/components/ProtectedUserRoute";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Settings, User, Bell, Lock, Globe, Save } from "lucide-react";
 
 function SettingsPage() {
-  const { user } = useAuth();
+  const { user } = useAuthSafe();
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 

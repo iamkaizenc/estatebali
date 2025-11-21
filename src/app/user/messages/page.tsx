@@ -1,6 +1,6 @@
 "use client";
 
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuthSafe } from "@/contexts/AuthContext";
 import { ProtectedUserRoute } from "@/components/ProtectedUserRoute";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -8,7 +8,7 @@ import { MessageCircle, Inbox } from "lucide-react";
 import Link from "next/link";
 
 function MessagesPage() {
-  const { user } = useAuth();
+  const { user } = useAuthSafe();
 
   return (
     <ProtectedUserRoute>
