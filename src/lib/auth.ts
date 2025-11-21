@@ -49,12 +49,13 @@ export async function loginUser(email: string, password: string): Promise<{ succ
       || process.env.SUPABASE_SERVICE_KEY 
       || process.env.NEXT_PUBLIC_SUPABASE_SERVICE_ROLE_KEY;
     
-    // eslint-disable-next-line no-console
-    console.log('[Login] Runtime Env Check:', {
-      hasUrl: !!runtimeSupabaseUrl,
-      hasServiceKey: !!runtimeSupabaseServiceKey,
-      serviceKeyLength: runtimeSupabaseServiceKey?.length || 0,
-    });
+    // Only log in development
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[Login] Runtime Env Check:', {
+        hasUrl: !!runtimeSupabaseUrl,
+        hasServiceKey: !!runtimeSupabaseServiceKey,
+      });
+    }
     
     // Create admin client at runtime
     // NOTE: This function should only be called from server-side (API routes)
@@ -63,13 +64,7 @@ export async function loginUser(email: string, password: string): Promise<{ succ
       if (!runtimeSupabaseUrl) missingVars.push('NEXT_PUBLIC_SUPABASE_URL');
       if (!runtimeSupabaseServiceKey) missingVars.push('SUPABASE_SERVICE_ROLE_KEY');
       
-      // eslint-disable-next-line no-console
-      console.error("[Login] ❌ Missing env vars (server-side):", {
-        hasUrl: !!runtimeSupabaseUrl,
-        hasServiceKey: !!runtimeSupabaseServiceKey,
-        missingVars,
-        allSupabaseKeys: Object.keys(process.env).filter(k => k.includes('SUPABASE')),
-      });
+      console.error("[Login] Missing environment variables:", missingVars.join(', '));
       
       return { 
         success: false, 
@@ -84,9 +79,6 @@ export async function loginUser(email: string, password: string): Promise<{ succ
         persistSession: false
       }
     });
-    
-    // eslint-disable-next-line no-console
-    console.log('[Login] ✅ Runtime Supabase admin client created');
 
     // First, try to find in admin_users table
     const { data: adminUser, error: adminError } = await adminClient

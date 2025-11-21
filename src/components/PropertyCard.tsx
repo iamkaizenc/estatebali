@@ -156,7 +156,7 @@ export default function PropertyCard({ property }: PropertyCardProps) {
 
           {/* Image Counter */}
           <div className="absolute bottom-4 left-4 px-2 py-1 glass rounded-lg text-xs">
-            {property.images.length} photos
+            {property.images?.length || 0} photos
           </div>
         </div>
 
