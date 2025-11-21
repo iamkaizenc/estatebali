@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { ProtectedUserRoute } from "@/components/ProtectedUserRoute";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuthSafe } from "@/contexts/AuthContext";
 import PropertyCard from "@/components/PropertyCard";
 import { Property } from "@/types";
 import { Plus, Edit, Trash2, LogOut, User as UserIcon, Home, Heart } from "lucide-react";
@@ -12,7 +12,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 function UserDashboard() {
-  const { user, logout } = useAuth();
+  const { user, logout } = useAuthSafe();
   const router = useRouter();
   
   // Get user's own properties by filtering with userId

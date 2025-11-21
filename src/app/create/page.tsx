@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuthSafe } from "@/contexts/AuthContext";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { ImageUpload } from "@/components/ImageUpload";
@@ -10,7 +10,7 @@ import { Home, Upload, AlertCircle, Loader2 } from "lucide-react";
 
 export default function CreateListingPage() {
   const router = useRouter();
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated } = useAuthSafe();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [images, setImages] = useState<string[]>([]);
