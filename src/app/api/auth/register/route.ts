@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin, isSupabaseConfigured } from "@/lib/supabaseAdmin";
 import { registerSchema, validateData } from "@/lib/validation";
 import { rateLimitByIP } from "@/lib/rate-limit";
+import { sendEmail, emailTemplates } from "@/lib/email";
 import bcrypt from "bcryptjs";
 
 // POST /api/auth/register - Register a new user
@@ -253,6 +254,20 @@ export async function POST(request: NextRequest) {
         { success: false, error: "User created but could not be retrieved. Please try logging in." },
         { status: 201 }
       );
+    }
+
+    // Send welcome email (don't fail registration if email fails)
+    try {
+      const emailTemplate = emailTemplates.welcomeEmail(newUser.name);
+      await sendEmail({
+        to: newUser.email,
+        subject: emailTemplate.subject,
+        html: emailTemplate.html,
+        text: emailTemplate.text,
+      });
+    } catch (emailError) {
+      // Log but don't fail registration
+      console.error("Failed to send welcome email:", emailError);
     }
 
     return NextResponse.json({

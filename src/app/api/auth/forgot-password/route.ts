@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin, isSupabaseConfigured } from "@/lib/supabaseAdmin";
 import { forgotPasswordSchema, validateData } from "@/lib/validation";
 import { rateLimitByEmail } from "@/lib/rate-limit";
+import { sendEmail, emailTemplates } from "@/lib/email";
 import crypto from "crypto";
 
 // POST /api/auth/forgot-password - Send password reset email
@@ -99,18 +100,30 @@ export async function POST(request: NextRequest) {
     // Generate reset URL
     const resetUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/reset-password?token=${resetToken}`;
 
-    // TODO: Implement email sending service (SendGrid, Resend, etc.)
-    // For now, in development mode, log the URL
-    if (process.env.NODE_ENV === "development") {
-      // eslint-disable-next-line no-console
-      console.log("Password reset link (DEV ONLY):", resetUrl);
+    // Send password reset email
+    const emailTemplate = emailTemplates.passwordReset(resetUrl, targetUser.name || 'there');
+    const emailResult = await sendEmail({
+      to: targetUser.email,
+      subject: emailTemplate.subject,
+      html: emailTemplate.html,
+      text: emailTemplate.text,
+    });
+
+    // Log email result (but don't fail if email fails - security best practice)
+    if (!emailResult.success) {
+      console.error("Failed to send password reset email:", emailResult.error);
+
+      // In development, still log the URL
+      if (process.env.NODE_ENV === "development") {
+        console.log("Password reset link (DEV ONLY):", resetUrl);
+      }
     }
 
     return NextResponse.json({
       success: true,
       message: "If an account exists with this email, a password reset link has been sent.",
-      // Only return URL in development
-      devResetUrl: process.env.NODE_ENV === "development" ? resetUrl : undefined,
+      // Only return URL in development if email failed
+      devResetUrl: process.env.NODE_ENV === "development" && !emailResult.success ? resetUrl : undefined,
     });
   } catch (error: any) {
     // eslint-disable-next-line no-console
