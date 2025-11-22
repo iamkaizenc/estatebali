@@ -1,28 +1,21 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
+import { NextRequest } from 'next/server';
+import {
+  apiSuccess,
+  apiCollection,
+  apiError,
+  apiUnauthorized,
+  apiValidationError,
+  validateRequiredFields,
+} from '@/lib/api-response';
+import { verifyAuth } from '@/lib/auth';
 
 // Bookings API
 export async function POST(request: NextRequest) {
   try {
-    const cookieStore = await cookies();
-    const authToken = cookieStore.get('auth_token')?.value;
-
-    if (!authToken) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    // Parse JWT token with error handling
-    let userId: string;
-    try {
-      const payload = JSON.parse(Buffer.from(authToken.split('.')[1], 'base64').toString());
-      userId = payload.id;
-
-      if (!userId) {
-        return NextResponse.json({ error: 'Invalid token: missing user ID' }, { status: 401 });
-      }
-    } catch (tokenError) {
-      console.error('JWT parsing error:', tokenError);
-      return NextResponse.json({ error: 'Invalid authentication token' }, { status: 401 });
+    // Verify authentication
+    const auth = verifyAuth(request);
+    if (!auth.success) {
+      return apiUnauthorized(auth.error);
     }
 
     const body = await request.json();
@@ -38,23 +31,34 @@ export async function POST(request: NextRequest) {
       guestPhone,
     } = body;
 
-    // Validation
-    if (!propertyId || !checkIn || !checkOut || !guests || !totalPrice || !guestName || !guestEmail) {
-      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+    // Validate required fields
+    const validation = validateRequiredFields(body, [
+      'propertyId',
+      'checkIn',
+      'checkOut',
+      'guests',
+      'totalPrice',
+      'guestName',
+      'guestEmail'
+    ]);
+    if (!validation.isValid) {
+      return apiValidationError(validation.errors);
     }
 
     // Validate dates
     const checkInDate = new Date(checkIn);
     const checkOutDate = new Date(checkOut);
     if (checkOutDate <= checkInDate) {
-      return NextResponse.json({ error: 'Check-out must be after check-in' }, { status: 400 });
+      return apiValidationError({
+        checkOut: 'Check-out date must be after check-in date'
+      });
     }
 
     // TODO: Insert into Supabase
     const booking = {
       id: `booking_${Date.now()}`,
       propertyId,
-      userId,
+      userId: auth.userId,
       checkIn: checkInDate.toISOString(),
       checkOut: checkOutDate.toISOString(),
       guests,
@@ -68,45 +72,35 @@ export async function POST(request: NextRequest) {
       createdAt: new Date().toISOString(),
     };
 
-    return NextResponse.json({ success: true, booking, message: 'Booking created successfully' });
+    return apiSuccess(booking, 'Booking created successfully', 201);
   } catch (error) {
     console.error('Booking creation error:', error);
-    return NextResponse.json({ error: 'Failed to create booking' }, { status: 500 });
+    return apiError('Failed to create booking');
   }
 }
 
 export async function GET(request: NextRequest) {
   try {
-    const cookieStore = await cookies();
-    const authToken = cookieStore.get('auth_token')?.value;
-
-    if (!authToken) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    // Parse JWT token with error handling
-    let userId: string;
-    try {
-      const payload = JSON.parse(Buffer.from(authToken.split('.')[1], 'base64').toString());
-      userId = payload.id;
-
-      if (!userId) {
-        return NextResponse.json({ error: 'Invalid token: missing user ID' }, { status: 401 });
-      }
-    } catch (tokenError) {
-      console.error('JWT parsing error:', tokenError);
-      return NextResponse.json({ error: 'Invalid authentication token' }, { status: 401 });
+    // Verify authentication
+    const auth = verifyAuth(request);
+    if (!auth.success) {
+      return apiUnauthorized(auth.error);
     }
 
     // TODO: Fetch from Supabase
     // const { data: bookings } = await supabase
     //   .from('bookings')
     //   .select('*, properties(*)')
-    //   .eq('user_id', userId)
+    //   .eq('user_id', auth.userId)
     //   .order('created_at', { ascending: false });
 
-    return NextResponse.json({ success: true, bookings: [] });
+    // Mock data
+    const bookings: any[] = [];
+    const total = 0;
+
+    return apiCollection(bookings, total, 50, 0);
   } catch (error) {
-    return NextResponse.json({ error: 'Failed to fetch bookings' }, { status: 500 });
+    console.error('Bookings fetch error:', error);
+    return apiError('Failed to fetch bookings');
   }
 }
