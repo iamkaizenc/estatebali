@@ -29,7 +29,8 @@ export async function POST(request: NextRequest) {
     const { email } = validation.data;
 
     // Rate limit by email (3 requests per hour)
-    const rateLimit = rateLimitByEmail(email, { windowMs: 60 * 60 * 1000, maxRequests: 3 });
+    // Uses Redis in production, falls back to in-memory in development
+    const rateLimit = await rateLimitByEmail(email, { windowMs: 60 * 60 * 1000, maxRequests: 3 });
     if (!rateLimit.success) {
       return NextResponse.json(
         { success: false, error: rateLimit.error || "Too many password reset requests. Please try again later." },

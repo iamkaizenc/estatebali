@@ -21,7 +21,8 @@ export async function POST(request: NextRequest) {
     const { email, password } = validation.data;
 
     // Rate limiting by email (5 attempts per 15 minutes)
-    const rateLimit = rateLimitByEmail(email, { windowMs: 15 * 60 * 1000, maxRequests: 5 });
+    // Uses Redis in production, falls back to in-memory in development
+    const rateLimit = await rateLimitByEmail(email, { windowMs: 15 * 60 * 1000, maxRequests: 5 });
     if (!rateLimit.success) {
       return NextResponse.json(
         { success: false, error: rateLimit.error || "Too many login attempts. Please try again later." },
