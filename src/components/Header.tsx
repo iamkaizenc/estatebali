@@ -6,6 +6,7 @@ import Image from "next/image";
 import { useAuthSafe } from "@/contexts/AuthContext";
 import { Home, Menu, X, Bell, Heart, MessageSquare, User, Plus, LogOut, Settings } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import NotificationBell from "@/components/NotificationBell";
 
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -75,25 +76,26 @@ export default function Header() {
                   </>
                 ) : (
                   <>
-                    <Link 
-                      href="/user" 
+                    <Link
+                      href="/user"
                       className="px-4 py-2 bg-primary/20 hover:bg-primary/30 text-primary rounded-lg transition-colors"
                     >
                       My Dashboard
                     </Link>
-                    <Link 
-                      href="/create" 
+                    <Link
+                      href="/create"
                       className="btn-primary flex items-center gap-2"
                     >
                       <Plus className="h-4 w-4" />
                       Create Listing
                     </Link>
-                    <button className="p-2 hover:bg-dark-200 rounded-lg transition-colors">
+                    <NotificationBell />
+                    <Link href="/user/favorites" className="p-2 hover:bg-dark-200 rounded-lg transition-colors">
                       <Heart className="h-5 w-5" />
-                    </button>
-                    <button className="p-2 hover:bg-dark-200 rounded-lg transition-colors">
+                    </Link>
+                    <Link href="/user/messages" className="p-2 hover:bg-dark-200 rounded-lg transition-colors">
                       <MessageSquare className="h-5 w-5" />
-                    </button>
+                    </Link>
                     <button
                       onClick={handleLogout}
                       className="p-2 hover:bg-dark-200 rounded-lg transition-colors"
