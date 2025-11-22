@@ -3,6 +3,7 @@ import Script from "next/script";
 import "../globals.css";
 import "leaflet/dist/leaflet.css";
 import { AuthProviderWrapper } from "@/components/AuthProviderWrapper";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Analytics } from "@vercel/analytics/next";
 import { getLocale, isRTL, defaultLocale } from "@/i18n/config";
@@ -57,9 +58,11 @@ export default function LocaleLayout({
         )}
       </head>
       <body className="bg-black text-white antialiased">
-        <AuthProviderWrapper>
-          {children}
-        </AuthProviderWrapper>
+        <ErrorBoundary>
+          <AuthProviderWrapper>
+            {children}
+          </AuthProviderWrapper>
+        </ErrorBoundary>
         <SpeedInsights />
         <Analytics />
       </body>

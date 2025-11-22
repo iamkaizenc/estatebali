@@ -26,6 +26,12 @@ class ResendProvider implements EmailProvider {
 
   async send(options: EmailOptions): Promise<{ success: boolean; error?: string }> {
     try {
+      // Use onboarding domain for development/testing
+      // In production, use your verified domain (noreply@estatebali.com)
+      const fromAddress = process.env.NODE_ENV === 'production'
+        ? 'EstateBali <noreply@estatebali.com>'
+        : 'EstateBali <onboarding@resend.dev>';
+
       const response = await fetch('https://api.resend.com/emails', {
         method: 'POST',
         headers: {
@@ -33,7 +39,7 @@ class ResendProvider implements EmailProvider {
           'Authorization': `Bearer ${this.apiKey}`,
         },
         body: JSON.stringify({
-          from: 'EstateBali <noreply@estatebali.com>',
+          from: fromAddress,
           to: options.to,
           subject: options.subject,
           html: options.html,
@@ -42,12 +48,31 @@ class ResendProvider implements EmailProvider {
       });
 
       if (!response.ok) {
-        const error = await response.text();
-        return { success: false, error: `Resend API error: ${error}` };
+        const errorText = await response.text();
+        let errorMessage = errorText;
+
+        try {
+          const errorJson = JSON.parse(errorText);
+          errorMessage = errorJson.message || errorText;
+        } catch {
+          // Use text as is
+        }
+
+        console.error('Resend API Error:', {
+          status: response.status,
+          statusText: response.statusText,
+          error: errorMessage,
+        });
+
+        return { success: false, error: `Resend API error (${response.status}): ${errorMessage}` };
       }
+
+      const result = await response.json();
+      console.log('✅ Email sent successfully via Resend:', result.id);
 
       return { success: true };
     } catch (error: any) {
+      console.error('Failed to send email via Resend:', error);
       return { success: false, error: error.message || 'Failed to send email' };
     }
   }

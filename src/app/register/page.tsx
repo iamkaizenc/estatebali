@@ -2,13 +2,13 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuthSafe } from "@/contexts/AuthContext";
 import Link from "next/link";
 import { UserPlus, Lock, Mail, User, Phone, AlertCircle, CheckCircle } from "lucide-react";
 
 export default function RegisterPage() {
   const router = useRouter();
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated, user } = useAuthSafe();
   const [formData, setFormData] = useState({
     name: "",
     email: "",

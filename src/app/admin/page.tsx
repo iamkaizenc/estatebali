@@ -5,14 +5,14 @@ import { useRouter } from "next/navigation";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { ProtectedAdminRoute } from "@/components/ProtectedAdminRoute";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuthSafe } from "@/contexts/AuthContext";
 import { useProperties } from "@/hooks/useProperties";
 import { Property } from "@/types";
 import { Edit, Trash2, Plus, Eye, EyeOff, Star, LogOut, User as UserIcon, X, Save } from "lucide-react";
 
 function AdminDashboard() {
   const router = useRouter();
-  const { user, logout } = useAuth();
+  const { user, logout } = useAuthSafe();
   const { properties: initialProperties, loading: propertiesLoading, refetch } = useProperties();
   const [properties, setProperties] = useState<Property[]>([]);
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);

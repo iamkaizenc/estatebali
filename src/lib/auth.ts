@@ -1,40 +1,60 @@
 // Authentication utility with role-based access (admin and user)
 import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
 import { AuthUser, UserRole } from "@/types";
 import { createClient } from '@supabase/supabase-js';
 
-// Simple token creation (In production, use JWT)
+// Get JWT secret from environment variable
+// In production, this should be a strong, random secret
+const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
+const JWT_EXPIRATION = '7d'; // Token expires in 7 days
+
+// JWT token creation with proper encryption
 function createToken(user: AuthUser): string {
   const payload = {
     id: user.id,
     email: user.email,
     name: user.name,
     role: user.role,
-    timestamp: Date.now(),
+    phone: user.phone,
+    avatar: user.avatar,
   };
-  // Simple base64 encoding (In production, use proper JWT)
-  return btoa(JSON.stringify(payload));
+
+  // Sign JWT token with expiration
+  return jwt.sign(payload, JWT_SECRET, {
+    expiresIn: JWT_EXPIRATION,
+    algorithm: 'HS256',
+  });
 }
 
-// Simple token verification (In production, use proper JWT verification)
+// JWT token verification with proper validation
 function verifyToken(token: string): AuthUser | null {
   try {
-    const payload = JSON.parse(atob(token));
-    // Check if token is expired (7 days)
-    const tokenAge = Date.now() - payload.timestamp;
-    const daysOld = tokenAge / (1000 * 60 * 60 * 24);
-    
-    if (daysOld > 7) {
-      return null; // Token expired
-    }
-    
-    return {
-      id: payload.id,
-      email: payload.email,
-      name: payload.name,
-      role: payload.role,
+    // Verify and decode JWT token
+    const decoded = jwt.verify(token, JWT_SECRET, {
+      algorithms: ['HS256'],
+    }) as {
+      id: string;
+      email: string;
+      name: string;
+      role: UserRole;
+      phone?: string;
+      avatar?: string;
     };
-  } catch {
+
+    return {
+      id: decoded.id,
+      email: decoded.email,
+      name: decoded.name,
+      role: decoded.role,
+      phone: decoded.phone,
+      avatar: decoded.avatar,
+    };
+  } catch (error) {
+    // Token is invalid or expired
+    if (process.env.NODE_ENV === 'development') {
+      console.error('JWT verification failed:', error instanceof Error ? error.message : 'Unknown error');
+    }
     return null;
   }
 }

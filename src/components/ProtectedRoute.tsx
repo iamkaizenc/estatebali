@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuthSafe } from "@/contexts/AuthContext";
 import { UserRole } from "@/types";
 
 interface ProtectedRouteProps {
@@ -11,12 +11,12 @@ interface ProtectedRouteProps {
   redirectTo?: string;
 }
 
-export function ProtectedRoute({ 
-  children, 
+export function ProtectedRoute({
+  children,
   allowedRoles = [],
-  redirectTo = "/login" 
+  redirectTo = "/login"
 }: ProtectedRouteProps) {
-  const { isAuthenticated, loading, user } = useAuth();
+  const { isAuthenticated, loading, user } = useAuthSafe();
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
 
