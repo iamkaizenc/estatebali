@@ -1,76 +1,58 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
+import {
+  apiSuccess,
+  apiMessage,
+  apiError,
+  apiForbidden,
+  apiNotFound,
+  apiServiceUnavailable,
+} from '@/lib/api-response';
+import { verifyAuth } from '@/lib/auth';
+import { supabaseAdmin, isSupabaseConfigured } from '@/lib/supabaseAdmin';
 
 // Investment Lead Detail API
 // GET /api/investment-leads/[id] - Get specific lead (admin only)
 // PATCH /api/investment-leads/[id] - Update lead status/notes (admin only)
 // DELETE /api/investment-leads/[id] - Delete lead (admin only)
 
-async function checkAdminAuth(request: NextRequest): Promise<{ authorized: boolean; userId?: string; role?: string }> {
-  const cookieStore = await cookies();
-  const authToken = cookieStore.get('auth_token')?.value;
-
-  if (!authToken) {
-    return { authorized: false };
-  }
-
-  try {
-    const payload = JSON.parse(Buffer.from(authToken.split('.')[1], 'base64').toString());
-    const userRole = payload.role;
-    const userId = payload.id;
-
-    if (userRole === 'admin' || userRole === 'super_admin') {
-      return { authorized: true, userId, role: userRole };
-    }
-  } catch {
-    return { authorized: false };
-  }
-
-  return { authorized: false };
-}
-
 export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
-    const auth = await checkAdminAuth(request);
-    if (!auth.authorized) {
-      return NextResponse.json(
-        { error: 'Unauthorized: Admin access required' },
-        { status: 403 }
-      );
+    // Verify authentication and admin role
+    const auth = verifyAuth(request);
+    if (!auth.success) {
+      return apiForbidden(auth.error || 'Unauthorized');
+    }
+
+    if (auth.role !== 'admin' && auth.role !== 'super_admin') {
+      return apiForbidden('Admin access required');
+    }
+
+    // Check Supabase configuration
+    if (!isSupabaseConfigured || !supabaseAdmin) {
+      return apiServiceUnavailable('Database is not configured');
     }
 
     const leadId = params.id;
 
-    // TODO: Fetch from Supabase
-    // const { data: lead, error } = await supabase
-    //   .from('investment_leads')
-    //   .select('*')
-    //   .eq('id', leadId)
-    //   .single();
-    //
-    // if (error || !lead) {
-    //   return NextResponse.json(
-    //     { error: 'Investment lead not found' },
-    //     { status: 404 }
-    //   );
-    // }
+    // Fetch from Supabase
+    const { data: lead, error } = await supabaseAdmin
+      .from('investment_leads')
+      .select('*')
+      .eq('id', leadId)
+      .single();
 
-    return NextResponse.json({
-      success: true,
-      lead: {
-        id: leadId,
-        // ... lead data
-      },
-    });
+    if (error || !lead) {
+      console.error('Investment lead fetch error:', error);
+      return apiNotFound('Investment lead not found');
+    }
+
+    return apiSuccess(lead);
   } catch (error) {
     console.error('Investment lead fetch error:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch investment lead' },
-      { status: 500 }
-    );
+    return apiError('Failed to fetch investment lead');
   }
 }
 
@@ -79,12 +61,19 @@ export async function PATCH(
   { params }: { params: { id: string } }
 ) {
   try {
-    const auth = await checkAdminAuth(request);
-    if (!auth.authorized) {
-      return NextResponse.json(
-        { error: 'Unauthorized: Admin access required' },
-        { status: 403 }
-      );
+    // Verify authentication and admin role
+    const auth = verifyAuth(request);
+    if (!auth.success) {
+      return apiForbidden(auth.error || 'Unauthorized');
+    }
+
+    if (auth.role !== 'admin' && auth.role !== 'super_admin') {
+      return apiForbidden('Admin access required');
+    }
+
+    // Check Supabase configuration
+    if (!isSupabaseConfigured || !supabaseAdmin) {
+      return apiServiceUnavailable('Database is not configured');
     }
 
     const leadId = params.id;
@@ -94,50 +83,34 @@ export async function PATCH(
     // Validate status
     const validStatuses = ['pending', 'contacted', 'converted', 'closed'];
     if (status && !validStatuses.includes(status)) {
-      return NextResponse.json(
-        { error: 'Invalid status value' },
-        { status: 400 }
-      );
+      return apiError('Invalid status value', 400);
     }
 
-    // TODO: Update in Supabase
-    // const updateData: any = {
-    //   updated_at: new Date().toISOString(),
-    // };
-    // if (status) updateData.status = status;
-    // if (notes !== undefined) updateData.notes = notes;
-    // if (assignedTo !== undefined) updateData.assigned_to = assignedTo;
-    //
-    // const { data: lead, error } = await supabase
-    //   .from('investment_leads')
-    //   .update(updateData)
-    //   .eq('id', leadId)
-    //   .select()
-    //   .single();
-    //
-    // if (error) {
-    //   return NextResponse.json(
-    //     { error: 'Failed to update investment lead' },
-    //     { status: 500 }
-    //   );
-    // }
+    // Build update data
+    const updateData: any = {
+      updated_at: new Date().toISOString(),
+    };
+    if (status) updateData.status = status;
+    if (notes !== undefined) updateData.notes = notes;
+    if (assignedTo !== undefined) updateData.assigned_to = assignedTo;
 
-    return NextResponse.json({
-      success: true,
-      message: 'Investment lead updated successfully',
-      lead: {
-        id: leadId,
-        status,
-        notes,
-        assignedTo,
-      },
-    });
+    // Update in Supabase
+    const { data: lead, error } = await supabaseAdmin
+      .from('investment_leads')
+      .update(updateData)
+      .eq('id', leadId)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Investment lead update error:', error);
+      return apiError('Failed to update investment lead', 500);
+    }
+
+    return apiSuccess(lead, 'Investment lead updated successfully');
   } catch (error) {
     console.error('Investment lead update error:', error);
-    return NextResponse.json(
-      { error: 'Failed to update investment lead' },
-      { status: 500 }
-    );
+    return apiError('Failed to update investment lead');
   }
 }
 
@@ -146,38 +119,37 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
-    const auth = await checkAdminAuth(request);
-    if (!auth.authorized) {
-      return NextResponse.json(
-        { error: 'Unauthorized: Admin access required' },
-        { status: 403 }
-      );
+    // Verify authentication and admin role
+    const auth = verifyAuth(request);
+    if (!auth.success) {
+      return apiForbidden(auth.error || 'Unauthorized');
+    }
+
+    if (auth.role !== 'admin' && auth.role !== 'super_admin') {
+      return apiForbidden('Admin access required');
+    }
+
+    // Check Supabase configuration
+    if (!isSupabaseConfigured || !supabaseAdmin) {
+      return apiServiceUnavailable('Database is not configured');
     }
 
     const leadId = params.id;
 
-    // TODO: Delete from Supabase
-    // const { error } = await supabase
-    //   .from('investment_leads')
-    //   .delete()
-    //   .eq('id', leadId);
-    //
-    // if (error) {
-    //   return NextResponse.json(
-    //     { error: 'Failed to delete investment lead' },
-    //     { status: 500 }
-    //   );
-    // }
+    // Delete from Supabase
+    const { error } = await supabaseAdmin
+      .from('investment_leads')
+      .delete()
+      .eq('id', leadId);
 
-    return NextResponse.json({
-      success: true,
-      message: 'Investment lead deleted successfully',
-    });
+    if (error) {
+      console.error('Investment lead deletion error:', error);
+      return apiError('Failed to delete investment lead', 500);
+    }
+
+    return apiMessage('Investment lead deleted successfully');
   } catch (error) {
     console.error('Investment lead deletion error:', error);
-    return NextResponse.json(
-      { error: 'Failed to delete investment lead' },
-      { status: 500 }
-    );
+    return apiError('Failed to delete investment lead');
   }
 }

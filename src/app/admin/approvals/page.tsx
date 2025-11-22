@@ -6,6 +6,7 @@ import { useAuthSafe } from "@/contexts/AuthContext";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { CheckCircle, XCircle, Eye, Clock } from "lucide-react";
+import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 
 export default function AdminApprovalsPage() {
   const router = useRouter();
@@ -27,16 +28,40 @@ export default function AdminApprovalsPage() {
   const fetchProperties = async () => {
     setIsLoading(true);
     try {
-      // TODO: Fetch from Supabase filtered by status
-      // const { data } = await supabase
-      //   .from('properties')
-      //   .select('*')
-      //   .eq('status', filter !== 'all' ? filter : undefined)
-      //   .order('created_at', { ascending: false });
+      if (!isSupabaseConfigured || !supabase) {
+        console.warn("Supabase is not configured");
+        setProperties([]);
+        return;
+      }
 
-      setProperties([]);
+      let query = supabase
+        .from('properties')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      // Filter by verification status
+      // pending = not verified, approved = verified, rejected = not available
+      if (filter === 'pending') {
+        query = query.eq('verified', false).eq('available', true);
+      } else if (filter === 'approved') {
+        query = query.eq('verified', true);
+      } else if (filter === 'rejected') {
+        query = query.eq('available', false);
+      }
+      // 'all' = no filter
+
+      const { data, error } = await query;
+
+      if (error) {
+        console.error("Supabase fetch error:", error);
+        setProperties([]);
+        return;
+      }
+
+      setProperties(data || []);
     } catch (error) {
       console.error("Failed to fetch properties:", error);
+      setProperties([]);
     } finally {
       setIsLoading(false);
     }
@@ -44,29 +69,53 @@ export default function AdminApprovalsPage() {
 
   const handleApprove = async (id: string) => {
     try {
-      // TODO: Update status in Supabase
-      // await supabase
-      //   .from('properties')
-      //   .update({ status: 'approved' })
-      //   .eq('id', id);
+      if (!isSupabaseConfigured || !supabase) {
+        console.warn("Supabase is not configured");
+        return;
+      }
+
+      // Approve = set verified to true
+      const { error } = await supabase
+        .from('properties')
+        .update({ verified: true, available: true })
+        .eq('id', id);
+
+      if (error) {
+        console.error("Failed to approve property:", error);
+        alert("Failed to approve property");
+        return;
+      }
 
       fetchProperties();
     } catch (error) {
       console.error("Failed to approve property:", error);
+      alert("Failed to approve property");
     }
   };
 
   const handleReject = async (id: string) => {
     try {
-      // TODO: Update status in Supabase
-      // await supabase
-      //   .from('properties')
-      //   .update({ status: 'rejected' })
-      //   .eq('id', id);
+      if (!isSupabaseConfigured || !supabase) {
+        console.warn("Supabase is not configured");
+        return;
+      }
+
+      // Reject = set available to false (soft delete)
+      const { error } = await supabase
+        .from('properties')
+        .update({ available: false, verified: false })
+        .eq('id', id);
+
+      if (error) {
+        console.error("Failed to reject property:", error);
+        alert("Failed to reject property");
+        return;
+      }
 
       fetchProperties();
     } catch (error) {
       console.error("Failed to reject property:", error);
+      alert("Failed to reject property");
     }
   };
 

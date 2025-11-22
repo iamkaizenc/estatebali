@@ -6,10 +6,12 @@ import {
   apiUnauthorized,
   apiForbidden,
   apiValidationError,
+  apiServiceUnavailable,
   getPaginationParams,
   validateRequiredFields,
 } from '@/lib/api-response';
 import { verifyAuth } from '@/lib/auth';
+import { supabaseAdmin, isSupabaseConfigured } from '@/lib/supabaseAdmin';
 
 // Notifications API
 // GET /api/notifications - Get user notifications
@@ -23,30 +25,36 @@ export async function GET(request: NextRequest) {
       return apiUnauthorized(auth.error);
     }
 
+    // Check Supabase configuration
+    if (!isSupabaseConfigured || !supabaseAdmin) {
+      return apiServiceUnavailable('Database is not configured');
+    }
+
     // Get pagination params
     const searchParams = request.nextUrl.searchParams;
     const { limit, offset } = getPaginationParams(searchParams, { defaultLimit: 20 });
     const unreadOnly = searchParams.get('unread') === 'true';
 
-    // TODO: Fetch from Supabase
-    // let query = supabase
-    //   .from('notifications')
-    //   .select('*', { count: 'exact' })
-    //   .eq('user_id', auth.userId)
-    //   .order('created_at', { ascending: false })
-    //   .range(offset, offset + limit - 1);
-    //
-    // if (unreadOnly) {
-    //   query = query.eq('read', false);
-    // }
-    //
-    // const { data: notifications, error, count } = await query;
+    // Build query
+    let query = supabaseAdmin
+      .from('notifications')
+      .select('*', { count: 'exact' })
+      .eq('user_id', auth.userId)
+      .order('created_at', { ascending: false })
+      .range(offset, offset + limit - 1);
 
-    // Mock data
-    const notifications: any[] = [];
-    const total = 0;
+    if (unreadOnly) {
+      query = query.eq('read', false);
+    }
 
-    return apiCollection(notifications, total, limit, offset);
+    const { data: notifications, error, count } = await query;
+
+    if (error) {
+      console.error('Notifications fetch error:', error);
+      return apiError('Failed to fetch notifications', 500);
+    }
+
+    return apiCollection(notifications || [], count || 0, limit, offset);
   } catch (error) {
     console.error('Notifications fetch error:', error);
     return apiError('Failed to fetch notifications');
@@ -66,6 +74,11 @@ export async function POST(request: NextRequest) {
       return apiForbidden('Admin access required');
     }
 
+    // Check Supabase configuration
+    if (!isSupabaseConfigured || !supabaseAdmin) {
+      return apiServiceUnavailable('Database is not configured');
+    }
+
     const body = await request.json();
     const { userId, title, message, type, actionUrl, data } = body;
 
@@ -83,31 +96,25 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // TODO: Insert into Supabase
-    // const { data: notification, error } = await supabase
-    //   .from('notifications')
-    //   .insert([{
-    //     user_id: userId,
-    //     title,
-    //     message,
-    //     type,
-    //     action_url: actionUrl,
-    //     data,
-    //   }])
-    //   .select()
-    //   .single();
+    // Insert into Supabase
+    const { data: notification, error } = await supabaseAdmin
+      .from('notifications')
+      .insert([{
+        user_id: userId,
+        title,
+        message,
+        type,
+        action_url: actionUrl,
+        data,
+        read: false,
+      }])
+      .select()
+      .single();
 
-    const notification = {
-      id: `notif_${Date.now()}`,
-      userId,
-      title,
-      message,
-      type,
-      actionUrl,
-      data,
-      read: false,
-      createdAt: new Date().toISOString(),
-    };
+    if (error) {
+      console.error('Notification creation error:', error);
+      return apiError('Failed to create notification', 500);
+    }
 
     return apiSuccess(notification, 'Notification created successfully', 201);
   } catch (error) {
