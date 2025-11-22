@@ -14,28 +14,35 @@ envLines.forEach(line => {
   }
 });
 
-const apiKey = env.RESEND_API_KEY;
+const apiKey = env.SENDGRID_API_KEY;
+const provider = env.SENDGRID_API_KEY ? 'SendGrid' : (env.RESEND_API_KEY ? 'Resend' : null);
 
 if (!apiKey) {
-  console.error('❌ RESEND_API_KEY not found in environment');
+  console.error('❌ SENDGRID_API_KEY not found in environment');
+  console.error('💡 Please set SENDGRID_API_KEY in your .env file');
   process.exit(1);
 }
 
-console.log('✅ RESEND_API_KEY found:', apiKey.substring(0, 10) + '...');
-console.log('\n📧 Testing Resend API...\n');
+console.log('✅ SENDGRID_API_KEY found:', apiKey.substring(0, 15) + '...');
+console.log(`\n📧 Testing SendGrid API...\n`);
 
 async function testEmail() {
   try {
-    const response = await fetch('https://api.resend.com/emails', {
+    const response = await fetch('https://api.sendgrid.com/v3/mail/send', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        from: 'EstateBali <onboarding@resend.dev>',
-        to: 'emirtufan33@gmail.com',
+        personalizations: [{
+          to: [{ email: 'emirtufan33@gmail.com' }]
+        }],
+        from: { email: 'noreply@estatebali.com', name: 'EstateBali' },
         subject: '🎉 EstateBali Email Service Test',
+        content: [{
+          type: 'text/html',
+          value:
         html: `
           <!DOCTYPE html>
           <html>
