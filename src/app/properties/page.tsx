@@ -7,6 +7,7 @@ import Footer from "@/components/Footer";
 import PropertyCard from "@/components/PropertyCard";
 import EmptyState from "@/components/EmptyState";
 import SearchBar from "@/components/SearchBar";
+import { PropertyCardSkeleton } from "@/components/SkeletonLoader";
 import { useProperties } from "@/hooks/useProperties";
 import { SearchFilters } from "@/types";
 
@@ -84,9 +85,10 @@ function PropertiesContent() {
         </div>
 
         {loading ? (
-          <div className="text-center py-20">
-            <div className="h-8 w-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-            <p className="text-gray-400">Loading properties...</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <PropertyCardSkeleton key={i} />
+            ))}
           </div>
         ) : error ? (
           <div className="text-center py-20">
