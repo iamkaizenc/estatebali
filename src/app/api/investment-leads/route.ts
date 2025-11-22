@@ -12,6 +12,7 @@ import {
 } from '@/lib/api-response';
 import { verifyAuth } from '@/lib/auth';
 import { supabaseAdmin, isSupabaseConfigured } from '@/lib/supabaseAdmin';
+import { sendEmail, emailTemplates } from '@/lib/email';
 
 // Investment Leads API
 // POST /api/investment-leads - Create new investment lead
@@ -67,9 +68,30 @@ export async function POST(request: NextRequest) {
       return apiError('Failed to create investment lead', 500);
     }
 
-    // TODO: Send notification email to admin (requires email service configuration)
-    // This will be implemented after email service is set up
-    // await sendAdminNotification(lead);
+    // Send admin notification email
+    const adminEmail = process.env.ADMIN_EMAIL || 'admin@estatebali.app';
+    const emailTemplate = emailTemplates.investmentLeadNotification({
+      id: lead.id,
+      name: lead.name,
+      email: lead.email,
+      phone: lead.phone,
+      investmentAmount: lead.investment_amount,
+      investmentType: lead.investment_type,
+      preferredLocation: lead.preferred_location,
+      message: lead.message,
+    });
+
+    const emailResult = await sendEmail({
+      to: adminEmail,
+      subject: emailTemplate.subject,
+      html: emailTemplate.html,
+      text: emailTemplate.text,
+    });
+
+    if (!emailResult.success) {
+      console.error('Failed to send admin notification email:', emailResult.error);
+      // Don't fail the request if email fails - lead was still created
+    }
 
     return apiSuccess(
       lead,
