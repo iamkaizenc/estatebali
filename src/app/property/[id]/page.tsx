@@ -26,6 +26,15 @@ export default function PropertyDetailPage() {
   const params = useParams();
   const { property, loading, error } = useProperty(params.id as string);
   const [liked, setLiked] = useState(false);
+  const [daysAgo, setDaysAgo] = useState<number | null>(null);
+
+  // Calculate days ago (client-side only to avoid hydration mismatch)
+  useEffect(() => {
+    if (property?.createdAt) {
+      const days = Math.floor((Date.now() - new Date(property.createdAt).getTime()) / (1000 * 60 * 60 * 24));
+      setDaysAgo(days);
+    }
+  }, [property?.createdAt]);
 
   // Increment view count when property is loaded
   useEffect(() => {
@@ -281,7 +290,7 @@ export default function PropertyDetailPage() {
                     <div className="flex justify-between">
                       <span className="text-gray-400">Listed</span>
                       <span className="font-semibold">
-                        {Math.floor((Date.now() - new Date(property.createdAt).getTime()) / (1000 * 60 * 60 * 24))} days ago
+                        {daysAgo !== null ? `${daysAgo} days ago` : '...'}
                       </span>
                     </div>
                   </div>

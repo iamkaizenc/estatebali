@@ -20,11 +20,15 @@ export const metadata: Metadata = {
   },
 };
 
-// Root layout - minimal, actual layout is in [locale]/layout.tsx
+// Root layout - must include html and body tags
 export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  return children;
+  return (
+    <html lang="en">
+      <body>{children}</body>
+    </html>
+  );
 }

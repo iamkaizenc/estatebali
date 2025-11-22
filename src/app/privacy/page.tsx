@@ -62,7 +62,7 @@ export default function PrivacyPage() {
 
           <section>
             <p className="text-gray-400 text-sm mt-8">
-              Last updated: {new Date().toLocaleDateString()}
+              Last updated: January 2025
             </p>
           </section>
         </div>
