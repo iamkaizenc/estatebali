@@ -105,6 +105,7 @@ export const mockProperties: Property[] = [
     updatedAt: new Date("2024-02-01"),
     views: 890,
     favorites: 62,
+    featured: true,
     verified: true,
     available: true
   },
@@ -158,6 +159,7 @@ export const mockProperties: Property[] = [
     updatedAt: new Date("2024-02-10"),
     views: 650,
     favorites: 45,
+    featured: true,
     verified: true,
     available: true
   },
@@ -193,6 +195,8 @@ export const mockProperties: Property[] = [
     updatedAt: new Date("2024-02-15"),
     views: 420,
     favorites: 28,
+    featured: true,
+    verified: true,
     available: true
   },
   {
@@ -290,6 +294,8 @@ export const mockProperties: Property[] = [
     updatedAt: new Date("2024-02-05"),
     views: 780,
     favorites: 52,
+    featured: true,
+    verified: true,
     available: true
   }
 ];
