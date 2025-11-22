@@ -1,26 +1,62 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
+/**
+ * Decode JWT token payload without verification
+ * Note: This is only used for routing decisions in middleware.
+ * Actual token verification happens in API routes using jwt.verify()
+ *
+ * Edge Runtime doesn't support all Node.js crypto APIs, so we do basic
+ * JWT decoding here and rely on API routes for security verification.
+ */
+function decodeJWT(token: string): any {
+  try {
+    // JWT format: header.payload.signature
+    const parts = token.split('.');
+    if (parts.length !== 3) {
+      return null;
+    }
+
+    // Decode the payload (second part)
+    // JWT uses base64url encoding, not standard base64
+    const payload = parts[1];
+
+    // Convert base64url to base64
+    const base64 = payload.replace(/-/g, '+').replace(/_/g, '/');
+
+    // Decode and parse
+    const decoded = JSON.parse(Buffer.from(base64, 'base64').toString('utf-8'));
+
+    // Check expiration
+    if (decoded.exp && decoded.exp * 1000 < Date.now()) {
+      return null; // Token expired
+    }
+
+    return decoded;
+  } catch (error) {
+    // Invalid JWT format
+    return null;
+  }
+}
+
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Get token from cookie
-  const token = request.cookies.get('auth_token')?.value || 
+  const token = request.cookies.get('auth_token')?.value ||
                 request.cookies.get('admin_token')?.value;
 
   // Parse user from token if exists
   let user: any = null;
   if (token) {
-    try {
-      const payload = JSON.parse(Buffer.from(token, 'base64').toString());
+    const decoded = decodeJWT(token);
+    if (decoded) {
       user = {
-        id: payload.id,
-        email: payload.email,
-        name: payload.name,
-        role: payload.role,
+        id: decoded.id,
+        email: decoded.email,
+        name: decoded.name,
+        role: decoded.role,
       };
-    } catch {
-      // Invalid token, ignore
     }
   }
 

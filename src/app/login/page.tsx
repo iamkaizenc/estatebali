@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAuthSafe } from "@/contexts/AuthContext";
 import Link from "next/link";
 import { Lock, User, AlertCircle } from "lucide-react";
+import { decodeJWT } from "@/lib/jwt-utils";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -36,17 +37,18 @@ export default function LoginPage() {
       // Get user from token after login
       const token = localStorage.getItem('auth_token') || localStorage.getItem('admin_token');
       if (token) {
-        try {
-          const payload = JSON.parse(atob(token));
+        // Decode JWT token to get user role
+        const payload = decodeJWT(token);
+        if (payload && payload.role) {
           const userRole = payload.role;
-          
+
           // Auto-redirect based on role
           if (userRole === "admin" || userRole === "super_admin") {
             router.push("/admin");
           } else {
             router.push("/user");
           }
-        } catch {
+        } else {
           // If token parsing fails, wait for context to update
           setTimeout(() => {
             if (user) {

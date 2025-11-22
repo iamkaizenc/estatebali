@@ -1,5 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
+import { NextRequest } from 'next/server';
+import { apiMessage, apiError, apiUnauthorized } from '@/lib/api-response';
+import { verifyAuth } from '@/lib/auth';
 
 // Mark notification as read
 export async function PATCH(
@@ -7,15 +8,12 @@ export async function PATCH(
   { params }: { params: { id: string } }
 ) {
   try {
-    const cookieStore = await cookies();
-    const authToken = cookieStore.get('auth_token')?.value;
-
-    if (!authToken) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    // Verify authentication
+    const auth = verifyAuth(request);
+    if (!auth.success) {
+      return apiUnauthorized(auth.error);
     }
 
-    const payload = JSON.parse(Buffer.from(authToken.split('.')[1], 'base64').toString());
-    const userId = payload.id;
     const notificationId = params.id;
 
     // TODO: Update in Supabase
@@ -23,11 +21,12 @@ export async function PATCH(
     //   .from('notifications')
     //   .update({ read: true })
     //   .eq('id', notificationId)
-    //   .eq('user_id', userId);
+    //   .eq('user_id', auth.userId);
 
-    return NextResponse.json({ success: true, message: 'Notification marked as read' });
+    return apiMessage('Notification marked as read');
   } catch (error) {
-    return NextResponse.json({ error: 'Failed to update notification' }, { status: 500 });
+    console.error('Notification update error:', error);
+    return apiError('Failed to update notification');
   }
 }
 
@@ -37,15 +36,12 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
-    const cookieStore = await cookies();
-    const authToken = cookieStore.get('auth_token')?.value;
-
-    if (!authToken) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    // Verify authentication
+    const auth = verifyAuth(request);
+    if (!auth.success) {
+      return apiUnauthorized(auth.error);
     }
 
-    const payload = JSON.parse(Buffer.from(authToken.split('.')[1], 'base64').toString());
-    const userId = payload.id;
     const notificationId = params.id;
 
     // TODO: Delete from Supabase
@@ -53,10 +49,11 @@ export async function DELETE(
     //   .from('notifications')
     //   .delete()
     //   .eq('id', notificationId)
-    //   .eq('user_id', userId);
+    //   .eq('user_id', auth.userId);
 
-    return NextResponse.json({ success: true, message: 'Notification deleted' });
+    return apiMessage('Notification deleted');
   } catch (error) {
-    return NextResponse.json({ error: 'Failed to delete notification' }, { status: 500 });
+    console.error('Notification delete error:', error);
+    return apiError('Failed to delete notification');
   }
 }

@@ -7,6 +7,7 @@ import Footer from "@/components/Footer";
 import PropertyCard from "@/components/PropertyCard";
 import EmptyState from "@/components/EmptyState";
 import SearchBar from "@/components/SearchBar";
+import { PageErrorBoundary } from "@/components/ErrorBoundary";
 import { useProperties } from "@/hooks/useProperties";
 import { SearchFilters } from "@/types";
 
@@ -120,13 +121,15 @@ function PropertiesContent() {
 
 export default function PropertiesPage() {
   return (
-    <Suspense fallback={
-      <div className="min-h-screen bg-black flex items-center justify-center">
-        <div className="h-8 w-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-      </div>
-    }>
-      <PropertiesContent />
-    </Suspense>
+    <PageErrorBoundary pageName="properties">
+      <Suspense fallback={
+        <div className="min-h-screen bg-black flex items-center justify-center">
+          <div className="h-8 w-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+        </div>
+      }>
+        <PropertiesContent />
+      </Suspense>
+    </PageErrorBoundary>
   );
 }
 
