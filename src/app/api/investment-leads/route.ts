@@ -98,6 +98,15 @@ export async function GET(request: NextRequest) {
     try {
       const payload = JSON.parse(Buffer.from(authToken.split('.')[1], 'base64').toString());
       const userRole = payload.role;
+      const userId = payload.id;
+
+      // Validate token payload
+      if (!userId || !userRole) {
+        return NextResponse.json(
+          { error: 'Invalid token: missing required fields' },
+          { status: 401 }
+        );
+      }
 
       if (userRole !== 'admin' && userRole !== 'super_admin') {
         return NextResponse.json(

@@ -11,8 +11,19 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const payload = JSON.parse(Buffer.from(authToken.split('.')[1], 'base64').toString());
-    const userId = payload.id;
+    // Parse JWT token with error handling
+    let userId: string;
+    try {
+      const payload = JSON.parse(Buffer.from(authToken.split('.')[1], 'base64').toString());
+      userId = payload.id;
+
+      if (!userId) {
+        return NextResponse.json({ error: 'Invalid token: missing user ID' }, { status: 401 });
+      }
+    } catch (tokenError) {
+      console.error('JWT parsing error:', tokenError);
+      return NextResponse.json({ error: 'Invalid authentication token' }, { status: 401 });
+    }
 
     const body = await request.json();
     const {
@@ -73,8 +84,19 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const payload = JSON.parse(Buffer.from(authToken.split('.')[1], 'base64').toString());
-    const userId = payload.id;
+    // Parse JWT token with error handling
+    let userId: string;
+    try {
+      const payload = JSON.parse(Buffer.from(authToken.split('.')[1], 'base64').toString());
+      userId = payload.id;
+
+      if (!userId) {
+        return NextResponse.json({ error: 'Invalid token: missing user ID' }, { status: 401 });
+      }
+    } catch (tokenError) {
+      console.error('JWT parsing error:', tokenError);
+      return NextResponse.json({ error: 'Invalid authentication token' }, { status: 401 });
+    }
 
     // TODO: Fetch from Supabase
     // const { data: bookings } = await supabase

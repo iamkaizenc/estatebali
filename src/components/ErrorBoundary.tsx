@@ -172,4 +172,75 @@ export function FormErrorBoundary({ children }: { children: ReactNode }) {
   );
 }
 
+/**
+ * Page Error Boundary
+ * Use this for major page components (properties list, featured, etc.)
+ */
+export function PageErrorBoundary({ children, pageName }: { children: ReactNode; pageName?: string }) {
+  return (
+    <ErrorBoundary
+      fallback={
+        <div className="min-h-[60vh] flex items-center justify-center p-4">
+          <div className="card p-8 text-center max-w-lg">
+            <AlertTriangle className="h-16 w-16 text-red-500 mx-auto mb-4" />
+            <h2 className="text-2xl font-bold mb-2">Page Error</h2>
+            <p className="text-gray-400 mb-6">
+              {pageName ? `Failed to load ${pageName}.` : 'Failed to load this page.'}
+              {' '}Please refresh or try again later.
+            </p>
+            <div className="flex gap-3 justify-center">
+              <button
+                onClick={() => window.location.reload()}
+                className="btn-primary inline-flex items-center gap-2"
+              >
+                <RefreshCw className="h-4 w-4" />
+                Refresh Page
+              </button>
+              <Link href="/" className="btn-secondary inline-flex items-center gap-2">
+                <Home className="h-4 w-4" />
+                Go Home
+              </Link>
+            </div>
+          </div>
+        </div>
+      }
+    >
+      {children}
+    </ErrorBoundary>
+  );
+}
+
+/**
+ * Dashboard Error Boundary
+ * Use this for user/admin dashboard pages
+ */
+export function DashboardErrorBoundary({ children, dashboard }: { children: ReactNode; dashboard?: string }) {
+  return (
+    <ErrorBoundary
+      fallback={
+        <div className="card p-6">
+          <AlertTriangle className="h-12 w-12 text-red-500 mx-auto mb-3" />
+          <h3 className="text-lg font-semibold mb-2 text-center">
+            {dashboard ? `${dashboard} Dashboard Error` : 'Dashboard Error'}
+          </h3>
+          <p className="text-gray-400 text-sm text-center mb-4">
+            Failed to load dashboard. Please refresh or contact support if the problem persists.
+          </p>
+          <div className="flex gap-3 justify-center">
+            <button
+              onClick={() => window.location.reload()}
+              className="btn-secondary inline-flex items-center gap-2"
+            >
+              <RefreshCw className="h-4 w-4" />
+              Refresh
+            </button>
+          </div>
+        </div>
+      }
+    >
+      {children}
+    </ErrorBoundary>
+  );
+}
+
 export default ErrorBoundary;
