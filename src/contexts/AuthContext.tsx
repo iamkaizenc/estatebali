@@ -23,7 +23,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
 
   useEffect(() => {
-    // Check if user is logged in on mount
+    // Check if user is logged in on mount (client-side only)
+    if (typeof window === 'undefined') {
+      setLoading(false);
+      return;
+    }
+
     const token = localStorage.getItem('auth_token') || localStorage.getItem('admin_token');
     if (token) {
       const authUser = getUser(token);
@@ -50,7 +55,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const result = await response.json();
 
       if (result.success && result.token) {
-        localStorage.setItem('auth_token', result.token);
+        // Store token (client-side only)
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('auth_token', result.token);
+        }
         // Also set admin_token for backward compatibility
         if (typeof document !== 'undefined') {
           const expiresIn = 7 * 24 * 60 * 60; // 7 days in seconds
@@ -70,8 +78,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const logout = () => {
-    localStorage.removeItem('auth_token');
-    localStorage.removeItem('admin_token');
+    // Clear storage (client-side only)
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('auth_token');
+      localStorage.removeItem('admin_token');
+    }
     // Clear cookie (if in browser)
     if (typeof document !== 'undefined') {
       document.cookie = 'auth_token=; path=/; max-age=0; SameSite=Lax';

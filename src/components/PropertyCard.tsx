@@ -17,6 +17,15 @@ export default function PropertyCard({ property }: PropertyCardProps) {
   const { isAuthenticated, user } = useAuthSafe();
   const [liked, setLiked] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [daysAgo, setDaysAgo] = useState<number | null>(null);
+
+  // Calculate days ago (client-side only to avoid hydration mismatch)
+  useEffect(() => {
+    if (property.createdAt) {
+      const days = Math.floor((Date.now() - new Date(property.createdAt).getTime()) / (1000 * 60 * 60 * 24));
+      setDaysAgo(days);
+    }
+  }, [property.createdAt]);
 
   // Check if property is in favorites
   useEffect(() => {
@@ -218,10 +227,12 @@ export default function PropertyCard({ property }: PropertyCardProps) {
           {property.verified && (
             <div className="mt-3 pt-3 border-t border-dark-300 flex items-center justify-between">
               <span className="text-xs text-green-500">✓ Verified</span>
-              <span className="text-xs text-gray-500 flex items-center gap-1">
-                <Clock className="h-3 w-3" />
-                {Math.floor((Date.now() - new Date(property.createdAt).getTime()) / (1000 * 60 * 60 * 24))} days ago
-              </span>
+              {daysAgo !== null && (
+                <span className="text-xs text-gray-500 flex items-center gap-1">
+                  <Clock className="h-3 w-3" />
+                  {daysAgo} days ago
+                </span>
+              )}
             </div>
           )}
         </div>
