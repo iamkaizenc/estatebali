@@ -1,1 +1,11 @@
-{}
+{
+  "/buy/page": "app/buy/page.js",
+  "/map/page": "app/map/page.js",
+  "/about/page": "app/about/page.js",
+  "/_not-found/page": "app/_not-found/page.js",
+  "/property/[id]/page": "app/property/[id]/page.js",
+  "/api/properties/route": "app/api/properties/route.js",
+  "/page": "app/page.js",
+  "/rent/page": "app/rent/page.js",
+  "/[locale]/page": "app/[locale]/page.js"
+}
