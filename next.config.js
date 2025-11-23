@@ -21,11 +21,12 @@ const nextConfig = {
     // Backward compatibility - domains still works but remotePatterns is recommended
     domains: ['images.unsplash.com', 'res.cloudinary.com', 'hfsdvopvsttqcildsyvi.supabase.co'],
   },
+  // SECURITY: Only ignore errors in development to prevent deploying broken code
   eslint: {
-    ignoreDuringBuilds: true,
+    ignoreDuringBuilds: process.env.NODE_ENV !== 'production',
   },
   typescript: {
-    ignoreBuildErrors: true,
+    ignoreBuildErrors: process.env.NODE_ENV !== 'production',
   },
   // Security headers
   async headers() {

@@ -36,12 +36,21 @@ cd estatebali
 npm install
 ```
 
-3. Run the development server:
+3. Set up environment variables:
+```bash
+# Copy the example environment file
+cp .env.example .env
+
+# Edit .env and fill in required values
+# See docs/ENV_VALIDATION.md for detailed instructions
+```
+
+4. Run the development server:
 ```bash
 npm run dev
 ```
 
-4. Open [http://localhost:3000](http://localhost:3000) in your browser.
+5. Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ## 🚀 Deployment to Vercel
 
@@ -89,14 +98,103 @@ git push -u origin main
    - Output Directory: `.next`
 6. Click "Deploy"
 
-## 🔧 Environment Variables (Optional)
+## 🔧 Environment Variables
 
-Create a `.env.local` file in the root directory:
+### Required Variables
+
+The following environment variables are **required** for the application to run:
 
 ```env
-# Add any API keys or environment variables here
-NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=your_api_key_here
+# Supabase Configuration (Required)
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+
+# Authentication (Required)
+JWT_SECRET=your-secret-32+-characters-long
+
+# Application URL (Required)
+NEXT_PUBLIC_APP_URL=http://localhost:3000
 ```
+
+### Email Service (Required in Production)
+
+```env
+# Resend (recommended)
+RESEND_API_KEY=re_your_api_key
+FROM_EMAIL=noreply@yourdomain.com
+
+# OR SendGrid (alternative)
+SENDGRID_API_KEY=SG.your_api_key
+FROM_EMAIL=noreply@yourdomain.com
+```
+
+### Optional Services
+
+```env
+# Redis (for distributed rate limiting)
+UPSTASH_REDIS_REST_URL=https://your-redis.upstash.io
+UPSTASH_REDIS_REST_TOKEN=your_token
+
+# Analytics & Monitoring
+NEXT_PUBLIC_GA_ID=G-XXXXXXXXXX
+NEXT_PUBLIC_SENTRY_DSN=https://your-sentry-dsn
+```
+
+### Setup Instructions
+
+1. **Copy example file:**
+   ```bash
+   cp .env.example .env
+   ```
+
+2. **Generate JWT_SECRET:**
+   ```bash
+   openssl rand -base64 32
+   ```
+
+3. **Validate environment:**
+   ```bash
+   npm run validate-env
+   ```
+
+📖 **For detailed environment setup, see [docs/ENV_VALIDATION.md](docs/ENV_VALIDATION.md)**
+
+## 🧪 Available Scripts
+
+```bash
+# Development
+npm run dev              # Start development server
+npm run build            # Build for production
+npm run start            # Start production server
+
+# Testing & Validation
+npm test                 # Run tests
+npm run test:watch       # Run tests in watch mode
+npm run test:coverage    # Run tests with coverage
+npm run validate-env     # Validate environment variables
+npm run validate-env:prod # Validate for production
+
+# Pre-Deployment
+npm run pre-deploy       # Run all checks before deployment
+                         # (validation + tests + lint + build)
+
+# Code Quality
+npm run lint             # Run ESLint
+```
+
+## 🔒 Security & Production Readiness
+
+This project includes comprehensive security measures and production-ready features:
+
+- ✅ **Environment Validation**: Automatic validation with fail-fast mechanism
+- ✅ **JWT Security**: Strong authentication with 32+ character secrets
+- ✅ **Build Validation**: TypeScript & ESLint errors block production builds
+- ✅ **Email Service**: Required in production for password reset
+- ✅ **Pre-Deployment Checks**: Automated validation before deployment
+- ✅ **Comprehensive Tests**: Full test coverage for critical functionality
+
+📖 **For security details, see [docs/SECURITY_FIXES.md](docs/SECURITY_FIXES.md)**
 
 ## 📱 Pages
 

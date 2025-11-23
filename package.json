@@ -10,7 +10,10 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
-    "test:ci": "jest --ci --coverage --maxWorkers=2"
+    "test:ci": "jest --ci --coverage --maxWorkers=2",
+    "validate-env": "ts-node scripts/validate-env.ts",
+    "validate-env:prod": "NODE_ENV=production ts-node scripts/validate-env.ts",
+    "pre-deploy": "npm run validate-env:prod && npm run test && npm run lint && npm run build"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.0.5",
