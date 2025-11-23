@@ -67,25 +67,25 @@ export const ENV_VARIABLES: EnvVariable[] = [
     example: 'http://localhost:3000 or https://yourdomain.com',
   },
 
-  // Email Service (Optional but recommended for password reset)
+  // Email Service (Required in production for password reset functionality)
   {
     key: 'RESEND_API_KEY',
     description: 'Resend API key for email service',
-    required: false,
+    required: false, // Validated separately - need either this or SendGrid
     validator: (value) => value.startsWith('re_'),
     example: 're_xxxxxxxxxxxxxxxxxxxxx',
   },
   {
     key: 'SENDGRID_API_KEY',
     description: 'SendGrid API key (alternative to Resend)',
-    required: false,
+    required: false, // Validated separately - need either this or Resend
     validator: (value) => value.startsWith('SG.'),
     example: 'SG.xxxxxxxxxxxxxxxxxxxxx',
   },
   {
     key: 'FROM_EMAIL',
     description: 'From email address for outgoing emails',
-    required: false, // Only required if email service is configured
+    required: false, // Validated separately in production
     validator: (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value),
     example: 'noreply@yourdomain.com',
   },
@@ -180,21 +180,40 @@ export function validateEnvironment(): EnvValidationResult {
     }
   }
 
-  // Special validation: At least one email service if FROM_EMAIL is set
+  // Special validation: Email service required in production
   const hasFromEmail = process.env.FROM_EMAIL && process.env.FROM_EMAIL.trim() !== '';
   const hasResend = process.env.RESEND_API_KEY && process.env.RESEND_API_KEY.trim() !== '';
   const hasSendGrid = process.env.SENDGRID_API_KEY && process.env.SENDGRID_API_KEY.trim() !== '';
+  const hasEmailService = hasResend || hasSendGrid;
 
-  if (hasFromEmail && !hasResend && !hasSendGrid) {
-    warnings.push(
-      '⚠️  FROM_EMAIL is set but no email service (RESEND_API_KEY or SENDGRID_API_KEY) is configured.\n   Password reset emails will not be sent.'
-    );
-  }
+  // PRODUCTION: Email service is REQUIRED for password reset functionality
+  if (process.env.NODE_ENV === 'production') {
+    if (!hasEmailService || !hasFromEmail) {
+      const missingItems: string[] = [];
+      if (!hasEmailService) missingItems.push('RESEND_API_KEY or SENDGRID_API_KEY');
+      if (!hasFromEmail) missingItems.push('FROM_EMAIL');
 
-  if ((hasResend || hasSendGrid) && !hasFromEmail) {
-    warnings.push(
-      '⚠️  Email service is configured but FROM_EMAIL is missing.\n   Password reset emails will not be sent.'
-    );
+      errors.push(
+        `❌ REQUIRED IN PRODUCTION: Email service configuration missing\n` +
+        `   Missing: ${missingItems.join(', ')}\n` +
+        `   Password reset and transactional emails will not work without this.\n` +
+        `   Example: Set RESEND_API_KEY and FROM_EMAIL in your environment`
+      );
+      missing.required.push(...missingItems);
+    }
+  } else {
+    // DEVELOPMENT: Just warnings
+    if (hasFromEmail && !hasEmailService) {
+      warnings.push(
+        '⚠️  FROM_EMAIL is set but no email service (RESEND_API_KEY or SENDGRID_API_KEY) is configured.\n   Password reset emails will not be sent.'
+      );
+    }
+
+    if (hasEmailService && !hasFromEmail) {
+      warnings.push(
+        '⚠️  Email service is configured but FROM_EMAIL is missing.\n   Password reset emails will not be sent.'
+      );
+    }
   }
 
   // Special validation: Redis configuration (both or neither)

@@ -5,9 +5,31 @@ import { AuthUser, UserRole } from "@/types";
 import { createClient } from '@supabase/supabase-js';
 
 // Get JWT secret from environment variable
-// In production, this should be a strong, random secret
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
+// CRITICAL: No fallback - must be set in environment
+const JWT_SECRET = process.env.JWT_SECRET;
 const JWT_EXPIRATION = '7d'; // Token expires in 7 days
+
+// Validate JWT_SECRET at module load (fail-fast in production)
+if (!JWT_SECRET) {
+  const errorMsg = 'CRITICAL: JWT_SECRET environment variable is not set. This is required for authentication security.';
+  if (process.env.NODE_ENV === 'production') {
+    console.error(errorMsg);
+    throw new Error(errorMsg);
+  } else {
+    console.warn('⚠️  WARNING:', errorMsg);
+  }
+}
+
+// Additional security check: JWT_SECRET must be strong enough
+if (JWT_SECRET && JWT_SECRET.length < 32) {
+  const errorMsg = `CRITICAL: JWT_SECRET must be at least 32 characters long for security. Current length: ${JWT_SECRET.length}`;
+  if (process.env.NODE_ENV === 'production') {
+    console.error(errorMsg);
+    throw new Error(errorMsg);
+  } else {
+    console.warn('⚠️  WARNING:', errorMsg);
+  }
+}
 
 // JWT token creation with proper encryption
 function createToken(user: AuthUser): string {
@@ -65,9 +87,9 @@ export async function loginUser(email: string, password: string): Promise<{ succ
     // ALWAYS create Supabase client at runtime (don't rely on module-level import)
     // This ensures environment variables are loaded
     const runtimeSupabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const runtimeSupabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY 
-      || process.env.SUPABASE_SERVICE_KEY 
-      || process.env.NEXT_PUBLIC_SUPABASE_SERVICE_ROLE_KEY;
+    // SECURITY: Only use server-side service role key, never NEXT_PUBLIC_ variant
+    const runtimeSupabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+      || process.env.SUPABASE_SERVICE_KEY;
     
     // Only log in development
     if (process.env.NODE_ENV === 'development') {
