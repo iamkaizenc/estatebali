@@ -263,18 +263,22 @@ export function getAdminEmail(): string | null {
 
 export function logout(): void {
   if (typeof window === "undefined") return;
-  
+
   localStorage.removeItem("admin_token");
   localStorage.removeItem("auth_token");
   localStorage.removeItem("admin_authenticated");
   localStorage.removeItem("admin_email");
   localStorage.removeItem("admin_login_time");
-  
+
   // Clear cookie
   if (typeof document !== 'undefined') {
     document.cookie = 'admin_token=; path=/; max-age=0; SameSite=Lax';
     document.cookie = 'auth_token=; path=/; max-age=0; SameSite=Lax';
   }
-  
+
   window.location.href = "/login";
 }
+
+// Re-export API auth helpers for backward compatibility
+// Some API routes import from @/lib/auth instead of @/lib/api-auth
+export { verifyAuth, verifyAdminAuth, verifyUserAuth } from './api-auth';
