@@ -52,8 +52,7 @@ export default function HomePage({ params }: HomePageProps) {
   };
 
   // Split hero title by newline for proper rendering
-  const heroTitleLines = messages.heroTitle.split('\n');
-  const heroSubtitleLines = messages.heroSubtitle.split('\n');
+  const heroTitleLines = messages.hero.title.split('\n');
 
   return (
     <div className="min-h-screen bg-black">
@@ -161,7 +160,7 @@ export default function HomePage({ params }: HomePageProps) {
             transition={{ duration: 0.8, delay: 0.2 }}
             className="text-xl text-gray-300 mb-8 max-w-2xl mx-auto whitespace-pre-line"
           >
-            {messages.heroSubtitle}
+            {messages.hero.subtitle}
           </motion.p>
 
           {/* AI Translation Notice - Only show for non-original languages */}
@@ -172,7 +171,7 @@ export default function HomePage({ params }: HomePageProps) {
               transition={{ duration: 0.8, delay: 0.3 }}
               className="text-sm text-gray-500 italic mb-4"
             >
-              {messages.aiTranslatedNotice}
+              {messages.hero.aiTranslatedNotice}
             </motion.p>
           )}
           
