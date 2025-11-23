@@ -23,9 +23,19 @@ function decodeJWT(token: string): any {
 
     // Convert base64url to base64
     const base64 = payload.replace(/-/g, '+').replace(/_/g, '/');
+    
+    // Add padding if needed
+    const padded = base64 + '='.repeat((4 - (base64.length % 4)) % 4);
 
-    // Decode and parse
-    const decoded = JSON.parse(Buffer.from(base64, 'base64').toString('utf-8'));
+    // Decode using atob (Edge Runtime compatible)
+    // atob is available in Edge Runtime
+    let decoded: any;
+    try {
+      decoded = JSON.parse(atob(padded));
+    } catch (e) {
+      // Fallback for environments where atob might not work
+      return null;
+    }
 
     // Check expiration
     if (decoded.exp && decoded.exp * 1000 < Date.now()) {
@@ -81,10 +91,12 @@ export function middleware(request: NextRequest) {
     if (!token || !user) {
       return NextResponse.redirect(new URL('/login', request.url));
     }
-    if (user.role === 'admin' || user.role === 'super_admin') {
-      // Redirect admin users to admin dashboard
-      return NextResponse.redirect(new URL('/admin', request.url));
-    }
+    // Allow admin users to access user routes too (for testing/managing)
+    // Only redirect if explicitly needed
+    // if (user.role === 'admin' || user.role === 'super_admin') {
+    //   // Redirect admin users to admin dashboard
+    //   return NextResponse.redirect(new URL('/admin', request.url));
+    // }
   }
 
   // Redirect /login if already authenticated

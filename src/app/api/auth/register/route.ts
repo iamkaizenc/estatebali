@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Rate limiting
-    const rateLimit = rateLimitByIP(request, { windowMs: 60 * 1000, maxRequests: 5 });
+    const rateLimit = await rateLimitByIP(request, { windowMs: 60 * 1000, maxRequests: 5 });
     if (!rateLimit.success) {
       return NextResponse.json(
         { success: false, error: rateLimit.error || "Too many requests" },

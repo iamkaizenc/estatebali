@@ -27,16 +27,28 @@ export default function AdminApprovalsPage() {
   const fetchProperties = async () => {
     setIsLoading(true);
     try {
-      // TODO: Fetch from Supabase filtered by status
-      // const { data } = await supabase
-      //   .from('properties')
-      //   .select('*')
-      //   .eq('status', filter !== 'all' ? filter : undefined)
-      //   .order('created_at', { ascending: false });
+      const token = localStorage.getItem('admin_token') || localStorage.getItem('auth_token');
+      const response = await fetch(`/api/properties?status=${filter !== 'all' ? filter : ''}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
 
-      setProperties([]);
+      const result = await response.json();
+      if (result.success) {
+        // Filter by status if needed
+        let filtered = result.data || [];
+        if (filter !== 'all') {
+          filtered = filtered.filter((p: any) => p.status === filter);
+        }
+        setProperties(filtered);
+      } else {
+        console.error("Failed to fetch properties:", result.error);
+        setProperties([]);
+      }
     } catch (error) {
       console.error("Failed to fetch properties:", error);
+      setProperties([]);
     } finally {
       setIsLoading(false);
     }
@@ -44,29 +56,53 @@ export default function AdminApprovalsPage() {
 
   const handleApprove = async (id: string) => {
     try {
-      // TODO: Update status in Supabase
-      // await supabase
-      //   .from('properties')
-      //   .update({ status: 'approved' })
-      //   .eq('id', id);
+      const token = localStorage.getItem('admin_token') || localStorage.getItem('auth_token');
+      const response = await fetch(`/api/properties/${id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({ status: 'approved' }),
+      });
+
+      const result = await response.json();
+      if (!result.success) {
+        console.error("Failed to approve property:", result.error);
+        alert(result.error || 'Failed to approve property');
+        return;
+      }
 
       fetchProperties();
     } catch (error) {
       console.error("Failed to approve property:", error);
+      alert('Error approving property');
     }
   };
 
   const handleReject = async (id: string) => {
     try {
-      // TODO: Update status in Supabase
-      // await supabase
-      //   .from('properties')
-      //   .update({ status: 'rejected' })
-      //   .eq('id', id);
+      const token = localStorage.getItem('admin_token') || localStorage.getItem('auth_token');
+      const response = await fetch(`/api/properties/${id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({ status: 'rejected' }),
+      });
+
+      const result = await response.json();
+      if (!result.success) {
+        console.error("Failed to reject property:", result.error);
+        alert(result.error || 'Failed to reject property');
+        return;
+      }
 
       fetchProperties();
     } catch (error) {
       console.error("Failed to reject property:", error);
+      alert('Error rejecting property');
     }
   };
 

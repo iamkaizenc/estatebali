@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
+import { supabaseAdmin, isSupabaseConfigured } from '@/lib/supabaseAdmin';
 
 // Investment Lead Detail API
 // GET /api/investment-leads/[id] - Get specific lead (admin only)
@@ -42,28 +43,32 @@ export async function GET(
       );
     }
 
+    if (!isSupabaseConfigured || !supabaseAdmin) {
+      return NextResponse.json(
+        { error: 'Supabase is not configured' },
+        { status: 503 }
+      );
+    }
+
     const leadId = params.id;
 
-    // TODO: Fetch from Supabase
-    // const { data: lead, error } = await supabase
-    //   .from('investment_leads')
-    //   .select('*')
-    //   .eq('id', leadId)
-    //   .single();
-    //
-    // if (error || !lead) {
-    //   return NextResponse.json(
-    //     { error: 'Investment lead not found' },
-    //     { status: 404 }
-    //   );
-    // }
+    // Fetch from Supabase
+    const { data: lead, error } = await supabaseAdmin
+      .from('investment_leads')
+      .select('*')
+      .eq('id', leadId)
+      .single();
+
+    if (error || !lead) {
+      return NextResponse.json(
+        { error: 'Investment lead not found' },
+        { status: 404 }
+      );
+    }
 
     return NextResponse.json({
       success: true,
-      lead: {
-        id: leadId,
-        // ... lead data
-      },
+      lead,
     });
   } catch (error) {
     console.error('Investment lead fetch error:', error);
@@ -100,37 +105,49 @@ export async function PATCH(
       );
     }
 
-    // TODO: Update in Supabase
-    // const updateData: any = {
-    //   updated_at: new Date().toISOString(),
-    // };
-    // if (status) updateData.status = status;
-    // if (notes !== undefined) updateData.notes = notes;
-    // if (assignedTo !== undefined) updateData.assigned_to = assignedTo;
-    //
-    // const { data: lead, error } = await supabase
-    //   .from('investment_leads')
-    //   .update(updateData)
-    //   .eq('id', leadId)
-    //   .select()
-    //   .single();
-    //
-    // if (error) {
-    //   return NextResponse.json(
-    //     { error: 'Failed to update investment lead' },
-    //     { status: 500 }
-    //   );
-    // }
+    if (!isSupabaseConfigured || !supabaseAdmin) {
+      return NextResponse.json(
+        { error: 'Supabase is not configured' },
+        { status: 503 }
+      );
+    }
+
+    // Update in Supabase
+    const updateData: any = {};
+    if (status) updateData.status = status;
+    if (notes !== undefined) updateData.notes = notes;
+    if (assignedTo !== undefined) {
+      // Get user_id if assignedTo is email
+      if (typeof assignedTo === 'string' && assignedTo.includes('@')) {
+        const { data: userData } = await supabaseAdmin
+          .from('users')
+          .select('id')
+          .eq('email', assignedTo)
+          .single();
+        updateData.assigned_to = userData?.id || null;
+      } else {
+        updateData.assigned_to = assignedTo;
+      }
+    }
+
+    const { data: lead, error } = await supabaseAdmin
+      .from('investment_leads')
+      .update(updateData)
+      .eq('id', leadId)
+      .select()
+      .single();
+
+    if (error) {
+      return NextResponse.json(
+        { error: 'Failed to update investment lead: ' + error.message },
+        { status: 500 }
+      );
+    }
 
     return NextResponse.json({
       success: true,
       message: 'Investment lead updated successfully',
-      lead: {
-        id: leadId,
-        status,
-        notes,
-        assignedTo,
-      },
+      lead,
     });
   } catch (error) {
     console.error('Investment lead update error:', error);
@@ -154,20 +171,27 @@ export async function DELETE(
       );
     }
 
+    if (!isSupabaseConfigured || !supabaseAdmin) {
+      return NextResponse.json(
+        { error: 'Supabase is not configured' },
+        { status: 503 }
+      );
+    }
+
     const leadId = params.id;
 
-    // TODO: Delete from Supabase
-    // const { error } = await supabase
-    //   .from('investment_leads')
-    //   .delete()
-    //   .eq('id', leadId);
-    //
-    // if (error) {
-    //   return NextResponse.json(
-    //     { error: 'Failed to delete investment lead' },
-    //     { status: 500 }
-    //   );
-    // }
+    // Delete from Supabase
+    const { error } = await supabaseAdmin
+      .from('investment_leads')
+      .delete()
+      .eq('id', leadId);
+
+    if (error) {
+      return NextResponse.json(
+        { error: 'Failed to delete investment lead: ' + error.message },
+        { status: 500 }
+      );
+    }
 
     return NextResponse.json({
       success: true,

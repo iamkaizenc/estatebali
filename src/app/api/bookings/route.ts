@@ -7,7 +7,8 @@ import {
   apiValidationError,
   validateRequiredFields,
 } from '@/lib/api-response';
-import { verifyAuth } from '@/lib/auth';
+import { verifyAuth } from '@/lib/api-auth';
+import { supabaseAdmin, isSupabaseConfigured } from '@/lib/supabaseAdmin';
 
 // Bookings API
 export async function POST(request: NextRequest) {
@@ -54,23 +55,45 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // TODO: Insert into Supabase
-    const booking = {
-      id: `booking_${Date.now()}`,
-      propertyId,
-      userId: auth.userId,
-      checkIn: checkInDate.toISOString(),
-      checkOut: checkOutDate.toISOString(),
-      guests,
-      totalPrice,
-      bookingStatus: 'pending',
-      paymentStatus: 'pending',
-      specialRequests,
-      guestName,
-      guestEmail,
-      guestPhone,
-      createdAt: new Date().toISOString(),
-    };
+    if (!isSupabaseConfigured || !supabaseAdmin) {
+      return apiError('Supabase is not configured', 503);
+    }
+
+    // Get user_id from users table
+    const { data: userData } = await supabaseAdmin
+      .from('users')
+      .select('id')
+      .eq('email', auth.user?.email || '')
+      .single();
+
+    if (!userData) {
+      return apiError('User not found', 404);
+    }
+
+    // Insert into Supabase
+    const { data: booking, error } = await supabaseAdmin
+      .from('bookings')
+      .insert({
+        property_id: propertyId,
+        user_id: userData.id,
+        check_in: checkInDate.toISOString().split('T')[0],
+        check_out: checkOutDate.toISOString().split('T')[0],
+        guests,
+        total_price: totalPrice,
+        booking_status: 'pending',
+        payment_status: 'pending',
+        special_requests: specialRequests,
+        guest_name: guestName,
+        guest_email: guestEmail,
+        guest_phone: guestPhone,
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Booking creation error:', error);
+      return apiError('Failed to create booking: ' + error.message);
+    }
 
     return apiSuccess(booking, 'Booking created successfully', 201);
   } catch (error) {
@@ -87,18 +110,34 @@ export async function GET(request: NextRequest) {
       return apiUnauthorized(auth.error);
     }
 
-    // TODO: Fetch from Supabase
-    // const { data: bookings } = await supabase
-    //   .from('bookings')
-    //   .select('*, properties(*)')
-    //   .eq('user_id', auth.userId)
-    //   .order('created_at', { ascending: false });
+    if (!isSupabaseConfigured || !supabaseAdmin) {
+      return apiError('Supabase is not configured', 503);
+    }
 
-    // Mock data
-    const bookings: any[] = [];
-    const total = 0;
+    // Get user_id from users table
+    const { data: userData } = await supabaseAdmin
+      .from('users')
+      .select('id')
+      .eq('email', auth.user?.email || '')
+      .single();
 
-    return apiCollection(bookings, total, 50, 0);
+    if (!userData) {
+      return apiError('User not found', 404);
+    }
+
+    // Fetch from Supabase
+    const { data: bookings, error, count } = await supabaseAdmin
+      .from('bookings')
+      .select('*, properties(*)', { count: 'exact' })
+      .eq('user_id', userData.id)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Bookings fetch error:', error);
+      return apiError('Failed to fetch bookings: ' + error.message);
+    }
+
+    return apiCollection(bookings || [], count || 0, 50, 0);
   } catch (error) {
     console.error('Bookings fetch error:', error);
     return apiError('Failed to fetch bookings');

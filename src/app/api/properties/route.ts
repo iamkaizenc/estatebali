@@ -142,7 +142,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     // Rate limiting
-    const rateLimit = rateLimitByIP(request, { windowMs: 60 * 1000, maxRequests: 10 });
+    const rateLimit = await rateLimitByIP(request, { windowMs: 60 * 1000, maxRequests: 10 });
     if (!rateLimit.success) {
       return NextResponse.json(
         { success: false, error: rateLimit.error || "Too many requests" },

@@ -10,7 +10,7 @@ import {
   validateRequiredFields,
 } from '@/lib/api-response';
 import { verifyAuth } from '@/lib/auth';
-import { cookies } from 'next/headers';
+import { supabaseAdmin, isSupabaseConfigured } from '@/lib/supabaseAdmin';
 
 // Investment Leads API
 // POST /api/investment-leads - Create new investment lead
@@ -35,31 +35,43 @@ export async function POST(request: NextRequest) {
       });
     }
 
+    if (!isSupabaseConfigured || !supabaseAdmin) {
+      return apiError('Supabase is not configured', 503);
+    }
+
     // Get user ID from auth token if available (optional for this endpoint)
     const auth = verifyAuth(request);
-    const userId = auth.success ? auth.userId : null;
+    let userId = null;
+    if (auth.success && auth.user?.email) {
+      const { data: userData } = await supabaseAdmin
+        .from('users')
+        .select('id')
+        .eq('email', auth.user.email)
+        .single();
+      userId = userData?.id || null;
+    }
 
-    // TODO: Insert into Supabase database
-    const lead = {
-      id: `lead_${Date.now()}`,
-      userId,
-      name,
-      email,
-      phone: phone || null,
-      investmentAmount: investmentAmount || null,
-      investmentType: investmentType || null,
-      preferredLocation: preferredLocation || null,
-      message: message || null,
-      status: 'pending',
-      createdAt: new Date().toISOString(),
-    };
+    // Insert into Supabase
+    const { data: lead, error } = await supabaseAdmin
+      .from('investment_leads')
+      .insert({
+        user_id: userId,
+        name,
+        email,
+        phone: phone || null,
+        investment_amount: investmentAmount || null,
+        investment_type: investmentType || null,
+        preferred_location: preferredLocation || null,
+        message: message || null,
+        status: 'pending',
+      })
+      .select()
+      .single();
 
-    // TODO: Insert into Supabase
-    // const { data, error } = await supabase
-    //   .from('investment_leads')
-    //   .insert([lead])
-    //   .select()
-    //   .single();
+    if (error) {
+      console.error('Investment lead creation error:', error);
+      return apiError('Failed to create investment lead: ' + error.message);
+    }
 
     // TODO: Send notification email to admin
     // await sendAdminNotification(lead);
@@ -93,24 +105,29 @@ export async function GET(request: NextRequest) {
     const { limit, offset } = getPaginationParams(searchParams);
     const status = searchParams.get('status');
 
-    // TODO: Fetch from Supabase
-    // let query = supabase
-    //   .from('investment_leads')
-    //   .select('*', { count: 'exact' })
-    //   .order('created_at', { ascending: false })
-    //   .range(offset, offset + limit - 1);
-    //
-    // if (status) {
-    //   query = query.eq('status', status);
-    // }
-    //
-    // const { data: leads, error, count } = await query;
+    if (!isSupabaseConfigured || !supabaseAdmin) {
+      return apiError('Supabase is not configured', 503);
+    }
 
-    // Mock data
-    const leads: any[] = [];
-    const total = 0;
+    // Fetch from Supabase
+    let query = supabaseAdmin
+      .from('investment_leads')
+      .select('*', { count: 'exact' })
+      .order('created_at', { ascending: false })
+      .range(offset, offset + limit - 1);
 
-    return apiCollection(leads, total, limit, offset);
+    if (status) {
+      query = query.eq('status', status);
+    }
+
+    const { data: leads, error, count } = await query;
+
+    if (error) {
+      console.error('Investment leads fetch error:', error);
+      return apiError('Failed to fetch investment leads: ' + error.message);
+    }
+
+    return apiCollection(leads || [], count || 0, limit, offset);
   } catch (error) {
     console.error('Investment leads fetch error:', error);
     return apiError('Failed to fetch investment leads');
