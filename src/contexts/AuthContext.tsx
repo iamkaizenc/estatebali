@@ -147,32 +147,39 @@ export function useAuthSafe() {
   const context = useContext(AuthContext);
   if (context === undefined) {
     // Return default values during SSR/static generation
-    // The login/logout functions check for browser environment before executing
+    // These are safe defaults that won't cause errors
+    // The actual context will be available after client-side hydration
     return {
       user: null,
-      loading: false,
+      loading: true, // Set to true initially to prevent flash of content
       login: async () => {
-        // During SSR, return success: false without error message
-        // The login function should never be called during SSR anyway
-        // but if it is, we return a safe response
-        if (typeof window === 'undefined') {
-          return { success: false };
-        }
-        // If we're in the browser but context isn't available, return a helpful error
-        return { success: false, error: "Authentication not available. Please refresh the page." };
+        // During SSR or before hydration, return a safe response
+        // This function should only be called in response to user actions (client-side)
+        // If context isn't available, it means we're still hydrating or in SSR
+        // Return a safe response that won't cause errors
+        return { success: false };
       },
       logout: () => {
-        // No-op during SSR, will be handled by actual context when mounted
-        if (typeof window !== 'undefined' && typeof document !== 'undefined') {
-          // Try to clear storage if available
+        // Safe logout that works even if context isn't available
+        if (typeof window !== 'undefined') {
           try {
             localStorage.removeItem('auth_token');
             localStorage.removeItem('admin_token');
+          } catch (e) {
+            // Silently fail
+          }
+        }
+        if (typeof document !== 'undefined') {
+          try {
             document.cookie = 'auth_token=; path=/; max-age=0; SameSite=Lax';
             document.cookie = 'admin_token=; path=/; max-age=0; SameSite=Lax';
           } catch (e) {
-            // Silently fail during SSR
+            // Silently fail
           }
+        }
+        // Try to redirect if we're in the browser
+        if (typeof window !== 'undefined') {
+          window.location.href = '/login';
         }
       },
       isAuthenticated: false,
