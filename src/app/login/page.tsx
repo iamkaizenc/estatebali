@@ -31,6 +31,13 @@ export default function LoginPage() {
     setError("");
     setLoading(true);
 
+    // Safety check: ensure we're in browser environment
+    if (typeof window === 'undefined') {
+      setError("Please wait for the page to load completely");
+      setLoading(false);
+      return;
+    }
+
     const result = await login(email, password);
 
     if (result.success) {
@@ -62,7 +69,13 @@ export default function LoginPage() {
         }
       }
     } else {
-      setError(result.error || "Invalid email or password");
+      // Only show error if it's not an SSR-related error
+      const errorMessage = result.error;
+      if (errorMessage && !errorMessage.includes("SSR") && !errorMessage.includes("Not available")) {
+        setError(errorMessage);
+      } else {
+        setError("Invalid email or password");
+      }
       setLoading(false);
     }
   };
