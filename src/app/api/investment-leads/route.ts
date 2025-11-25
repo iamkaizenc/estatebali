@@ -9,7 +9,7 @@ import {
   getPaginationParams,
   validateRequiredFields,
 } from '@/lib/api-response';
-import { verifyAuth } from '@/lib/auth';
+import { verifyAuth } from '@/lib/api-auth';
 import { supabaseAdmin, isSupabaseConfigured } from '@/lib/supabaseAdmin';
 
 // Investment Leads API
