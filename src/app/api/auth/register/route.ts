@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin, isSupabaseConfigured } from "@/lib/supabaseAdmin";
 import { registerSchema, validateData } from "@/lib/validation";
-import { rateLimitByIP } from "@/lib/rate-limit";
+import { rateLimitByIP, type RateLimitResult } from "@/lib/rate-limit";
 import { sendEmail, emailTemplates } from "@/lib/email";
 import bcrypt from "bcryptjs";
 
@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Rate limiting
-    const rateLimit = await rateLimitByIP(request, { windowMs: 60 * 1000, maxRequests: 5 });
+    const rateLimit: RateLimitResult = await rateLimitByIP(request, { windowMs: 60 * 1000, maxRequests: 5 });
     if (!rateLimit.success) {
       return NextResponse.json(
         { success: false, error: rateLimit.error || "Too many requests" },
