@@ -62,7 +62,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check admin role
-    if (auth.role !== 'admin' && auth.role !== 'super_admin') {
+    if (auth.user!.role !== 'admin' && auth.user!.role !== 'super_admin') {
       return apiForbidden('Admin access required');
     }
 
