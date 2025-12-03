@@ -189,12 +189,12 @@ export async function POST(request: NextRequest) {
         area: sanitizeString(validation.data.location.area || ''),
         city: sanitizeString(validation.data.location.city || ''),
       },
-      contact: {
+      contact: validation.data.contact ? {
         ...validation.data.contact,
-        name: sanitizeString(validation.data.contact.name),
-        email: sanitizeString(validation.data.contact.email),
-        phone: sanitizeString(validation.data.contact.phone),
-      },
+        name: sanitizeString(validation.data.contact.name || ''),
+        email: sanitizeString(validation.data.contact.email || ''),
+        phone: sanitizeString(validation.data.contact.phone || ''),
+      } : undefined,
     };
 
         // Convert app property to database property

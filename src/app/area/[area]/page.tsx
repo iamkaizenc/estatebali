@@ -14,7 +14,7 @@ export default function AreaPage() {
   
   // Normalize area name for search (e.g., "uluwatu" or "uluwatu-pecatu" -> search for "uluwatu")
   const normalizedArea = area.toLowerCase().replace(/-/g, ' ').split(' ')[0];
-  const { properties: areaProperties, loading, error } = useProperties({ area: normalizedArea });
+  const { properties: areaProperties, loading, error } = useProperties({ location: normalizedArea });
 
   // Get the actual area name from the first property if available
   const areaName = areaProperties.length > 0 

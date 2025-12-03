@@ -172,7 +172,7 @@ export default function HomePage({ params }: HomePageProps) {
               transition={{ duration: 0.8, delay: 0.3 }}
               className="text-sm text-gray-500 italic mb-4"
             >
-              {messages.aiTranslatedNotice}
+              {messages.hero.aiTranslatedNotice}
             </motion.p>
           )}
           
