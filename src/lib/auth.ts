@@ -256,3 +256,7 @@ export function logout(): void {
   
   window.location.href = "/login";
 }
+
+// Re-export verifyAuth functions for backward compatibility
+// Some API routes import from @/lib/auth instead of @/lib/api-auth
+export { verifyAuth, verifyAdminAuth, verifyUserAuth } from './api-auth';
