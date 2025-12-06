@@ -1453,9 +1453,10 @@ const id: Messages = {
     },
     confirmation: {
       title: 'Pemesanan Dikonfirmasi',
-      message: 'Pemesanan Anda telah berhasil dikonfirmasi',
-      bookingId: 'ID Pemesanan: {id}',
-      checkEmail: 'Silakan cek email Anda untuk detail pemesanan',
+      thankYou: 'Terima kasih atas pemesanan Anda!',
+      bookingNumber: 'Nomor Pemesanan',
+      emailSent: 'Email konfirmasi telah dikirim',
+      viewBooking: 'Lihat Pemesanan',
     },
     errors: {
       invalidDates: 'Tanggal check-out harus setelah check-in',
