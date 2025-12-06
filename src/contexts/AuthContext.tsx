@@ -152,12 +152,12 @@ export function useAuthSafe() {
     return {
       user: null,
       loading: true, // Set to true initially to prevent flash of content
-      login: async () => {
+      login: async (): Promise<{ success: boolean; error?: string }> => {
         // During SSR or before hydration, return a safe response
         // This function should only be called in response to user actions (client-side)
         // If context isn't available, it means we're still hydrating or in SSR
         // Return a safe response that won't cause errors
-        return { success: false };
+        return { success: false, error: 'Authentication not available during SSR' };
       },
       logout: () => {
         // Safe logout that works even if context isn't available
