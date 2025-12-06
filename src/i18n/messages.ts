@@ -1461,6 +1461,7 @@ const id: Messages = {
     errors: {
       invalidDates: 'Tanggal check-out harus setelah check-in',
       propertyUnavailable: 'Properti tidak tersedia untuk tanggal yang dipilih',
+      paymentFailed: 'Pembayaran gagal',
       bookingFailed: 'Gagal membuat pemesanan',
     },
     status: {
