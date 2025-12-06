@@ -1488,13 +1488,13 @@ const id: Messages = {
       subject: 'Subjek',
       message: 'Pesan',
       submit: 'Kirim Pesan',
+      sending: 'Mengirim...',
     },
     info: {
       address: 'Alamat',
       email: 'Email',
       phone: 'Telepon',
       hours: 'Jam Operasional',
-      hoursValue: 'Senin - Sabtu: 9:00 - 18:00',
     },
     success: 'Pesan Anda telah dikirim. Kami akan segera menghubungi Anda.',
     error: 'Gagal mengirim pesan. Silakan coba lagi.',
@@ -1599,10 +1599,7 @@ const id: Messages = {
     },
     social: {
       title: 'Ikuti Kami',
-      facebook: 'Facebook',
-      instagram: 'Instagram',
-      twitter: 'Twitter',
-      linkedin: 'LinkedIn',
+      followUs: 'Tetap terhubung',
     },
     newsletter: {
       title: 'Newsletter',
