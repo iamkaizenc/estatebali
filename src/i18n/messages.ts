@@ -311,6 +311,13 @@ export interface Messages {
       markRead: string;
       markUnread: string;
     };
+    savedSearches: {
+      title: string;
+      noSearches: string;
+      enableAlerts: string;
+      disableAlerts: string;
+      deleteSearch: string;
+    };
     notifications: {
       title: string;
       noNotifications: string;
@@ -857,6 +864,13 @@ const en: Messages = {
       delete: 'Delete',
       markRead: 'Mark as read',
       markUnread: 'Mark as unread',
+    },
+    savedSearches: {
+      title: 'Saved Searches',
+      noSearches: 'No saved searches yet',
+      enableAlerts: 'Enable alerts for this search',
+      disableAlerts: 'Disable alerts',
+      deleteSearch: 'Delete search',
     },
     notifications: {
       title: 'Notifications',
