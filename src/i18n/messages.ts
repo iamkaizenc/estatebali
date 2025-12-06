@@ -1410,6 +1410,25 @@ const id: Messages = {
       markRead: 'Tandai sudah dibaca',
       markUnread: 'Tandai belum dibaca',
     },
+    notifications: {
+      title: 'Notifikasi',
+      noNotifications: 'Tidak ada notifikasi',
+      markAllRead: 'Tandai semua sudah dibaca',
+      clearAll: 'Hapus semua',
+    },
+    settings: {
+      title: 'Pengaturan',
+      language: 'Bahasa',
+      currency: 'Mata Uang',
+      timezone: 'Zona Waktu',
+      emailNotifications: 'Notifikasi Email',
+      pushNotifications: 'Notifikasi Push',
+      newsletter: 'Newsletter',
+      changePassword: 'Ubah Kata Sandi',
+      deleteAccount: 'Hapus Akun',
+      saveSuccess: 'Pengaturan berhasil disimpan',
+      saveError: 'Gagal menyimpan pengaturan',
+    },
   },
 
   booking: {
