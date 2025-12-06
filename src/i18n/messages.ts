@@ -1230,10 +1230,10 @@ const id: Messages = {
       scheduleViewing: 'Jadwalkan Kunjungan',
       saveProperty: 'Simpan Properti',
       shareProperty: 'Bagikan Properti',
-      reportListing: 'Laporkan Listing',
-      calculateMortgage: 'Hitung KPR',
+      reportProperty: 'Laporkan',
+      bookNow: 'Pesan Sekarang',
       requestInfo: 'Minta Informasi',
-      bookViewing: 'Pesan Kunjungan',
+      compareProperties: 'Bandingkan',
     },
     messages: {
       noProperties: 'Tidak ada properti ditemukan',
