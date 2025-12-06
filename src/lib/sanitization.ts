@@ -71,17 +71,17 @@ export function escapeHTML(input: string): string {
  * Sanitize object by sanitizing all string values
  */
 export function sanitizeObject<T extends Record<string, any>>(obj: T): T {
-  const sanitized = { ...obj };
+  const sanitized = { ...obj } as T;
 
   for (const key in sanitized) {
     if (typeof sanitized[key] === 'string') {
-      sanitized[key] = sanitizeString(sanitized[key]);
+      (sanitized as any)[key] = sanitizeString(sanitized[key] as string);
     } else if (Array.isArray(sanitized[key])) {
-      sanitized[key] = sanitized[key].map((item: any) =>
+      (sanitized as any)[key] = (sanitized[key] as any[]).map((item: any) =>
         typeof item === 'string' ? sanitizeString(item) : item
       );
     } else if (sanitized[key] && typeof sanitized[key] === 'object') {
-      sanitized[key] = sanitizeObject(sanitized[key]);
+      (sanitized as any)[key] = sanitizeObject(sanitized[key]);
     }
   }
 

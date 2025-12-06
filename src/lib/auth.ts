@@ -33,6 +33,10 @@ if (JWT_SECRET && JWT_SECRET.length < 32) {
 
 // JWT token creation with proper encryption
 function createToken(user: AuthUser): string {
+  if (!JWT_SECRET) {
+    throw new Error('JWT_SECRET is not configured');
+  }
+
   const payload = {
     id: user.id,
     email: user.email,
@@ -51,6 +55,10 @@ function createToken(user: AuthUser): string {
 
 // JWT token verification with proper validation
 function verifyToken(token: string): AuthUser | null {
+  if (!JWT_SECRET) {
+    throw new Error('JWT_SECRET is not configured');
+  }
+
   try {
     // Verify and decode JWT token
     const decoded = jwt.verify(token, JWT_SECRET, {

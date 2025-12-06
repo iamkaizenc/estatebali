@@ -86,7 +86,7 @@ export async function checkRateLimitRedis(
     // Check if limit exceeded
     if (count >= options.maxRequests) {
       // Get the oldest entry to calculate reset time
-      const oldest = await redis.zrange(redisKey, 0, 0, { withScores: true });
+      const oldest = await redis.zrange(redisKey, 0, 0, { withScores: true }) as Array<{ member: string; score: number }>;
       const oldestTime = oldest.length > 0 ? oldest[0].score : now;
       const actualResetTime = oldestTime + options.windowMs;
 
