@@ -298,6 +298,7 @@ export interface Messages {
     favorites: {
       title: string;
       noFavorites: string;
+      addFavorites: string;
       removeSuccess: string;
       removeError: string;
     };
@@ -844,6 +845,7 @@ const en: Messages = {
     favorites: {
       title: 'Favorite Properties',
       noFavorites: 'No favorite properties yet',
+      addFavorites: 'Start saving your favorite properties',
       removeSuccess: 'Removed from favorites',
       removeError: 'Failed to remove from favorites',
     },
@@ -1375,6 +1377,8 @@ const id: Messages = {
       title: 'Properti Favorit',
       noFavorites: 'Belum ada properti favorit',
       addFavorites: 'Mulai simpan properti favorit Anda',
+      removeSuccess: 'Dihapus dari favorit',
+      removeError: 'Gagal menghapus dari favorit',
     },
     savedSearches: {
       title: 'Pencarian Tersimpan',
