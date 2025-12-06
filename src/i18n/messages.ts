@@ -1390,9 +1390,11 @@ const id: Messages = {
     messages: {
       title: 'Pesan',
       noMessages: 'Tidak ada pesan',
-      newMessage: 'Pesan Baru',
+      compose: 'Tulis Pesan',
       reply: 'Balas',
-      markAsRead: 'Tandai sudah dibaca',
+      delete: 'Hapus',
+      markRead: 'Tandai sudah dibaca',
+      markUnread: 'Tandai belum dibaca',
     },
   },
 
