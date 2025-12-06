@@ -49,7 +49,7 @@ export function useProperties(options: UsePropertiesOptions = {}) {
     };
 
     fetchProperties();
-  }, [options.listingType, options.featured, options.area, options.type, options.query, options.location, options.priceMin, options.priceMax, options.bedrooms, options.bathrooms, options.userId]);
+  }, [options.listingType, options.featured, options.location, options.propertyType, options.query, options.priceMin, options.priceMax, options.bedrooms, options.bathrooms, options.userId]);
 
   return { properties, loading, error, refetch: () => {
     const fetchProperties = async () => {
@@ -60,8 +60,10 @@ export function useProperties(options: UsePropertiesOptions = {}) {
         const params = new URLSearchParams();
         if (options.listingType) params.append("listingType", options.listingType);
         if (options.featured) params.append("featured", "true");
-        if (options.area) params.append("area", options.area);
-        if (options.type) params.append("type", options.type);
+        if (options.location) params.append("area", options.location);
+        if (options.propertyType && options.propertyType.length > 0) {
+          params.append("type", options.propertyType[0]);
+        }
 
         const response = await fetch(`/api/properties?${params.toString()}`);
         const result = await response.json();
