@@ -70,7 +70,8 @@ export default function LoginPage() {
       }
     } else {
       // Only show error if it's not an SSR-related error
-      const errorMessage = result.error;
+      // Type guard ile error'a güvenli erişim
+      const errorMessage = (result as { success: false; error?: string }).error;
       if (errorMessage && !errorMessage.includes("SSR") && !errorMessage.includes("Not available")) {
         setError(errorMessage);
       } else {
