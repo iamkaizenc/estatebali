@@ -228,8 +228,6 @@ export default function PropertyDetailPage() {
                   <div className="h-96 rounded-2xl overflow-hidden">
                     <MapComponent
                       properties={[property]}
-                      center={property.location.coordinates}
-                      zoom={15}
                     />
                   </div>
                 </div>
