@@ -9,7 +9,7 @@ import { useAuthSafe } from "@/contexts/AuthContext";
 import { useProperties } from "@/hooks/useProperties";
 import { Property } from "@/types";
 import { Edit, Trash2, Plus, Eye, EyeOff, Star, LogOut, User as UserIcon, X, Save, Home, TrendingUp, DollarSign, ShoppingBag, Settings, BarChart3, Shield, Activity } from "lucide-react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 
 function AdminDashboard() {
   const router = useRouter();
@@ -318,21 +318,22 @@ function AdminDashboard() {
         </motion.div>
 
         {/* Edit/Add Form Modal */}
-        {(isEditing || isAdding) && (
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm p-4"
-            onClick={handleCancel}
-          >
+        <AnimatePresence>
+          {(isEditing || isAdding) && (
             <motion.div 
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              className="card max-w-4xl w-full max-h-[90vh] overflow-y-auto border-2 border-dark-300 shadow-2xl"
-              onClick={(e) => e.stopPropagation()}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm p-4"
+              onClick={handleCancel}
             >
+              <motion.div 
+                initial={{ scale: 0.95, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.95, opacity: 0 }}
+                className="card max-w-4xl w-full max-h-[90vh] overflow-y-auto border-2 border-dark-300 shadow-2xl"
+                onClick={(e) => e.stopPropagation()}
+              >
               <div className="flex justify-between items-center mb-6 pb-4 border-b border-dark-300">
                 <div className="flex items-center gap-3">
                   <div className="p-2 bg-primary/20 rounded-lg">
@@ -481,9 +482,10 @@ function AdminDashboard() {
                   </button>
                 </div>
               </div>
-            </div>
-          </div>
-        )}
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Properties Grid */}
         {propertiesLoading ? (
