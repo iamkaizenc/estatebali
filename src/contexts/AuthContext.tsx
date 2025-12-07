@@ -45,10 +45,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = async (email: string, password: string) => {
     // Safety check: ensure we're in browser environment
     if (typeof window === 'undefined') {
+      console.error('[Login] Window is undefined, cannot login');
       return { success: false, error: 'Login is only available in the browser' };
     }
 
     console.log('[Login] Attempting login for:', email);
+    console.log('[Login] AuthContext login function called');
     
     try {
       console.log('[Login] Sending request to /api/auth/login');
@@ -62,7 +64,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       console.log('[Login] Response status:', response.status, response.statusText);
       const result = await response.json();
-      console.log('[Login] Response data:', { success: result.success, hasToken: !!result.token, error: result.error });
+      console.log('[Login] Response data:', JSON.stringify(result, null, 2));
 
       if (result.success && result.token) {
         // Store token (client-side only)
@@ -83,6 +85,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
       return { success: false, error: result.error || 'Login failed' };
     } catch (error: any) {
+      console.error('[Login] Error caught:', error);
+      console.error('[Login] Error message:', error.message);
+      console.error('[Login] Error stack:', error.stack);
       return { success: false, error: error.message || 'Login failed. Please try again.' };
     }
   };
