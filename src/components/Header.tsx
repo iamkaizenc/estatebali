@@ -296,6 +296,14 @@ export default function Header() {
                 Map Search
               </Link>
               <Link 
+                href="/services" 
+                className="py-2 hover:text-primary transition-colors flex items-center gap-2"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Services
+                <span className="px-1.5 py-0.5 bg-primary text-black text-xs font-bold rounded">New</span>
+              </Link>
+              <Link 
                 href="/agents" 
                 className="py-2 hover:text-primary transition-colors"
                 onClick={() => setMobileMenuOpen(false)}

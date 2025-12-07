@@ -45,6 +45,7 @@ export interface Messages {
     agents: string;
     about: string;
     contact: string;
+    services: string;
     login: string;
     register: string;
     dashboard: string;
@@ -56,6 +57,63 @@ export interface Messages {
     messages: string;
     notifications: string;
     settings: string;
+  };
+
+  services: {
+    title: string;
+    subtitle: string;
+    comingSoon: string;
+    comingSoonDesc: string;
+    ctaButton: string;
+    readyTitle: string;
+    readyDesc: string;
+    whatsappButton: string;
+    emailButton: string;
+    howItWorks: string;
+    howItWorksDesc: string;
+    visa: {
+      title: string;
+      description: string;
+      askButton: string;
+    };
+    residency: {
+      title: string;
+      description: string;
+      askButton: string;
+    };
+    company: {
+      title: string;
+      description: string;
+      askButton: string;
+    };
+    legal: {
+      title: string;
+      description: string;
+      askButton: string;
+    };
+    relocation: {
+      title: string;
+      description: string;
+      askButton: string;
+    };
+    steps: {
+      contact: {
+        title: string;
+        description: string;
+      };
+      consultation: {
+        title: string;
+        description: string;
+      };
+      documentation: {
+        title: string;
+        description: string;
+      };
+      completion: {
+        title: string;
+        description: string;
+      };
+    };
   };
 
   // Hero Section
@@ -1208,6 +1266,7 @@ const id: Messages = {
     agents: 'Agen',
     about: 'Tentang',
     contact: 'Kontak',
+    services: 'Layanan',
     login: 'Masuk',
     register: 'Daftar',
     dashboard: 'Dasbor',
@@ -1219,6 +1278,63 @@ const id: Messages = {
     messages: 'Pesan',
     notifications: 'Notifikasi',
     settings: 'Pengaturan',
+  },
+
+  services: {
+    title: 'Gerbang Anda untuk Hidup di Bali',
+    subtitle: 'Layanan visa, izin tinggal, dan pendirian perusahaan yang komprehensif untuk membuat transisi Bali Anda menjadi lancar.',
+    comingSoon: 'Segera Hadir',
+    comingSoonDesc: 'Layanan lengkap akan segera diluncurkan!',
+    ctaButton: 'Dapatkan Info di WhatsApp',
+    readyTitle: 'Siap Memulai?',
+    readyDesc: 'Hubungi kami hari ini untuk mendiskusikan kebutuhan Anda dan mendapatkan penawaran yang dipersonalisasi',
+    whatsappButton: 'Chat di WhatsApp',
+    emailButton: 'Kirim Email',
+    howItWorks: 'Cara Kerja',
+    howItWorksDesc: 'Proses 4 langkah sederhana untuk memulai',
+    visa: {
+      title: 'Layanan Visa',
+      description: 'Bantuan lengkap aplikasi visa untuk tinggal di Bali',
+      askButton: 'Tanya Tentang Ini',
+    },
+    residency: {
+      title: 'Izin Tinggal',
+      description: 'Solusi izin tinggal jangka panjang untuk ekspatriat dan investor',
+      askButton: 'Tanya Tentang Ini',
+    },
+    company: {
+      title: 'Pendirian Perusahaan',
+      description: 'Membangun kehadiran bisnis Anda di Indonesia',
+      askButton: 'Tanya Tentang Ini',
+    },
+    legal: {
+      title: 'Dokumentasi Hukum',
+      description: 'Layanan hukum komprehensif untuk properti dan bisnis',
+      askButton: 'Tanya Tentang Ini',
+    },
+    relocation: {
+      title: 'Dukungan Relokasi',
+      description: 'Transisi yang mulus ke kehidupan baru Anda di Bali',
+      askButton: 'Tanya Tentang Ini',
+    },
+    steps: {
+      contact: {
+        title: 'Hubungi Kami',
+        description: 'Hubungi melalui WhatsApp atau email',
+      },
+      consultation: {
+        title: 'Konsultasi',
+        description: 'Konsultasi awal gratis untuk memahami kebutuhan Anda',
+      },
+      documentation: {
+        title: 'Dokumentasi',
+        description: 'Kami menangani semua dokumen dan persyaratan',
+      },
+      completion: {
+        title: 'Selesai',
+        description: 'Layanan Anda diproses dan diselesaikan',
+      },
+    },
   },
 
   hero: {
