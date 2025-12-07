@@ -2,7 +2,6 @@
 
 import { useState, useRef } from "react";
 import { Upload, X, Image as ImageIcon } from "lucide-react";
-import { supabase } from "@/lib/supabase";
 
 interface ImageUploadProps {
   onImagesChange: (urls: string[]) => void;
@@ -48,36 +47,30 @@ export function ImageUpload({
       const preview = URL.createObjectURL(file);
       newPreviews.push(preview);
 
-      // Upload to Supabase Storage
+      // Upload via API route (uses supabaseAdmin - bypasses RLS)
       try {
-        if (!supabase) {
-          throw new Error("Supabase is not configured");
+        const token = localStorage.getItem('admin_token') || localStorage.getItem('auth_token');
+        
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('bucket', bucketName);
+
+        const response = await fetch('/api/properties/images', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+          body: formData,
+        });
+
+        const result = await response.json();
+
+        if (!response.ok || !result.success) {
+          throw new Error(result.error || 'Failed to upload image');
         }
 
-        // Generate unique filename
-        const fileExt = file.name.split('.').pop();
-        const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
-        const filePath = `${fileName}`;
-
-        // Upload file
-        const { data, error: uploadError } = await supabase.storage
-          .from(bucketName)
-          .upload(filePath, file, {
-            cacheControl: '3600',
-            upsert: false
-          });
-
-        if (uploadError) {
-          throw uploadError;
-        }
-
-        // Get public URL
-        const { data: urlData } = supabase.storage
-          .from(bucketName)
-          .getPublicUrl(filePath);
-
-        if (urlData?.publicUrl) {
-          newImages.push(urlData.publicUrl);
+        if (result.data?.url) {
+          newImages.push(result.data.url);
         }
       } catch (err: any) {
         console.error("Upload error:", err);
@@ -102,7 +95,38 @@ export function ImageUpload({
     }
   };
 
-  const removeImage = (index: number) => {
+  const removeImage = async (index: number) => {
+    const imageUrl = images[index];
+    
+    // Try to extract path from URL for deletion
+    // URL format: https://...supabase.co/storage/v1/object/public/property-images/filename.jpg
+    const urlMatch = imageUrl.match(/property-images\/(.+)$/);
+    
+    // Only try to delete from storage if we can extract the path
+    if (urlMatch && urlMatch[1]) {
+      try {
+        const token = localStorage.getItem('admin_token') || localStorage.getItem('auth_token');
+        const path = urlMatch[1];
+        
+        const response = await fetch(`/api/properties/images?path=${encodeURIComponent(path)}&bucket=${bucketName}`, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+
+        const result = await response.json();
+        if (!response.ok && result.error) {
+          console.warn("Failed to delete image from storage:", result.error);
+          // Continue with removing from UI anyway
+        }
+      } catch (err) {
+        console.warn("Error deleting image from storage:", err);
+        // Continue with removing from UI anyway
+      }
+    }
+
+    // Update UI regardless of storage deletion result
     const updatedImages = images.filter((_, i) => i !== index);
     const updatedPreviews = previews.filter((_, i) => i !== index);
     
