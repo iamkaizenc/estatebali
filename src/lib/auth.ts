@@ -183,6 +183,16 @@ export async function loginUser(email: string, password: string): Promise<{ succ
       .eq("active", true)
       .single();
 
+    // Debug logging (only in development)
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[Login] Admin user check:', {
+        email,
+        found: !!adminUser,
+        error: adminError?.message,
+        hasPasswordHash: !!adminUser?.password_hash
+      });
+    }
+
     if (adminUser && !adminError) {
       // Verify password - password_hash is required
       if (!adminUser.password_hash) {
@@ -193,6 +203,15 @@ export async function loginUser(email: string, password: string): Promise<{ succ
       }
 
       const passwordMatch = await bcrypt.compare(password, adminUser.password_hash);
+      
+      // Debug logging (only in development)
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[Login] Password check:', {
+          email,
+          passwordMatch,
+          hasPasswordHash: !!adminUser.password_hash
+        });
+      }
       
       if (!passwordMatch) {
         return { success: false, error: "Invalid email or password" };
@@ -221,6 +240,16 @@ export async function loginUser(email: string, password: string): Promise<{ succ
       .select("*")
       .eq("email", email)
       .single();
+
+    // Debug logging (only in development)
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[Login] Regular user check:', {
+        email,
+        found: !!regularUser,
+        error: userError?.message,
+        hasPasswordHash: !!regularUser?.password_hash
+      });
+    }
 
     if (regularUser && !userError) {
       // For regular users, we need to check if they have a password_hash
