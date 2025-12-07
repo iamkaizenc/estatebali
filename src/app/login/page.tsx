@@ -41,7 +41,7 @@ export default function LoginPage() {
 
     console.log('[Login Page] Calling login function...');
     const result = await login(email, password);
-    console.log('[Login Page] Login result:', result);
+    console.log('[Login Page] Login result:', JSON.stringify(result, null, 2));
 
     if (result.success) {
       // Get user from token after login
