@@ -44,6 +44,7 @@ export default function LoginPage() {
     console.log('[Login Page] Login result:', JSON.stringify(result, null, 2));
 
     if (result.success) {
+      setLoading(false);
       // Get user from token after login
       const token = localStorage.getItem('auth_token') || localStorage.getItem('admin_token');
       if (token) {
@@ -55,8 +56,10 @@ export default function LoginPage() {
           // Auto-redirect based on role
           if (userRole === "admin" || userRole === "super_admin") {
             router.push("/admin");
+            return;
           } else {
             router.push("/user");
+            return;
           }
         } else {
           // If token parsing fails, wait for context to update
@@ -67,9 +70,15 @@ export default function LoginPage() {
               } else {
                 router.push("/user");
               }
+            } else {
+              // Fallback: redirect to user dashboard if user context not ready
+              router.push("/user");
             }
           }, 100);
         }
+      } else {
+        // No token found, redirect to user dashboard as fallback
+        setTimeout(() => router.push("/user"), 100);
       }
     } else {
       // Only show error if it's not an SSR-related error
