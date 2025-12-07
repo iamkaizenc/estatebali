@@ -109,7 +109,12 @@ export function dbPropertyToProperty(dbProp: DatabaseProperty): Property {
     images: dbProp.images || [],
     videos: undefined, // Not in schema
     virtualTour: undefined, // Not in schema
-    shortTermBooking: dbProp.short_term_rental ? { enabled: dbProp.short_term_rental, pricePerDay: dbProp.price_per_day } : undefined,
+    shortTermBooking: dbProp.short_term_rental ? {
+      available: dbProp.short_term_rental,
+      pricePerNight: dbProp.price_per_day || 0,
+      minimumStay: 1, // Default value - adjust if you have this in database
+      maximumGuests: 4, // Default value - adjust if you have this in database
+    } : undefined,
     contact: {
       name: '',
       phone: '',
@@ -140,16 +145,20 @@ export function propertyToDbProperty(prop: Partial<Property>): Partial<DatabaseP
   const location = prop.location?.address || prop.location?.area || '';
 
   // Convert features/amenities
+  // Features is an object with boolean values, convert to array of enabled feature names
   const amenities = prop.features && typeof prop.features === 'object' 
-    ? Object.keys(prop.features).filter(key => prop.features![key] === true)
+    ? Object.keys(prop.features).filter(key => {
+        const value = (prop.features as Record<string, any>)[key];
+        return value === true;
+      })
     : null;
 
   // Build short_term_rental from shortTermBooking
   const short_term_rental = prop.shortTermBooking 
-    ? (typeof prop.shortTermBooking === 'object' ? prop.shortTermBooking.enabled : true)
+    ? (typeof prop.shortTermBooking === 'object' ? prop.shortTermBooking.available : true)
     : null;
   const price_per_day = prop.shortTermBooking && typeof prop.shortTermBooking === 'object'
-    ? prop.shortTermBooking.pricePerDay || null
+    ? prop.shortTermBooking.pricePerNight || null
     : null;
 
   const result: Partial<DatabaseProperty> = {
