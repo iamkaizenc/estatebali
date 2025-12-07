@@ -176,24 +176,43 @@ export async function loginUser(email: string, password: string): Promise<{ succ
     });
 
     // First, try to find in admin_users table
+    // Use maybeSingle() to handle case where user doesn't exist gracefully
     const { data: adminUser, error: adminError } = await adminClient
       .from("admin_users")
       .select("*")
       .eq("email", email)
       .eq("active", true)
-      .single();
+      .maybeSingle();
 
-    // Debug logging (only in development)
-    if (process.env.NODE_ENV === 'development') {
-      console.log('[Login] Admin user check:', {
+    // Debug logging for troubleshooting
+    console.log('[Login] Admin user check:', {
+      email,
+      found: !!adminUser,
+      error: adminError?.message || null,
+      errorCode: adminError?.code || null,
+      hasPasswordHash: !!adminUser?.password_hash,
+      passwordHashLength: adminUser?.password_hash?.length || 0,
+      role: adminUser?.role || null,
+    });
+
+    // Handle query errors (not "not found" errors)
+    if (adminError && adminError.code !== 'PGRST116') {
+      // PGRST116 = not found (this is fine, user just doesn't exist)
+      // Other errors are real problems
+      console.error('[Login] Database error fetching admin user:', {
         email,
-        found: !!adminUser,
-        error: adminError?.message,
-        hasPasswordHash: !!adminUser?.password_hash
+        error: adminError.message,
+        code: adminError.code,
+        details: adminError.details,
+        hint: adminError.hint,
       });
+      return { 
+        success: false, 
+        error: "Login service error. Please try again later." 
+      };
     }
 
-    if (adminUser && !adminError) {
+    if (adminUser) {
       // Verify password - password_hash is required
       if (!adminUser.password_hash) {
         return { 
@@ -202,19 +221,36 @@ export async function loginUser(email: string, password: string): Promise<{ succ
         };
       }
 
-      const passwordMatch = await bcrypt.compare(password, adminUser.password_hash);
-      
-      // Debug logging (only in development)
-      if (process.env.NODE_ENV === 'development') {
-        console.log('[Login] Password check:', {
+      // Verify password with bcrypt
+      try {
+        const passwordMatch = await bcrypt.compare(password, adminUser.password_hash);
+        
+        console.log('[Login] Password verification result:', {
           email,
           passwordMatch,
-          hasPasswordHash: !!adminUser.password_hash
+          hashFormat: adminUser.password_hash.substring(0, 7),
+          hashLength: adminUser.password_hash.length,
         });
-      }
-      
-      if (!passwordMatch) {
-        return { success: false, error: "Invalid email or password" };
+
+        if (!passwordMatch) {
+          console.log('[Login] Password mismatch for admin user:', email);
+          return { 
+            success: false, 
+            error: "Invalid email or password" 
+          };
+        }
+      } catch (bcryptError: any) {
+        console.error('[Login] bcrypt.compare error:', {
+          email,
+          error: bcryptError.message,
+          errorStack: bcryptError.stack,
+          hashLength: adminUser.password_hash.length,
+          hashPreview: adminUser.password_hash.substring(0, 20),
+        });
+        return { 
+          success: false, 
+          error: "Password verification failed. Please try again or contact support." 
+        };
       }
 
       // Update last login
@@ -231,6 +267,12 @@ export async function loginUser(email: string, password: string): Promise<{ succ
       };
       
       const token = createToken(user);
+      console.log('[Login] Success for admin user:', {
+        email,
+        userId: user.id,
+        role: user.role,
+      });
+      
       return { success: true, token };
     }
 
