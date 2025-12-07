@@ -56,13 +56,17 @@ export interface DatabaseProperty {
 }
 
 // Convert database property to app property
+// Database schema: type = listing type (sale/rent), category = property type (villa/apartment/house/land/motorcycle)
 export function dbPropertyToProperty(dbProp: DatabaseProperty): Property {
   return {
     id: dbProp.id,
     title: dbProp.title,
     description: dbProp.description || '',
-    // Use category if available, otherwise fallback to type
+    // category field contains property type (villa, apartment, etc.)
+    // fallback to type if category doesn't exist (backward compatibility)
     type: (dbProp.category || dbProp.type) as any,
+    // type field contains listing type (sale/rent)
+    // listing_type is duplicate, prefer type field
     listingType: (dbProp.type || dbProp.listing_type) as any,
     source: dbProp.source as any,
     price: dbProp.price,
