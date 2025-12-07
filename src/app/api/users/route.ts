@@ -4,18 +4,51 @@ import { supabaseAdmin, isSupabaseConfigured } from "@/lib/supabaseAdmin";
 // Force dynamic rendering for this route
 export const dynamic = 'force-dynamic';
 
-// GET /api/users - Get user by email or id
+// GET /api/users - Get user by email, id, or all users (if all=true or no params)
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const email = searchParams.get("email");
     const id = searchParams.get("id");
+    const all = searchParams.get("all") === "true";
 
     if (!isSupabaseConfigured || !supabaseAdmin) {
       return NextResponse.json(
         { success: false, error: "Supabase is not configured" },
         { status: 503 }
       );
+    }
+
+    // If all=true or no params, return all users (for admin panel)
+    if (all || (!email && !id)) {
+      const { data, error } = await supabaseAdmin
+        .from("users")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        console.error("Error fetching users:", error);
+        return NextResponse.json(
+          { success: false, error: error.message || "Failed to fetch users" },
+          { status: 500 }
+        );
+      }
+
+      return NextResponse.json({
+        success: true,
+        data: (data || []).map((user: any) => ({
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          phone: user.phone,
+          avatar: user.avatar,
+          role: user.role,
+          verified: user.verified,
+          createdAt: user.created_at,
+          updatedAt: user.updated_at,
+        })),
+        count: data?.length || 0,
+      });
     }
 
     // ✅ Fix: Her durum için ayrı sorgu yap, doğru şekilde zincirle
@@ -61,6 +94,8 @@ export async function GET(request: NextRequest) {
         avatar: data.avatar,
         role: data.role,
         verified: data.verified,
+        createdAt: data.created_at,
+        updatedAt: data.updated_at,
       },
     });
   } catch (error: any) {

@@ -7,7 +7,10 @@ import EmptyState from "@/components/EmptyState";
 import { useProperties } from "@/hooks/useProperties";
 
 export default function BuyPage() {
-  const { properties: saleProperties, loading, error } = useProperties({ listingType: "sale" });
+  const { properties: saleProperties, loading, error } = useProperties({ 
+    listingType: "sale",
+    excludeTypes: ['motorbike', 'scooter'] // Exclude motorbikes from buy page
+  });
 
   return (
     <div className="min-h-screen bg-black">

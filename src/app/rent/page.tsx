@@ -7,7 +7,10 @@ import EmptyState from "@/components/EmptyState";
 import { useProperties } from "@/hooks/useProperties";
 
 export default function RentPage() {
-  const { properties: rentProperties, loading, error } = useProperties({ listingType: "rent" });
+  const { properties: rentProperties, loading, error } = useProperties({ 
+    listingType: "rent",
+    excludeTypes: ['motorbike', 'scooter'] // Exclude motorbikes from rent page
+  });
 
   return (
     <div className="min-h-screen bg-black">

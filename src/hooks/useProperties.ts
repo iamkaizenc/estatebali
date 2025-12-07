@@ -6,6 +6,7 @@ import { Property, SearchFilters } from "@/types";
 interface UsePropertiesOptions extends SearchFilters {
   featured?: boolean;
   userId?: string;
+  excludeTypes?: string[]; // Types to exclude (e.g., ['motorbike', 'scooter'])
 }
 
 export function useProperties(options: UsePropertiesOptions = {}) {
@@ -49,7 +50,7 @@ export function useProperties(options: UsePropertiesOptions = {}) {
     };
 
     fetchProperties();
-  }, [options.listingType, options.featured, options.location, options.propertyType, options.query, options.priceMin, options.priceMax, options.bedrooms, options.bathrooms, options.userId]);
+  }, [options.listingType, options.featured, options.location, options.propertyType, options.query, options.priceMin, options.priceMax, options.bedrooms, options.bathrooms, options.userId, options.excludeTypes]);
 
   return { properties, loading, error, refetch: () => {
     const fetchProperties = async () => {
