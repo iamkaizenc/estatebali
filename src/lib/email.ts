@@ -26,11 +26,26 @@ class ResendProvider implements EmailProvider {
 
   async send(options: EmailOptions): Promise<{ success: boolean; error?: string }> {
     try {
-      // Use onboarding domain for development/testing
-      // In production, use your verified domain (noreply@estatebali.com)
-      const fromAddress = process.env.NODE_ENV === 'production'
-        ? 'EstateBali <noreply@estatebali.com>'
-        : 'EstateBali <onboarding@resend.dev>';
+      // Determine FROM address with fallback logic
+      let fromAddress: string;
+      
+      // Priority 1: Use FROM_EMAIL environment variable if set
+      if (process.env.FROM_EMAIL) {
+        // Check if it's just an email or includes name
+        if (process.env.FROM_EMAIL.includes('<')) {
+          fromAddress = process.env.FROM_EMAIL;
+        } else {
+          fromAddress = `EstateBali <${process.env.FROM_EMAIL}>`;
+        }
+      } 
+      // Priority 2: Production - try verified domain
+      else if (process.env.NODE_ENV === 'production') {
+        fromAddress = 'EstateBali <noreply@estatebali.com>';
+      }
+      // Priority 3: Development/fallback - use Resend's onboarding domain (always works)
+      else {
+        fromAddress = 'EstateBali <onboarding@resend.dev>';
+      }
 
       const response = await fetch('https://api.resend.com/emails', {
         method: 'POST',
@@ -63,6 +78,33 @@ class ResendProvider implements EmailProvider {
           statusText: response.statusText,
           error: errorMessage,
         });
+
+        // If domain not verified error, try with onboarding domain as fallback
+        if (response.status === 403 && errorMessage?.includes('domain is not verified')) {
+          console.log('⚠️  Domain not verified, falling back to onboarding@resend.dev');
+          
+          // Retry with onboarding domain (always works)
+          const fallbackResponse = await fetch('https://api.resend.com/emails', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${this.apiKey}`,
+            },
+            body: JSON.stringify({
+              from: 'EstateBali <onboarding@resend.dev>',
+              to: options.to,
+              subject: options.subject,
+              html: options.html,
+              text: options.text,
+            }),
+          });
+
+          if (fallbackResponse.ok) {
+            const result = await fallbackResponse.json();
+            console.log('✅ Email sent successfully via Resend (with fallback domain):', result.id);
+            return { success: true };
+          }
+        }
 
         return { success: false, error: `Resend API error (${response.status}): ${errorMessage}` };
       }
