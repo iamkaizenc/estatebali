@@ -58,9 +58,7 @@ export default function LocaleLayout({
         </>
       )}
       <ErrorBoundary>
-        <AuthProviderWrapper>
-          {children}
-        </AuthProviderWrapper>
+        {children}
       </ErrorBoundary>
       <SpeedInsights />
       <Analytics />
