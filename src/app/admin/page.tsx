@@ -29,11 +29,11 @@ function AdminDashboard() {
   const [activeTab, setActiveTab] = useState<TabType>("properties");
   
   // Custom logout handler for admin panel - redirects to home
-  const handleLogout = async () => {
+  const handleLogout = () => {
     try {
-      await logout();
-      router.push('/');
-      router.refresh();
+      logout(); // Clear auth state
+      router.push('/'); // Redirect to homepage
+      router.refresh(); // Refresh the page
     } catch (error) {
       console.error('Logout error:', error);
       router.push('/'); // Redirect even if logout fails
