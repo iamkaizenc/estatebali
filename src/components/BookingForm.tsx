@@ -164,8 +164,10 @@ export default function BookingForm({ property, onClose }: BookingFormProps) {
 
           {/* Guest Details */}
           <div>
-            <label className="block text-sm font-medium mb-2">Full Name *</label>
+            <label htmlFor="booking-guest-name" className="block text-sm font-medium mb-2">Full Name *</label>
             <input
+              id="booking-guest-name"
+              name="booking-guest-name"
               type="text"
               required
               value={formData.guestName}
@@ -177,8 +179,10 @@ export default function BookingForm({ property, onClose }: BookingFormProps) {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium mb-2">Email *</label>
+              <label htmlFor="booking-guest-email" className="block text-sm font-medium mb-2">Email *</label>
               <input
+                id="booking-guest-email"
+                name="booking-guest-email"
                 type="email"
                 required
                 value={formData.guestEmail}
@@ -188,8 +192,10 @@ export default function BookingForm({ property, onClose }: BookingFormProps) {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-2">Phone</label>
+              <label htmlFor="booking-guest-phone" className="block text-sm font-medium mb-2">Phone</label>
               <input
+                id="booking-guest-phone"
+                name="booking-guest-phone"
                 type="tel"
                 value={formData.guestPhone}
                 onChange={(e) => setFormData({ ...formData, guestPhone: e.target.value })}
@@ -201,8 +207,10 @@ export default function BookingForm({ property, onClose }: BookingFormProps) {
 
           {/* Special Requests */}
           <div>
-            <label className="block text-sm font-medium mb-2">Special Requests</label>
+            <label htmlFor="booking-special-requests" className="block text-sm font-medium mb-2">Special Requests</label>
             <textarea
+              id="booking-special-requests"
+              name="booking-special-requests"
               value={formData.specialRequests}
               onChange={(e) => setFormData({ ...formData, specialRequests: e.target.value })}
               rows={3}

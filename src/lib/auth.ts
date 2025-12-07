@@ -177,22 +177,26 @@ export async function loginUser(email: string, password: string): Promise<{ succ
 
     // First, try to find in admin_users table
     // Use maybeSingle() to handle case where user doesn't exist gracefully
+    // Normalize email to lowercase for case-insensitive lookup
+    const normalizedEmail = email.toLowerCase().trim();
     const { data: adminUser, error: adminError } = await adminClient
       .from("admin_users")
       .select("*")
-      .eq("email", email)
+      .eq("email", normalizedEmail)
       .eq("active", true)
       .maybeSingle();
 
     // Debug logging for troubleshooting
     console.log('[Login] Admin user check:', {
-      email,
+      email: normalizedEmail,
+      originalEmail: email,
       found: !!adminUser,
       error: adminError?.message || null,
       errorCode: adminError?.code || null,
       hasPasswordHash: !!adminUser?.password_hash,
       passwordHashLength: adminUser?.password_hash?.length || 0,
       role: adminUser?.role || null,
+      active: adminUser?.active ?? null,
     });
 
     // Handle query errors (not "not found" errors)
@@ -278,21 +282,24 @@ export async function loginUser(email: string, password: string): Promise<{ succ
 
     // If not found in admin_users, try users table
     // Use maybeSingle() instead of single() to avoid error when user doesn't exist
+    // Normalize email to lowercase for case-insensitive lookup
     const { data: regularUser, error: userError } = await adminClient
       .from("users")
       .select("*")
-      .eq("email", email)
+      .eq("email", normalizedEmail)
       .maybeSingle();
 
     // Debug logging (always log for troubleshooting)
     console.log('[Login] Regular user check:', {
-      email,
+      email: normalizedEmail,
+      originalEmail: email,
       found: !!regularUser,
       error: userError?.message || null,
       errorCode: userError?.code || null,
       hasPasswordHash: !!regularUser?.password_hash,
       passwordHashLength: regularUser?.password_hash?.length || 0,
       role: regularUser?.role || null,
+      verified: regularUser?.verified ?? null,
     });
 
     // Handle error cases
@@ -375,7 +382,11 @@ export async function loginUser(email: string, password: string): Promise<{ succ
     }
 
     // User not found in either table
-    console.log('[Login] User not found:', { email });
+    console.log('[Login] User not found in either table:', { 
+      email: normalizedEmail,
+      originalEmail: email,
+      searchedIn: ['admin_users', 'users'],
+    });
     return { success: false, error: "Invalid email or password" };
   } catch (error: any) {
     // Always log errors

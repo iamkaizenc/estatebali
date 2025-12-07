@@ -25,6 +25,11 @@ Bu dosya, map ile ilgili tüm fonksiyonları, route'ları ve navigation'ları i�
 - **Route:** `/rent`
 - **Filtre:** `listingType: "rent"`
 
+### Rent Motorbike Sayfası
+- **Dosya:** `src/app/rent-motorbike/page.tsx`
+- **Route:** `/rent-motorbike`
+- **Kullanım:** Motorbike rental landing page
+
 ---
 
 ## 🔗 Route'lar ve Navigation
@@ -94,7 +99,39 @@ export default function BuyPage() {
 }
 ```
 
-### 3. Rent Sayfası Route
+### 3. Rent Motorbike Sayfası Route
+
+**Route:** `/rent-motorbike`
+
+**Link'ler:**
+```tsx
+// Header.tsx (Desktop)
+<Link href="/rent-motorbike" className="hover:text-primary transition-colors">
+  Rent Motorbike
+</Link>
+
+// Header.tsx (Mobile)
+<Link href="/rent-motorbike" className="py-2 hover:text-primary transition-colors">
+  Rent Motorbike
+</Link>
+
+// Footer.tsx
+<Link href="/rent-motorbike" className="hover:text-primary transition-colors">
+  Rent Motorbike
+</Link>
+```
+
+**Sayfa Komponenti:**
+```tsx
+// src/app/rent-motorbike/page.tsx
+export default function RentMotorbikePage() {
+  return (
+    // Motorbike rental landing page
+  );
+}
+```
+
+### 4. Rent Sayfası Route
 
 **Route:** `/rent`
 

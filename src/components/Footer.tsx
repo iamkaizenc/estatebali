@@ -113,6 +113,16 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
+                <Link href="/rent-motorbike" className="hover:text-primary transition-colors">
+                  Rent Motorbike
+                </Link>
+              </li>
+              <li>
+                <Link href="/map" className="hover:text-primary transition-colors">
+                  Map Search
+                </Link>
+              </li>
+              <li>
                 <Link href="/create" className="hover:text-primary transition-colors">
                   List Your Property
                 </Link>
@@ -120,11 +130,6 @@ export default function Footer() {
               <li>
                 <Link href="/agents" className="hover:text-primary transition-colors">
                   Find Agents
-                </Link>
-              </li>
-              <li>
-                <Link href="/map" className="hover:text-primary transition-colors">
-                  Map Search
                 </Link>
               </li>
             </ul>

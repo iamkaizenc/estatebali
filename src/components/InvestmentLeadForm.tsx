@@ -107,8 +107,10 @@ export default function InvestmentLeadForm({ onClose, propertyId }: InvestmentLe
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Name */}
           <div>
-            <label className="block text-sm font-medium mb-2">Full Name *</label>
+            <label htmlFor="lead-name" className="block text-sm font-medium mb-2">Full Name *</label>
             <input
+              id="lead-name"
+              name="lead-name"
               type="text"
               required
               value={formData.name}
@@ -121,8 +123,10 @@ export default function InvestmentLeadForm({ onClose, propertyId }: InvestmentLe
           {/* Email & Phone */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium mb-2">Email *</label>
+              <label htmlFor="lead-email" className="block text-sm font-medium mb-2">Email *</label>
               <input
+                id="lead-email"
+                name="lead-email"
                 type="email"
                 required
                 value={formData.email}
@@ -132,8 +136,10 @@ export default function InvestmentLeadForm({ onClose, propertyId }: InvestmentLe
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-2">Phone</label>
+              <label htmlFor="lead-phone" className="block text-sm font-medium mb-2">Phone</label>
               <input
+                id="lead-phone"
+                name="lead-phone"
                 type="tel"
                 value={formData.phone}
                 onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
@@ -146,8 +152,10 @@ export default function InvestmentLeadForm({ onClose, propertyId }: InvestmentLe
           {/* Investment Amount & Type */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium mb-2">Investment Budget (USD)</label>
+              <label htmlFor="lead-investment-amount" className="block text-sm font-medium mb-2">Investment Budget (USD)</label>
               <input
+                id="lead-investment-amount"
+                name="lead-investment-amount"
                 type="number"
                 value={formData.investmentAmount}
                 onChange={(e) => setFormData({ ...formData, investmentAmount: e.target.value })}
@@ -156,8 +164,10 @@ export default function InvestmentLeadForm({ onClose, propertyId }: InvestmentLe
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-2">Investment Type</label>
+              <label htmlFor="lead-investment-type" className="block text-sm font-medium mb-2">Investment Type</label>
               <select
+                id="lead-investment-type"
+                name="lead-investment-type"
                 value={formData.investmentType}
                 onChange={(e) => setFormData({ ...formData, investmentType: e.target.value })}
                 className="w-full px-4 py-3 bg-dark-200 rounded-xl border border-dark-300 focus:border-primary focus:outline-none transition-colors"
@@ -173,8 +183,10 @@ export default function InvestmentLeadForm({ onClose, propertyId }: InvestmentLe
 
           {/* Preferred Location */}
           <div>
-            <label className="block text-sm font-medium mb-2">Preferred Location</label>
+            <label htmlFor="lead-location" className="block text-sm font-medium mb-2">Preferred Location</label>
             <input
+              id="lead-location"
+              name="lead-location"
               type="text"
               value={formData.preferredLocation}
               onChange={(e) => setFormData({ ...formData, preferredLocation: e.target.value })}
@@ -185,8 +197,10 @@ export default function InvestmentLeadForm({ onClose, propertyId }: InvestmentLe
 
           {/* Message */}
           <div>
-            <label className="block text-sm font-medium mb-2">Message</label>
+            <label htmlFor="lead-message" className="block text-sm font-medium mb-2">Message</label>
             <textarea
+              id="lead-message"
+              name="lead-message"
               value={formData.message}
               onChange={(e) => setFormData({ ...formData, message: e.target.value })}
               rows={4}

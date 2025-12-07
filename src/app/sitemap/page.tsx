@@ -7,6 +7,7 @@ export default function SitemapPage() {
     { name: "Home", href: "/" },
     { name: "Buy Properties", href: "/buy" },
     { name: "Rent Properties", href: "/rent" },
+    { name: "Rent Motorbike", href: "/rent-motorbike" },
     { name: "All Properties", href: "/properties" },
     { name: "Featured Properties", href: "/featured" },
     { name: "Map Search", href: "/map" },

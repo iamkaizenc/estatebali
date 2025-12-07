@@ -75,8 +75,13 @@ export default function SearchBar({ onSearch }: SearchBarProps) {
       {/* Search Bar */}
       <div className="flex gap-2">
         <div className="flex-1 relative">
+          <label htmlFor="search-query" className="sr-only">
+            Search location or property
+          </label>
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
           <input
+            id="search-query"
+            name="search-query"
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -117,54 +122,82 @@ export default function SearchBar({ onSearch }: SearchBarProps) {
           className="mt-4 p-4 bg-dark-200 rounded-xl"
         >
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <select 
-              className="input"
-              value={filterState.propertyType}
-              onChange={(e) => setFilterState({ ...filterState, propertyType: e.target.value })}
-            >
-              <option value="">Property Type</option>
-              <option value="villa">Villa</option>
-              <option value="apartment">Apartment</option>
-              <option value="house">House</option>
-              <option value="land">Land</option>
-            </select>
+            <div>
+              <label htmlFor="filter-property-type" className="sr-only">
+                Property Type
+              </label>
+              <select 
+                id="filter-property-type"
+                name="filter-property-type"
+                className="input"
+                value={filterState.propertyType}
+                onChange={(e) => setFilterState({ ...filterState, propertyType: e.target.value })}
+              >
+                <option value="">Property Type</option>
+                <option value="villa">Villa</option>
+                <option value="apartment">Apartment</option>
+                <option value="house">House</option>
+                <option value="land">Land</option>
+              </select>
+            </div>
             
-            <select 
-              className="input"
-              value={filterState.bedrooms}
-              onChange={(e) => setFilterState({ ...filterState, bedrooms: e.target.value })}
-            >
-              <option value="">Bedrooms</option>
-              <option value="1">1+</option>
-              <option value="2">2+</option>
-              <option value="3">3+</option>
-              <option value="4">4+</option>
-              <option value="5">5+</option>
-            </select>
+            <div>
+              <label htmlFor="filter-bedrooms" className="sr-only">
+                Bedrooms
+              </label>
+              <select 
+                id="filter-bedrooms"
+                name="filter-bedrooms"
+                className="input"
+                value={filterState.bedrooms}
+                onChange={(e) => setFilterState({ ...filterState, bedrooms: e.target.value })}
+              >
+                <option value="">Bedrooms</option>
+                <option value="1">1+</option>
+                <option value="2">2+</option>
+                <option value="3">3+</option>
+                <option value="4">4+</option>
+                <option value="5">5+</option>
+              </select>
+            </div>
             
-            <select 
-              className="input"
-              value={filterState.priceMin}
-              onChange={(e) => setFilterState({ ...filterState, priceMin: e.target.value })}
-            >
-              <option value="">Min Price</option>
-              <option value="1000000000">1B+</option>
-              <option value="5000000000">5B+</option>
-              <option value="10000000000">10B+</option>
-              <option value="20000000000">20B+</option>
-            </select>
+            <div>
+              <label htmlFor="filter-price-min" className="sr-only">
+                Minimum Price
+              </label>
+              <select 
+                id="filter-price-min"
+                name="filter-price-min"
+                className="input"
+                value={filterState.priceMin}
+                onChange={(e) => setFilterState({ ...filterState, priceMin: e.target.value })}
+              >
+                <option value="">Min Price</option>
+                <option value="1000000000">1B+</option>
+                <option value="5000000000">5B+</option>
+                <option value="10000000000">10B+</option>
+                <option value="20000000000">20B+</option>
+              </select>
+            </div>
             
-            <select 
-              className="input"
-              value={filterState.priceMax}
-              onChange={(e) => setFilterState({ ...filterState, priceMax: e.target.value })}
-            >
-              <option value="">Max Price</option>
-              <option value="5000000000">5B</option>
-              <option value="10000000000">10B</option>
-              <option value="20000000000">20B</option>
-              <option value="50000000000">50B</option>
-            </select>
+            <div>
+              <label htmlFor="filter-price-max" className="sr-only">
+                Maximum Price
+              </label>
+              <select 
+                id="filter-price-max"
+                name="filter-price-max"
+                className="input"
+                value={filterState.priceMax}
+                onChange={(e) => setFilterState({ ...filterState, priceMax: e.target.value })}
+              >
+                <option value="">Max Price</option>
+                <option value="5000000000">5B</option>
+                <option value="10000000000">10B</option>
+                <option value="20000000000">20B</option>
+                <option value="50000000000">50B</option>
+              </select>
+            </div>
           </div>
           
           <div className="mt-4 flex justify-end gap-2">

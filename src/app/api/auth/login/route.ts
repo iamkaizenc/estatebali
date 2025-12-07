@@ -54,7 +54,13 @@ export async function POST(request: NextRequest) {
     }
 
     // Attempt login
+    console.log('[Login API] Attempting login for email:', email);
     const result = await loginUser(email, password);
+    console.log('[Login API] Login result:', {
+      success: result.success,
+      hasToken: !!result.token,
+      error: result.error || null,
+    });
 
     if (result.success && result.token) {
       // Set cookie

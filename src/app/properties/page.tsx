@@ -20,10 +20,12 @@ function PropertiesContent() {
   useEffect(() => {
     const urlFilters: SearchFilters = {};
     
-    const query = searchParams.get("query");
+    // Support both 'q' and 'query' for backward compatibility
+    const query = searchParams.get("q") || searchParams.get("query");
     const listingType = searchParams.get("listingType");
     const type = searchParams.get("type");
-    const area = searchParams.get("area");
+    // Support both 'location' and 'area' for backward compatibility
+    const location = searchParams.get("location") || searchParams.get("area");
     const priceMin = searchParams.get("priceMin");
     const priceMax = searchParams.get("priceMax");
     const bedrooms = searchParams.get("bedrooms");
@@ -31,8 +33,14 @@ function PropertiesContent() {
     
     if (query) urlFilters.query = query;
     if (listingType) urlFilters.listingType = listingType as "sale" | "rent";
-    if (type) urlFilters.propertyType = [type as "villa" | "apartment" | "house" | "land"];
-    if (area) urlFilters.location = area;
+    if (type) {
+      // Support comma-separated types
+      const types = type.split(",").filter(Boolean);
+      if (types.length > 0) {
+        urlFilters.propertyType = types as Array<"villa" | "apartment" | "house" | "land">;
+      }
+    }
+    if (location) urlFilters.location = location;
     if (priceMin) urlFilters.priceMin = parseInt(priceMin);
     if (priceMax) urlFilters.priceMax = parseInt(priceMax);
     if (bedrooms) urlFilters.bedrooms = parseInt(bedrooms);
@@ -68,16 +76,16 @@ function PropertiesContent() {
             
             // Update URL with new filters
             const params = new URLSearchParams();
-            if (newFilters.query) params.append("query", newFilters.query);
-            if (newFilters.listingType) params.append("listingType", newFilters.listingType);
+            if (newFilters.query) params.set("q", newFilters.query);
+            if (newFilters.listingType) params.set("listingType", newFilters.listingType);
             if (newFilters.propertyType && newFilters.propertyType.length > 0) {
-              params.append("type", newFilters.propertyType[0]);
+              params.set("type", newFilters.propertyType.join(","));
             }
-            if (newFilters.location) params.append("area", newFilters.location);
-            if (newFilters.priceMin) params.append("priceMin", newFilters.priceMin.toString());
-            if (newFilters.priceMax) params.append("priceMax", newFilters.priceMax.toString());
-            if (newFilters.bedrooms) params.append("bedrooms", newFilters.bedrooms.toString());
-            if (newFilters.bathrooms) params.append("bathrooms", newFilters.bathrooms.toString());
+            if (newFilters.location) params.set("location", newFilters.location);
+            if (newFilters.priceMin) params.set("priceMin", newFilters.priceMin.toString());
+            if (newFilters.priceMax) params.set("priceMax", newFilters.priceMax.toString());
+            if (newFilters.bedrooms) params.set("bedrooms", newFilters.bedrooms.toString());
+            if (newFilters.bathrooms) params.set("bathrooms", newFilters.bathrooms.toString());
             
             const newUrl = `/properties?${params.toString()}`;
             window.history.pushState({}, "", newUrl);

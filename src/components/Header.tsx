@@ -40,6 +40,9 @@ export default function Header() {
             <Link href="/buy" className="hover:text-primary transition-colors">
               Buy
             </Link>
+            <Link href="/rent-motorbike" className="hover:text-primary transition-colors">
+              Rent Motorbike
+            </Link>
             <Link href="/rent" className="hover:text-primary transition-colors">
               Rent
             </Link>
@@ -159,6 +162,13 @@ export default function Header() {
                 onClick={() => setMobileMenuOpen(false)}
               >
                 Buy
+              </Link>
+              <Link 
+                href="/rent-motorbike" 
+                className="py-2 hover:text-primary transition-colors"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Rent Motorbike
               </Link>
               <Link 
                 href="/rent" 

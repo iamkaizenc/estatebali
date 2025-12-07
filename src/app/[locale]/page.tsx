@@ -36,19 +36,19 @@ export default function HomePage({ params }: HomePageProps) {
     // Build query string from filters
     const params = new URLSearchParams();
     
-    if (filters.query) params.append("query", filters.query);
-    if (filters.listingType) params.append("listingType", filters.listingType);
+    if (filters.query) params.set("q", filters.query);
+    if (filters.listingType) params.set("listingType", filters.listingType);
     if (filters.propertyType && filters.propertyType.length > 0) {
-      params.append("type", filters.propertyType[0]);
+      params.set("type", filters.propertyType.join(","));
     }
-    if (filters.location) params.append("area", filters.location);
-    if (filters.priceMin) params.append("priceMin", filters.priceMin.toString());
-    if (filters.priceMax) params.append("priceMax", filters.priceMax.toString());
-    if (filters.bedrooms) params.append("bedrooms", filters.bedrooms.toString());
-    if (filters.bathrooms) params.append("bathrooms", filters.bathrooms.toString());
+    if (filters.location) params.set("location", filters.location);
+    if (filters.priceMin) params.set("priceMin", filters.priceMin.toString());
+    if (filters.priceMax) params.set("priceMax", filters.priceMax.toString());
+    if (filters.bedrooms) params.set("bedrooms", filters.bedrooms.toString());
+    if (filters.bathrooms) params.set("bathrooms", filters.bathrooms.toString());
     
-    // Redirect to properties page with search filters and locale
-    router.push(`/${locale}/properties?${params.toString()}`);
+    // Redirect to properties page with search filters (no locale prefix)
+    router.push(`/properties?${params.toString()}`);
   };
 
   // Split hero title by newline for proper rendering
@@ -206,7 +206,7 @@ export default function HomePage({ params }: HomePageProps) {
             title="No Featured Properties Yet"
             description="Our team is curating the best properties in Bali. Check back soon to discover premium listings."
             actionLabel="Browse All Properties"
-            actionHref={`/${locale}/properties`}
+            actionHref="/properties"
           />
         )}
       </section>
@@ -284,7 +284,7 @@ export default function HomePage({ params }: HomePageProps) {
             <h2 className="text-3xl font-bold mb-2">Recent Properties</h2>
             <p className="text-gray-400">Latest additions to our collection</p>
           </div>
-          <Link href={`/${locale}/properties`} className="btn-primary hidden md:block">
+          <Link href="/properties" className="btn-primary hidden md:block">
             View All Properties
           </Link>
         </div>
@@ -306,7 +306,7 @@ export default function HomePage({ params }: HomePageProps) {
             title="No Properties Found"
             description="We couldn't find any properties matching your criteria. Try adjusting your search filters or browse all properties."
             actionLabel="Browse All Properties"
-            actionHref={`/${locale}/properties`}
+            actionHref="/properties"
           />
         )}
       </section>
@@ -367,7 +367,7 @@ export default function HomePage({ params }: HomePageProps) {
             Join thousands of happy customers who found their perfect property in Bali with Estate Bali
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href={`/${locale}/properties`} className="btn-secondary">
+            <Link href="/properties" className="btn-secondary">
               Browse Properties
             </Link>
             <Link href={`/${locale}/create`} className="bg-black text-white px-8 py-3 rounded-full font-semibold hover:bg-gray-900 transition-colors">
