@@ -78,26 +78,8 @@ export default function HomePage({ params }: HomePageProps) {
             backgroundSize: '100px 100px',
           }} />
           
-          {/* Video Background */}
-          <video
-            autoPlay
-            loop
-            muted
-            playsInline
-            className="absolute inset-0 w-full h-full object-cover opacity-50"
-            onError={(e) => {
-              // Fallback to image if video fails to load
-              const videoElement = e.currentTarget;
-              videoElement.style.display = 'none';
-              const imgFallback = videoElement.nextElementSibling as HTMLElement;
-              if (imgFallback) imgFallback.style.display = 'block';
-            }}
-          >
-            <source src="/hero-background.mp4" type="video/mp4" />
-          </video>
-          
-          {/* Fallback image if video doesn't load */}
-          <div className="absolute inset-0 w-full h-full hidden">
+          {/* Hero Background Image */}
+          <div className="absolute inset-0 w-full h-full">
             <Image
               src="https://images.unsplash.com/photo-1540541011368-8fc88765bbab?w=1920&q=80"
               alt="Bali Villa"
@@ -105,6 +87,10 @@ export default function HomePage({ params }: HomePageProps) {
               priority
               className="object-cover opacity-50"
               sizes="100vw"
+              onError={(e) => {
+                // Fallback to gradient if image fails
+                e.currentTarget.style.display = 'none';
+              }}
             />
           </div>
           
