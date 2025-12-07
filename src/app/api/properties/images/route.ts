@@ -5,20 +5,13 @@ import { verifyAuth } from "@/lib/api-auth";
 // POST /api/properties/images - Upload image to storage
 export async function POST(request: NextRequest) {
   try {
-    // Verify authentication
+    // Verify authentication - any authenticated user can upload images
+    // (Storage bucket policies + RLS on properties table will enforce ownership)
     const auth = verifyAuth(request);
     if (!auth.success) {
       return NextResponse.json(
         { success: false, error: auth.error || "Unauthorized" },
         { status: 401 }
-      );
-    }
-
-    // Check if user is admin or agent
-    if (!auth.user || (auth.user.role !== 'admin' && auth.user.role !== 'super_admin' && auth.user.role !== 'agent')) {
-      return NextResponse.json(
-        { success: false, error: "Only admins and agents can upload images" },
-        { status: 403 }
       );
     }
 
@@ -105,20 +98,13 @@ export async function POST(request: NextRequest) {
 // DELETE /api/properties/images - Delete image from storage
 export async function DELETE(request: NextRequest) {
   try {
-    // Verify authentication
+    // Verify authentication - any authenticated user can delete images
+    // (Storage bucket policies will enforce ownership)
     const auth = verifyAuth(request);
     if (!auth.success) {
       return NextResponse.json(
         { success: false, error: auth.error || "Unauthorized" },
         { status: 401 }
-      );
-    }
-
-    // Check if user is admin or agent
-    if (!auth.user || (auth.user.role !== 'admin' && auth.user.role !== 'super_admin' && auth.user.role !== 'agent')) {
-      return NextResponse.json(
-        { success: false, error: "Only admins and agents can delete images" },
-        { status: 403 }
       );
     }
 

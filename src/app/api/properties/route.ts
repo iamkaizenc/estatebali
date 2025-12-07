@@ -209,11 +209,9 @@ export async function POST(request: NextRequest) {
         // Convert app property to database property
         const dbProperty = propertyToDbProperty(sanitizedData);
     
-    // Add user_id if user is not admin (admin can create for others)
-    // NOTE: RLS policies may require user_id for INSERT operations
-    if (auth.user && auth.user.role !== 'admin' && auth.user.role !== 'super_admin') {
-      // For regular users, set their user_id
-      // Note: We need to get user_id from users table by email
+    // Set ownership for property creation
+    // For non-admin users, set owner_id and user_id to their user_id
+    if (auth.user) {
       const { data: userData } = await supabaseAdmin
         .from("users")
         .select("id")
@@ -221,7 +219,19 @@ export async function POST(request: NextRequest) {
         .single();
       
       if (userData) {
-        (dbProperty as any).user_id = userData.id;
+        // For non-admin users, always set ownership
+        if (auth.user.role !== 'admin' && auth.user.role !== 'super_admin') {
+          (dbProperty as any).user_id = userData.id;
+          (dbProperty as any).owner_id = userData.id;
+        } else {
+          // For admin users, set ownership only if not already set
+          if (!dbProperty.user_id) {
+            (dbProperty as any).user_id = userData.id;
+          }
+          if (!dbProperty.owner_id) {
+            (dbProperty as any).owner_id = userData.id;
+          }
+        }
       } else {
         return NextResponse.json(
           { success: false, error: "User not found. Cannot create property." },
