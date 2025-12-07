@@ -95,11 +95,18 @@ function AdminDashboard() {
   const handleDelete = async (id: string) => {
     if (confirm("Are you sure you want to delete this property?")) {
       try {
-        const token = localStorage.getItem('admin_token');
+        const token = localStorage.getItem('admin_token') || localStorage.getItem('auth_token');
+        if (!token) {
+          alert('Authentication required. Please log in again.');
+          router.push('/login');
+          return;
+        }
+        
         const response = await fetch(`/api/properties/${id}`, {
           method: 'DELETE',
           headers: {
             'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
           },
         });
         
@@ -107,11 +114,12 @@ function AdminDashboard() {
           setProperties(properties.filter(p => p.id !== id));
           refetch();
         } else {
-          alert('Failed to delete property');
+          const result = await response.json();
+          alert(result.error || 'Failed to delete property');
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error('Delete error:', error);
-        alert('Failed to delete property');
+        alert('Failed to delete property: ' + (error.message || 'Unknown error'));
       }
     }
   };
@@ -147,7 +155,12 @@ function AdminDashboard() {
     const updated = { ...property, featured: !property.featured };
     
     try {
-      const token = localStorage.getItem('admin_token');
+      const token = localStorage.getItem('admin_token') || localStorage.getItem('auth_token');
+      if (!token) {
+        alert('Authentication required. Please log in again.');
+        return;
+      }
+      
       const response = await fetch(`/api/properties/${id}`, {
         method: 'PUT',
         headers: {
@@ -158,10 +171,19 @@ function AdminDashboard() {
       });
       
       if (response.ok) {
-        setProperties(properties.map(p => p.id === id ? updated : p));
+        const result = await response.json();
+        if (result.success) {
+          setProperties(properties.map(p => p.id === id ? updated : p));
+        } else {
+          alert(result.error || 'Failed to update property');
+        }
+      } else {
+        const result = await response.json();
+        alert(result.error || 'Failed to update property');
       }
-    } catch (error) {
-      setProperties(properties.map(p => p.id === id ? updated : p));
+    } catch (error: any) {
+      console.error('Toggle featured error:', error);
+      alert('Error updating property: ' + (error.message || 'Unknown error'));
     }
   };
 
@@ -172,7 +194,12 @@ function AdminDashboard() {
     const updated = { ...property, verified: !property.verified };
     
     try {
-      const token = localStorage.getItem('admin_token');
+      const token = localStorage.getItem('admin_token') || localStorage.getItem('auth_token');
+      if (!token) {
+        alert('Authentication required. Please log in again.');
+        return;
+      }
+      
       const response = await fetch(`/api/properties/${id}`, {
         method: 'PUT',
         headers: {
@@ -183,10 +210,19 @@ function AdminDashboard() {
       });
       
       if (response.ok) {
-        setProperties(properties.map(p => p.id === id ? updated : p));
+        const result = await response.json();
+        if (result.success) {
+          setProperties(properties.map(p => p.id === id ? updated : p));
+        } else {
+          alert(result.error || 'Failed to update property');
+        }
+      } else {
+        const result = await response.json();
+        alert(result.error || 'Failed to update property');
       }
-    } catch (error) {
-      setProperties(properties.map(p => p.id === id ? updated : p));
+    } catch (error: any) {
+      console.error('Toggle verified error:', error);
+      alert('Error updating property: ' + (error.message || 'Unknown error'));
     }
   };
 
@@ -232,7 +268,14 @@ function AdminDashboard() {
   const handleSave = async () => {
     setSaving(true);
     try {
-      const token = localStorage.getItem('admin_token');
+      const token = localStorage.getItem('admin_token') || localStorage.getItem('auth_token');
+      if (!token) {
+        alert('Authentication required. Please log in again.');
+        router.push('/login');
+        setSaving(false);
+        return;
+      }
+      
       const url = isAdding ? '/api/properties' : `/api/properties/${selectedProperty?.id}`;
       const method = isAdding ? 'POST' : 'PUT';
       
@@ -247,19 +290,24 @@ function AdminDashboard() {
       
       if (response.ok) {
         const saved = await response.json();
-        if (isAdding) {
-          setProperties([...properties, saved.data]);
+        if (saved.success && saved.data) {
+          if (isAdding) {
+            setProperties([...properties, saved.data]);
+          } else {
+            setProperties(properties.map(p => p.id === selectedProperty?.id ? saved.data : p));
+          }
+          setIsEditing(false);
+          setIsAdding(false);
+          setSelectedProperty(null);
+          setFormData({});
+          refetch();
         } else {
-          setProperties(properties.map(p => p.id === selectedProperty?.id ? saved.data : p));
+          alert(saved.error || 'Failed to save property');
         }
-        setIsEditing(false);
-        setIsAdding(false);
-        setSelectedProperty(null);
-        setFormData({});
-        refetch();
       } else {
         const error = await response.json();
-        alert(error.error || 'Failed to save property');
+        console.error('Save error response:', error);
+        alert(error.error || error.message || 'Failed to save property');
       }
     } catch (error: any) {
       console.error('Save error:', error);
@@ -278,7 +326,12 @@ function AdminDashboard() {
 
   const handleUpdateUserRole = async (userId: string, newRole: string) => {
     try {
-      const token = localStorage.getItem('admin_token');
+      const token = localStorage.getItem('admin_token') || localStorage.getItem('auth_token');
+      if (!token) {
+        alert('Authentication required. Please log in again.');
+        return;
+      }
+      
       const response = await fetch(`/api/users?id=${userId}`, {
         method: 'PUT',
         headers: {
@@ -289,14 +342,19 @@ function AdminDashboard() {
       });
       
       if (response.ok) {
-        setUsers(users.map(u => u.id === userId ? { ...u, role: newRole as any } : u));
+        const result = await response.json();
+        if (result.success) {
+          setUsers(users.map(u => u.id === userId ? { ...u, role: newRole as any } : u));
+        } else {
+          alert(result.error || 'Failed to update user role');
+        }
       } else {
         const result = await response.json();
         alert(result.error || 'Failed to update user role');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Update user role error:', error);
-      alert('Failed to update user role');
+      alert('Failed to update user role: ' + (error.message || 'Unknown error'));
     }
   };
 

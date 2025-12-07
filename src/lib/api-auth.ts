@@ -15,9 +15,20 @@ export function verifyAuth(request: NextRequest): { success: boolean; user?: Aut
     return { success: false, error: "No authentication token provided" };
   }
 
+  // Try to get user from token - handle both admin_token and auth_token
   const user = getUser(token);
   if (!user) {
-    return { success: false, error: "Invalid or expired token" };
+    // If token is invalid, provide more helpful error message
+    // Check if it's a JWT format issue or expiration issue
+    try {
+      // Basic token format check
+      if (token.split('.').length !== 3) {
+        return { success: false, error: "Invalid token format" };
+      }
+    } catch {
+      // Token parsing failed
+    }
+    return { success: false, error: "Invalid or expired token. Please log in again." };
   }
 
   return { success: true, user };
