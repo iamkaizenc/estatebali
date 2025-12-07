@@ -626,8 +626,8 @@ const en: Messages = {
   },
 
   hero: {
-    title: 'Find Your Dream Property\\nin Bali',
-    subtitle: 'Discover luxury villas, modern apartments, and prime land in paradise.\\nYour perfect property awaits.',
+    title: 'Find Your Dream Property\nin Bali',
+    subtitle: 'Discover luxury villas, modern apartments, and prime land in paradise.\nYour perfect property awaits.',
     searchPlaceholder: 'Search by location, property type, or keywords...',
     searchButton: 'Search Properties',
     aiTranslatedNotice: 'This section was translated by AI.',
