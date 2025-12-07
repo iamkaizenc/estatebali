@@ -9,10 +9,15 @@ import { Bike, Clock, Shield, TrendingUp, Search, Filter, ChevronDown } from "lu
 import { motion } from "framer-motion";
 
 export default function RentMotorbikePage() {
-  const { properties: motorbikes, loading, error } = useProperties({ 
-    listingType: "rent",
-    propertyType: ['motorbike', 'scooter'] as any // Only show motorbikes and scooters
+  // Fetch all rent properties, then filter for motorbikes/scooters client-side
+  const { properties: allRentProperties, loading, error } = useProperties({ 
+    listingType: "rent"
   });
+  
+  // Filter to only show motorbikes and scooters
+  const motorbikes = allRentProperties.filter(p => 
+    p.type === 'motorbike' || p.type === 'scooter'
+  );
   
   const [searchQuery, setSearchQuery] = useState("");
   const [priceFilter, setPriceFilter] = useState("all");
