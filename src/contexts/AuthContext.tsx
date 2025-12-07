@@ -48,7 +48,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return { success: false, error: 'Login is only available in the browser' };
     }
 
+    console.log('[Login] Attempting login for:', email);
+    
     try {
+      console.log('[Login] Sending request to /api/auth/login');
       const response = await fetch("/api/auth/login", {
         method: "POST",
         headers: {
@@ -57,7 +60,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         body: JSON.stringify({ email, password }),
       });
 
+      console.log('[Login] Response status:', response.status, response.statusText);
       const result = await response.json();
+      console.log('[Login] Response data:', { success: result.success, hasToken: !!result.token, error: result.error });
 
       if (result.success && result.token) {
         // Store token (client-side only)

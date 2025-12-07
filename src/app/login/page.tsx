@@ -28,6 +28,7 @@ export default function LoginPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('[Login Page] Form submitted with email:', email);
     setError("");
     setLoading(true);
 
@@ -38,7 +39,9 @@ export default function LoginPage() {
       return;
     }
 
+    console.log('[Login Page] Calling login function...');
     const result = await login(email, password);
+    console.log('[Login Page] Login result:', result);
 
     if (result.success) {
       // Get user from token after login
