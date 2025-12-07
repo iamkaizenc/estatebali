@@ -8,7 +8,8 @@ import { ProtectedAdminRoute } from "@/components/ProtectedAdminRoute";
 import { useAuthSafe } from "@/contexts/AuthContext";
 import { useProperties } from "@/hooks/useProperties";
 import { Property } from "@/types";
-import { Edit, Trash2, Plus, Eye, EyeOff, Star, LogOut, User as UserIcon, X, Save } from "lucide-react";
+import { Edit, Trash2, Plus, Eye, EyeOff, Star, LogOut, User as UserIcon, X, Save, Home, TrendingUp, DollarSign, ShoppingBag, Settings, BarChart3, Shield, Activity } from "lucide-react";
+import { motion } from "framer-motion";
 
 function AdminDashboard() {
   const router = useRouter();
@@ -196,71 +197,151 @@ function AdminDashboard() {
       
       <main className="container mx-auto px-4 pt-24 pb-20">
         {/* Admin Header */}
-        <div className="mb-8 flex justify-between items-center">
+        <motion.div 
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4"
+        >
           <div>
-            <h1 className="text-4xl font-bold mb-2">Admin Dashboard</h1>
-            <p className="text-gray-400">Manage properties and listings - Full Access</p>
+            <div className="flex items-center gap-3 mb-2">
+              <div className="p-3 bg-primary/20 rounded-xl">
+                <Shield className="h-8 w-8 text-primary" />
+              </div>
+              <div>
+                <h1 className="text-4xl font-bold">Admin Dashboard</h1>
+                <p className="text-gray-400">Manage properties and listings - Full Access</p>
+              </div>
+            </div>
           </div>
           <div className="flex items-center gap-4">
-                  <div className="flex items-center gap-2 text-sm text-gray-400">
-                    <UserIcon className="h-4 w-4" />
-                    <span>{user?.name || user?.email}</span>
-                  </div>
+            <div className="flex items-center gap-2 px-4 py-2 bg-dark-200 rounded-lg border border-dark-300">
+              <UserIcon className="h-4 w-4 text-gray-400" />
+              <span className="text-sm text-gray-300">{user?.name || user?.email}</span>
+            </div>
             <button
               onClick={logout}
-              className="flex items-center gap-2 px-4 py-2 bg-red-500/20 hover:bg-red-500/30 text-red-500 rounded-lg transition-colors"
+              className="flex items-center gap-2 px-4 py-2 bg-red-500/20 hover:bg-red-500/30 text-red-500 rounded-lg transition-colors border border-red-500/30"
             >
               <LogOut className="h-4 w-4" />
               <span>Logout</span>
             </button>
           </div>
-        </div>
+        </motion.div>
 
         {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-          <div className="card p-4">
-            <div className="text-2xl font-bold text-primary mb-1">{properties.length}</div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="card p-6 bg-gradient-to-br from-dark-100 to-dark-200 border border-dark-300 hover:border-primary/50 transition-all duration-300 hover:shadow-lg hover:shadow-primary/10 group"
+          >
+            <div className="flex items-center justify-between mb-4">
+              <div className="p-3 bg-primary/20 rounded-xl group-hover:bg-primary/30 transition-colors">
+                <Home className="h-6 w-6 text-primary" />
+              </div>
+              <Activity className="h-4 w-4 text-gray-500" />
+            </div>
+            <div className="text-3xl font-bold text-white mb-1">{properties.length}</div>
             <div className="text-sm text-gray-400">Total Properties</div>
-          </div>
-          <div className="card p-4">
-            <div className="text-2xl font-bold text-primary mb-1">
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="card p-6 bg-gradient-to-br from-dark-100 to-dark-200 border border-dark-300 hover:border-primary/50 transition-all duration-300 hover:shadow-lg hover:shadow-primary/10 group"
+          >
+            <div className="flex items-center justify-between mb-4">
+              <div className="p-3 bg-primary/20 rounded-xl group-hover:bg-primary/30 transition-colors">
+                <Star className="h-6 w-6 text-primary" />
+              </div>
+              <TrendingUp className="h-4 w-4 text-green-500" />
+            </div>
+            <div className="text-3xl font-bold text-white mb-1">
               {properties.filter(p => p.featured).length}
             </div>
-            <div className="text-sm text-gray-400">Featured</div>
-          </div>
-          <div className="card p-4">
-            <div className="text-2xl font-bold text-primary mb-1">
+            <div className="text-sm text-gray-400">Featured Properties</div>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="card p-6 bg-gradient-to-br from-dark-100 to-dark-200 border border-dark-300 hover:border-primary/50 transition-all duration-300 hover:shadow-lg hover:shadow-primary/10 group"
+          >
+            <div className="flex items-center justify-between mb-4">
+              <div className="p-3 bg-primary/20 rounded-xl group-hover:bg-primary/30 transition-colors">
+                <ShoppingBag className="h-6 w-6 text-primary" />
+              </div>
+              <DollarSign className="h-4 w-4 text-blue-500" />
+            </div>
+            <div className="text-3xl font-bold text-white mb-1">
               {properties.filter(p => p.listingType === "sale").length}
             </div>
             <div className="text-sm text-gray-400">For Sale</div>
-          </div>
-          <div className="card p-4">
-            <div className="text-2xl font-bold text-primary mb-1">
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+            className="card p-6 bg-gradient-to-br from-dark-100 to-dark-200 border border-dark-300 hover:border-primary/50 transition-all duration-300 hover:shadow-lg hover:shadow-primary/10 group"
+          >
+            <div className="flex items-center justify-between mb-4">
+              <div className="p-3 bg-primary/20 rounded-xl group-hover:bg-primary/30 transition-colors">
+                <BarChart3 className="h-6 w-6 text-primary" />
+              </div>
+              <Activity className="h-4 w-4 text-purple-500" />
+            </div>
+            <div className="text-3xl font-bold text-white mb-1">
               {properties.filter(p => p.listingType === "rent").length}
             </div>
             <div className="text-sm text-gray-400">For Rent</div>
-          </div>
+          </motion.div>
         </div>
 
         {/* Actions */}
-        <div className="mb-6 flex gap-4">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
+          className="mb-6 flex gap-4"
+        >
           <button 
             onClick={handleAddNew}
-            className="btn-primary flex items-center gap-2"
+            className="btn-primary flex items-center gap-2 shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all"
           >
             <Plus className="h-4 w-4" />
             Add New Property
           </button>
-        </div>
+        </motion.div>
 
         {/* Edit/Add Form Modal */}
         {(isEditing || isAdding) && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4">
-            <div className="card max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-bold">
-                  {isAdding ? "Add New Property" : "Edit Property"}
-                </h2>
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm p-4"
+            onClick={handleCancel}
+          >
+            <motion.div 
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="card max-w-4xl w-full max-h-[90vh] overflow-y-auto border-2 border-dark-300 shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex justify-between items-center mb-6 pb-4 border-b border-dark-300">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-primary/20 rounded-lg">
+                    <Settings className="h-5 w-5 text-primary" />
+                  </div>
+                  <h2 className="text-2xl font-bold">
+                    {isAdding ? "Add New Property" : "Edit Property"}
+                  </h2>
+                </div>
                 <button
                   onClick={handleCancel}
                   className="p-2 hover:bg-dark-300 rounded-lg transition-colors"
@@ -269,65 +350,68 @@ function AdminDashboard() {
                 </button>
               </div>
 
-              <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <label className="block text-sm font-medium mb-2">Title</label>
+                    <label className="block text-sm font-medium mb-2 text-gray-300">Title *</label>
                     <input
                       type="text"
                       value={formData.title || ""}
                       onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                      className="w-full px-4 py-2 bg-dark-200 rounded-lg border border-dark-300 focus:border-primary focus:outline-none"
+                      className="w-full px-4 py-3 bg-dark-200 rounded-xl border border-dark-300 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all text-white placeholder-gray-500"
+                      placeholder="Enter property title"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-2">Price</label>
+                    <label className="block text-sm font-medium mb-2 text-gray-300">Price (IDR) *</label>
                     <input
                       type="number"
                       value={formData.price || 0}
                       onChange={(e) => setFormData({ ...formData, price: parseInt(e.target.value) })}
-                      className="w-full px-4 py-2 bg-dark-200 rounded-lg border border-dark-300 focus:border-primary focus:outline-none"
+                      className="w-full px-4 py-3 bg-dark-200 rounded-xl border border-dark-300 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all text-white placeholder-gray-500"
+                      placeholder="e.g., 8500000000"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium mb-2">Description</label>
+                  <label className="block text-sm font-medium mb-2 text-gray-300">Description *</label>
                   <textarea
                     value={formData.description || ""}
                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                     rows={4}
-                    className="w-full px-4 py-2 bg-dark-200 rounded-lg border border-dark-300 focus:border-primary focus:outline-none"
+                    className="w-full px-4 py-3 bg-dark-200 rounded-xl border border-dark-300 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all resize-none text-white placeholder-gray-500"
+                    placeholder="Describe the property..."
                   />
                 </div>
 
-                <div className="grid grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <div>
-                    <label className="block text-sm font-medium mb-2">Type</label>
+                    <label className="block text-sm font-medium mb-2 text-gray-300">Property Type *</label>
                     <select
                       value={formData.type || "villa"}
                       onChange={(e) => setFormData({ ...formData, type: e.target.value as any })}
-                      className="w-full px-4 py-2 bg-dark-200 rounded-lg border border-dark-300 focus:border-primary focus:outline-none"
+                      className="w-full px-4 py-3 bg-dark-200 rounded-xl border border-dark-300 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all text-white"
                     >
-                      <option value="villa">Villa</option>
-                      <option value="apartment">Apartment</option>
-                      <option value="house">House</option>
-                      <option value="land">Land</option>
+                      <option value="villa" className="bg-dark-200">Villa</option>
+                      <option value="apartment" className="bg-dark-200">Apartment</option>
+                      <option value="house" className="bg-dark-200">House</option>
+                      <option value="land" className="bg-dark-200">Land</option>
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-2">Listing Type</label>
+                    <label className="block text-sm font-medium mb-2 text-gray-300">Listing Type *</label>
                     <select
                       value={formData.listingType || "sale"}
                       onChange={(e) => setFormData({ ...formData, listingType: e.target.value as any })}
-                      className="w-full px-4 py-2 bg-dark-200 rounded-lg border border-dark-300 focus:border-primary focus:outline-none"
+                      className="w-full px-4 py-3 bg-dark-200 rounded-xl border border-dark-300 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all text-white"
                     >
-                      <option value="sale">For Sale</option>
-                      <option value="rent">For Rent</option>
+                      <option value="sale" className="bg-dark-200">For Sale</option>
+                      <option value="rent" className="bg-dark-200">For Rent</option>
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-2">Area (m²)</label>
+                    <label className="block text-sm font-medium mb-2 text-gray-300">Area (m²) *</label>
                     <input
                       type="number"
                       value={formData.details?.area || 0}
@@ -335,14 +419,15 @@ function AdminDashboard() {
                         ...formData, 
                         details: { ...formData.details, area: parseInt(e.target.value) }
                       })}
-                      className="w-full px-4 py-2 bg-dark-200 rounded-lg border border-dark-300 focus:border-primary focus:outline-none"
+                      className="w-full px-4 py-3 bg-dark-200 rounded-xl border border-dark-300 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all text-white placeholder-gray-500"
+                      placeholder="e.g., 450"
                     />
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <label className="block text-sm font-medium mb-2">Location Area</label>
+                    <label className="block text-sm font-medium mb-2 text-gray-300">Location Area *</label>
                     <input
                       type="text"
                       value={formData.location?.area || ""}
@@ -355,11 +440,12 @@ function AdminDashboard() {
                           ...(formData.location?.coordinates && { coordinates: formData.location.coordinates })
                         }
                       })}
-                      className="w-full px-4 py-2 bg-dark-200 rounded-lg border border-dark-300 focus:border-primary focus:outline-none"
+                      className="w-full px-4 py-3 bg-dark-200 rounded-xl border border-dark-300 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all text-white placeholder-gray-500"
+                      placeholder="e.g., Seminyak"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-2">City</label>
+                    <label className="block text-sm font-medium mb-2 text-gray-300">City *</label>
                     <input
                       type="text"
                       value={formData.location?.city || ""}
@@ -372,23 +458,24 @@ function AdminDashboard() {
                           ...(formData.location?.coordinates && { coordinates: formData.location.coordinates })
                         }
                       })}
-                      className="w-full px-4 py-2 bg-dark-200 rounded-lg border border-dark-300 focus:border-primary focus:outline-none"
+                      className="w-full px-4 py-3 bg-dark-200 rounded-xl border border-dark-300 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all text-white placeholder-gray-500"
+                      placeholder="e.g., Badung"
                     />
                   </div>
                 </div>
 
-                <div className="flex gap-4 pt-4">
+                <div className="flex gap-4 pt-6 border-t border-dark-300">
                   <button
                     onClick={handleSave}
                     disabled={saving}
-                    className="btn-primary flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="btn-primary flex items-center gap-2 shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
                   >
                     <Save className="h-4 w-4" />
                     {saving ? "Saving..." : "Save Property"}
                   </button>
                   <button
                     onClick={handleCancel}
-                    className="px-6 py-2 bg-dark-200 hover:bg-dark-300 rounded-lg transition-colors"
+                    className="px-6 py-3 bg-dark-200 hover:bg-dark-300 rounded-xl transition-colors border border-dark-300 text-gray-300 hover:text-white"
                   >
                     Cancel
                   </button>
@@ -398,101 +485,119 @@ function AdminDashboard() {
           </div>
         )}
 
-        {/* Properties Table */}
-        <div className="card overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-dark-200 border-b border-dark-300">
-                <tr>
-                  <th className="px-4 py-3 text-left text-sm font-semibold">Property</th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold">Type</th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold">Price</th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold">Location</th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold">Status</th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {properties.map((property) => (
-                  <tr key={property.id} className="border-b border-dark-300 hover:bg-dark-200 transition-colors">
-                    <td className="px-4 py-3">
-                      <div className="font-semibold line-clamp-1">{property.title}</div>
-                      <div className="text-xs text-gray-400">{property.id}</div>
-                    </td>
-                    <td className="px-4 py-3">
-                      <span className="badge bg-dark-300 text-white">
-                        {property.type}
-                      </span>
-                      <div className="text-xs text-gray-400 mt-1">{property.listingType}</div>
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="font-semibold text-primary">
-                        Rp {property.price >= 1000000000 
-                          ? `${(property.price / 1000000000).toFixed(1)}B` 
-                          : `${(property.price / 1000000).toFixed(0)}M`}
-                      </div>
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="text-sm">{property.location.area}</div>
-                      <div className="text-xs text-gray-400">{property.location.city}</div>
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex flex-col gap-1">
-                        {property.featured && (
-                          <span className="badge bg-primary text-black text-xs">Featured</span>
-                        )}
-                        {property.verified && (
-                          <span className="badge bg-green-500 text-white text-xs">Verified</span>
-                        )}
-                        {property.available ? (
-                          <span className="badge bg-blue-500 text-white text-xs">Available</span>
-                        ) : (
-                          <span className="badge bg-gray-500 text-white text-xs">Sold</span>
-                        )}
-                      </div>
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => handleToggleFeatured(property.id)}
-                          className="p-2 hover:bg-dark-300 rounded-lg transition-colors"
-                          title={property.featured ? "Remove from featured" : "Add to featured"}
-                        >
-                          <Star className={`h-4 w-4 ${property.featured ? 'fill-primary text-primary' : 'text-gray-400'}`} />
-                        </button>
-                        <button
-                          onClick={() => handleToggleVerified(property.id)}
-                          className="p-2 hover:bg-dark-300 rounded-lg transition-colors"
-                          title={property.verified ? "Unverify" : "Verify"}
-                        >
-                          {property.verified ? (
-                            <Eye className="h-4 w-4 text-green-500" />
-                          ) : (
-                            <EyeOff className="h-4 w-4 text-gray-400" />
-                          )}
-                        </button>
-                        <button
-                          onClick={() => handleEdit(property)}
-                          className="p-2 hover:bg-dark-300 rounded-lg transition-colors"
-                          title="Edit"
-                        >
-                          <Edit className="h-4 w-4 text-gray-400" />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(property.id)}
-                          className="p-2 hover:bg-red-500/20 rounded-lg transition-colors"
-                          title="Delete"
-                        >
-                          <Trash2 className="h-4 w-4 text-red-500" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+        {/* Properties Grid */}
+        {propertiesLoading ? (
+          <div className="text-center py-20">
+            <div className="h-8 w-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+            <p className="text-gray-400">Loading properties...</p>
           </div>
-        </div>
+        ) : properties.length === 0 ? (
+          <div className="card p-12 text-center">
+            <Home className="h-16 w-16 mx-auto mb-4 text-gray-600" />
+            <h3 className="text-xl font-semibold mb-2">No properties found</h3>
+            <p className="text-gray-400 mb-6">Get started by adding your first property</p>
+            <button 
+              onClick={handleAddNew}
+              className="btn-primary flex items-center gap-2 mx-auto"
+            >
+              <Plus className="h-4 w-4" />
+              Add New Property
+            </button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+            {properties.map((property, index) => (
+              <motion.div
+                key={property.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.05 }}
+                className="card p-6 hover:border-primary/50 transition-all duration-300 hover:shadow-lg hover:shadow-primary/10 group"
+              >
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex-1">
+                    <h3 className="text-xl font-bold mb-2 line-clamp-1 group-hover:text-primary transition-colors">
+                      {property.title}
+                    </h3>
+                    <p className="text-sm text-gray-400 line-clamp-2 mb-3">
+                      {property.description}
+                    </p>
+                  </div>
+                  {property.featured && (
+                    <Star className="h-5 w-5 fill-primary text-primary flex-shrink-0 ml-2" />
+                  )}
+                </div>
+
+                <div className="flex items-center gap-2 mb-4">
+                  <span className="px-3 py-1 bg-primary/20 text-primary rounded-full text-xs font-medium">
+                    {property.type}
+                  </span>
+                  <span className="px-3 py-1 bg-dark-300 text-gray-300 rounded-full text-xs">
+                    {property.listingType}
+                  </span>
+                </div>
+
+                <div className="mb-4">
+                  <div className="text-2xl font-bold text-primary mb-1">
+                    Rp {property.price >= 1000000000 
+                      ? `${(property.price / 1000000000).toFixed(1)}B` 
+                      : `${(property.price / 1000000).toFixed(0)}M`}
+                  </div>
+                  <div className="text-sm text-gray-400">
+                    {property.location.area}, {property.location.city}
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 mb-4 flex-wrap">
+                  {property.verified && (
+                    <span className="px-2 py-1 bg-green-500/20 text-green-500 rounded text-xs font-medium flex items-center gap-1">
+                      <Eye className="h-3 w-3" />
+                      Verified
+                    </span>
+                  )}
+                  {property.available ? (
+                    <span className="px-2 py-1 bg-blue-500/20 text-blue-500 rounded text-xs font-medium">
+                      Available
+                    </span>
+                  ) : (
+                    <span className="px-2 py-1 bg-gray-500/20 text-gray-400 rounded text-xs font-medium">
+                      Sold
+                    </span>
+                  )}
+                </div>
+
+                <div className="flex gap-2 pt-4 border-t border-dark-300">
+                  <button
+                    onClick={() => handleToggleFeatured(property.id)}
+                    className={`flex-1 px-3 py-2 rounded-lg transition-colors flex items-center justify-center gap-2 text-sm ${
+                      property.featured 
+                        ? 'bg-primary/20 text-primary hover:bg-primary/30' 
+                        : 'bg-dark-200 hover:bg-dark-300 text-gray-400'
+                    }`}
+                    title={property.featured ? "Remove from featured" : "Add to featured"}
+                  >
+                    <Star className={`h-4 w-4 ${property.featured ? 'fill-primary' : ''}`} />
+                    {property.featured ? 'Featured' : 'Feature'}
+                  </button>
+                  <button
+                    onClick={() => handleEdit(property)}
+                    className="px-3 py-2 bg-dark-200 hover:bg-dark-300 rounded-lg transition-colors"
+                    title="Edit"
+                  >
+                    <Edit className="h-4 w-4 text-gray-400" />
+                  </button>
+                  <button
+                    onClick={() => handleDelete(property.id)}
+                    className="px-3 py-2 bg-red-500/20 hover:bg-red-500/30 rounded-lg transition-colors"
+                    title="Delete"
+                  >
+                    <Trash2 className="h-4 w-4 text-red-500" />
+                  </button>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        )}
       </main>
 
       <Footer />
