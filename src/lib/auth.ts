@@ -6,36 +6,43 @@ import { createClient } from '@supabase/supabase-js';
 
 // Get JWT secret from environment variable
 // CRITICAL: No fallback - must be set in environment
-const JWT_SECRET = process.env.JWT_SECRET;
+// NOTE: Only accessed in server-side functions (createToken, verifyToken)
+const getJWTSecret = (): string => {
+  const JWT_SECRET = process.env.JWT_SECRET;
+  
+  if (!JWT_SECRET) {
+    const errorMsg = 'CRITICAL: JWT_SECRET environment variable is not set. This is required for authentication security.';
+    if (process.env.NODE_ENV === 'production') {
+      console.error(errorMsg);
+      throw new Error(errorMsg);
+    } else {
+      console.warn('⚠️  WARNING:', errorMsg);
+      // In development, throw to prevent silent failures
+      throw new Error(errorMsg);
+    }
+  }
+
+  // Additional security check: JWT_SECRET must be strong enough
+  if (JWT_SECRET.length < 32) {
+    const errorMsg = `CRITICAL: JWT_SECRET must be at least 32 characters long for security. Current length: ${JWT_SECRET.length}`;
+    if (process.env.NODE_ENV === 'production') {
+      console.error(errorMsg);
+      throw new Error(errorMsg);
+    } else {
+      console.warn('⚠️  WARNING:', errorMsg);
+      throw new Error(errorMsg);
+    }
+  }
+  
+  return JWT_SECRET;
+};
+
 const JWT_EXPIRATION = '7d'; // Token expires in 7 days
 
-// Validate JWT_SECRET at module load (fail-fast in production)
-if (!JWT_SECRET) {
-  const errorMsg = 'CRITICAL: JWT_SECRET environment variable is not set. This is required for authentication security.';
-  if (process.env.NODE_ENV === 'production') {
-    console.error(errorMsg);
-    throw new Error(errorMsg);
-  } else {
-    console.warn('⚠️  WARNING:', errorMsg);
-  }
-}
-
-// Additional security check: JWT_SECRET must be strong enough
-if (JWT_SECRET && JWT_SECRET.length < 32) {
-  const errorMsg = `CRITICAL: JWT_SECRET must be at least 32 characters long for security. Current length: ${JWT_SECRET.length}`;
-  if (process.env.NODE_ENV === 'production') {
-    console.error(errorMsg);
-    throw new Error(errorMsg);
-  } else {
-    console.warn('⚠️  WARNING:', errorMsg);
-  }
-}
-
 // JWT token creation with proper encryption
+// NOTE: Server-side only - requires JWT_SECRET
 function createToken(user: AuthUser): string {
-  if (!JWT_SECRET) {
-    throw new Error('JWT_SECRET is not configured');
-  }
+  const JWT_SECRET = getJWTSecret();
 
   const payload = {
     id: user.id,
@@ -54,12 +61,50 @@ function createToken(user: AuthUser): string {
 }
 
 // JWT token verification with proper validation
+// NOTE: Server-side only - requires JWT_SECRET for verification
 function verifyToken(token: string): AuthUser | null {
-  if (!JWT_SECRET) {
-    throw new Error('JWT_SECRET is not configured');
+  // Only verify on server-side
+  if (typeof window !== 'undefined') {
+      // Client-side: Just decode token without verification (for display purposes)
+      // Real verification happens on server-side API calls
+      try {
+        const parts = token.split('.');
+        if (parts.length !== 3) return null;
+        
+        // Decode base64 payload (works in browser without Buffer)
+        const payloadJson = atob(parts[1].replace(/-/g, '+').replace(/_/g, '/'));
+        const payload = JSON.parse(payloadJson) as {
+          id: string;
+          email: string;
+          name: string;
+          role: UserRole;
+          phone?: string;
+          avatar?: string;
+          exp?: number;
+        };
+        
+        // Check expiration (basic check, not cryptographic verification)
+        if (payload.exp && payload.exp * 1000 < Date.now()) {
+          return null; // Token expired
+        }
+        
+        return {
+          id: payload.id,
+          email: payload.email,
+          name: payload.name,
+          role: payload.role,
+          phone: payload.phone,
+          avatar: payload.avatar,
+        };
+      } catch (error) {
+        return null;
+      }
   }
 
+  // Server-side: Full cryptographic verification
   try {
+    const JWT_SECRET = getJWTSecret();
+    
     // Verify and decode JWT token
     const decoded = jwt.verify(token, JWT_SECRET, {
       algorithms: ['HS256'],

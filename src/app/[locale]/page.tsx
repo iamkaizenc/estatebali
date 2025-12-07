@@ -87,10 +87,7 @@ export default function HomePage({ params }: HomePageProps) {
               priority
               className="object-cover opacity-50"
               sizes="100vw"
-              onError={(e) => {
-                // Fallback to gradient if image fails
-                e.currentTarget.style.display = 'none';
-              }}
+              unoptimized
             />
           </div>
           
