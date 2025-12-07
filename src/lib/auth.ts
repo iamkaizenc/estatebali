@@ -235,37 +235,84 @@ export async function loginUser(email: string, password: string): Promise<{ succ
     }
 
     // If not found in admin_users, try users table
+    // Use maybeSingle() instead of single() to avoid error when user doesn't exist
     const { data: regularUser, error: userError } = await adminClient
       .from("users")
       .select("*")
       .eq("email", email)
-      .single();
+      .maybeSingle();
 
-    // Debug logging (only in development)
-    if (process.env.NODE_ENV === 'development') {
-      console.log('[Login] Regular user check:', {
+    // Debug logging (always log for troubleshooting)
+    console.log('[Login] Regular user check:', {
+      email,
+      found: !!regularUser,
+      error: userError?.message || null,
+      errorCode: userError?.code || null,
+      hasPasswordHash: !!regularUser?.password_hash,
+      passwordHashLength: regularUser?.password_hash?.length || 0,
+      role: regularUser?.role || null,
+    });
+
+    // Handle error cases
+    if (userError && userError.code !== 'PGRST116') {
+      // PGRST116 is "not found" which is fine - user just doesn't exist
+      // Other errors are real problems
+      console.error('[Login] Error fetching user:', {
         email,
-        found: !!regularUser,
-        error: userError?.message,
-        hasPasswordHash: !!regularUser?.password_hash
+        error: userError.message,
+        code: userError.code,
+        details: userError.details,
+        hint: userError.hint,
       });
+      return { 
+        success: false, 
+        error: "Login failed. Please try again later." 
+      };
     }
 
-    if (regularUser && !userError) {
-      // For regular users, we need to check if they have a password_hash
-      // If not, we'll need to add password authentication to users table
-      // For now, we'll use a simple check
-      if (regularUser.password_hash) {
-        const passwordMatch = await bcrypt.compare(password, regularUser.password_hash);
-        if (!passwordMatch) {
-          return { success: false, error: "Invalid email or password" };
-        }
-      } else {
-        // If no password_hash, check if it's a test user
-        // In production, all users should have password_hash
-        return { success: false, error: "Password not set. Please contact administrator." };
+    // User found - verify password
+    if (regularUser) {
+      // Check if user has password_hash
+      if (!regularUser.password_hash) {
+        console.error('[Login] User found but no password_hash:', {
+          email,
+          userId: regularUser.id,
+        });
+        return { 
+          success: false, 
+          error: "Account configuration error. Please contact administrator or reset your password." 
+        };
       }
 
+      // Verify password
+      try {
+        const passwordMatch = await bcrypt.compare(password, regularUser.password_hash);
+        
+        console.log('[Login] Password verification:', {
+          email,
+          passwordMatch,
+          hashStartsWith: regularUser.password_hash.substring(0, 7),
+        });
+
+        if (!passwordMatch) {
+          return { 
+            success: false, 
+            error: "Invalid email or password" 
+          };
+        }
+      } catch (bcryptError: any) {
+        console.error('[Login] bcrypt.compare error:', {
+          email,
+          error: bcryptError.message,
+          hashLength: regularUser.password_hash.length,
+        });
+        return { 
+          success: false, 
+          error: "Password verification failed. Please try again." 
+        };
+      }
+
+      // Password verified - create token
       const user: AuthUser = {
         id: regularUser.id,
         email: regularUser.email,
@@ -276,9 +323,17 @@ export async function loginUser(email: string, password: string): Promise<{ succ
       };
       
       const token = createToken(user);
+      console.log('[Login] Success:', {
+        email,
+        userId: user.id,
+        role: user.role,
+      });
+      
       return { success: true, token };
     }
 
+    // User not found in either table
+    console.log('[Login] User not found:', { email });
     return { success: false, error: "Invalid email or password" };
   } catch (error: any) {
     // Always log errors
