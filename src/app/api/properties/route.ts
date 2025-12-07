@@ -63,9 +63,10 @@ export async function GET(request: NextRequest) {
       query = query.eq("user_id", userId);
     }
 
-    // Filter by listing type (try listing_type first, then type field)
+    // Filter by listing type (use type field as it stores listing type in current schema)
     if (listingType) {
-      query = query.eq("listing_type", listingType).or(`listing_type.eq.${listingType},type.eq.${listingType}`);
+      // Try both listing_type and type fields for backward compatibility
+      query = query.or(`listing_type.eq.${listingType},type.eq.${listingType}`);
     }
 
     // Filter by featured
@@ -79,15 +80,15 @@ export async function GET(request: NextRequest) {
     }
 
     // Filter by category (property type: villa, apartment, house, land, motorcycle)
-    // If type param is provided, it could be either category or listing type
-    // We check if it matches category values first, otherwise treat as listing type
+    // The 'type' parameter is used for category filtering
     if (type) {
       const categoryValues = ['villa', 'apartment', 'house', 'land', 'motorcycle', 'motorbike', 'scooter'];
       if (categoryValues.includes(type.toLowerCase())) {
+        // Filter by category field
         query = query.eq("category", type);
       } else {
-        // Fallback: treat as listing type
-        query = query.eq("type", type);
+        // If not a category value, might be a listing type - handle separately
+        // This should already be handled by listingType parameter above
       }
     }
 
