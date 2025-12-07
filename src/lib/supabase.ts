@@ -111,12 +111,17 @@ export function dbPropertyToProperty(dbProp: DatabaseProperty): Property {
 }
 
 // Convert app property to database property
+// Property.type (frontend) → category (database)
+// Property.listingType (frontend) → type (database)
 export function propertyToDbProperty(prop: Partial<Property>): Partial<DatabaseProperty> {
   return {
     title: prop.title,
     description: prop.description || null,
-    type: prop.type,
-    listing_type: prop.listingType,
+    // listingType from frontend goes to type field in database
+    type: prop.listingType,
+    listing_type: prop.listingType, // Keep both for compatibility
+    // type from frontend goes to category field in database
+    category: prop.type,
     source: prop.source,
     price: prop.price,
     price_per_month: prop.pricePerMonth || null,
