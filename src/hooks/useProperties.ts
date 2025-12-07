@@ -70,7 +70,16 @@ export function useProperties(options: UsePropertiesOptions = {}) {
         const result = await response.json();
 
         if (result.success) {
-          setProperties(result.data);
+          let filteredData = result.data;
+          
+          // Client-side filtering: exclude certain types
+          if (options.excludeTypes && options.excludeTypes.length > 0) {
+            filteredData = filteredData.filter(
+              (property: Property) => !options.excludeTypes!.includes(property.type)
+            );
+          }
+          
+          setProperties(filteredData);
         } else {
           setError(result.error || "Failed to fetch properties");
         }
