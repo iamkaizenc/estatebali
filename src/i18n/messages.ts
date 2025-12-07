@@ -612,6 +612,7 @@ const en: Messages = {
     agents: 'Agents',
     about: 'About',
     contact: 'Contact',
+    services: 'Services',
     login: 'Login',
     register: 'Register',
     dashboard: 'Dashboard',
@@ -623,6 +624,63 @@ const en: Messages = {
     messages: 'Messages',
     notifications: 'Notifications',
     settings: 'Settings',
+  },
+
+  services: {
+    title: 'Your Gateway to Living in Bali',
+    subtitle: 'Comprehensive visa, residency, and business setup services to make your Bali transition seamless.',
+    comingSoon: 'Coming Soon',
+    comingSoonDesc: 'Full service launching soon!',
+    ctaButton: 'Get Info on WhatsApp',
+    readyTitle: 'Ready to Get Started?',
+    readyDesc: 'Contact us today to discuss your needs and get a personalized quote',
+    whatsappButton: 'Chat on WhatsApp',
+    emailButton: 'Send Email',
+    howItWorks: 'How It Works',
+    howItWorksDesc: 'Simple 4-step process to get started',
+    visa: {
+      title: 'Visa Services',
+      description: 'Complete visa application assistance for your Bali stay',
+      askButton: 'Ask About This',
+    },
+    residency: {
+      title: 'Residency Permits',
+      description: 'Long-term residency solutions for expats and investors',
+      askButton: 'Ask About This',
+    },
+    company: {
+      title: 'Company Setup',
+      description: 'Establish your business presence in Indonesia',
+      askButton: 'Ask About This',
+    },
+    legal: {
+      title: 'Legal Documentation',
+      description: 'Comprehensive legal services for property and business',
+      askButton: 'Ask About This',
+    },
+    relocation: {
+      title: 'Relocation Support',
+      description: 'Smooth transition to your new life in Bali',
+      askButton: 'Ask About This',
+    },
+    steps: {
+      contact: {
+        title: 'Contact Us',
+        description: 'Reach out via WhatsApp or email',
+      },
+      consultation: {
+        title: 'Consultation',
+        description: 'Free initial consultation to understand your needs',
+      },
+      documentation: {
+        title: 'Documentation',
+        description: 'We handle all paperwork and requirements',
+      },
+      completion: {
+        title: 'Completion',
+        description: 'Your service is processed and completed',
+      },
+    },
   },
 
   hero: {
