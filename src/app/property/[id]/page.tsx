@@ -110,6 +110,7 @@ export default function PropertyDetailPage() {
               fill
               className="object-cover"
               priority
+              unoptimized
             />
           </div>
           
