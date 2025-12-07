@@ -15,7 +15,8 @@ export default function RentMotorbikePage() {
   });
   
   // Filter to only show motorbikes and scooters
-  const motorbikes = allRentProperties.filter(p => 
+  // Using type assertion since 'motorbike' and 'scooter' may not be in PropertyType enum yet
+  const motorbikes = (allRentProperties || []).filter((p: any) => 
     p.type === 'motorbike' || p.type === 'scooter'
   );
   

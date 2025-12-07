@@ -1,5 +1,5 @@
 // Property Types
-export type PropertyType = "villa" | "apartment" | "house" | "land";
+export type PropertyType = "villa" | "apartment" | "house" | "land" | "motorbike" | "scooter";
 export type ListingType = "sale" | "rent";
 export type ListingSource = "owner" | "agent";
 export type PropertyStatus = "pending" | "approved" | "rejected";
