@@ -17,7 +17,7 @@ import { motion, AnimatePresence } from "framer-motion";
 
 type TabType = "properties" | "users" | "images";
 
-interface AdminUser extends User {
+interface AdminUser extends Omit<User, 'createdAt'> {
   createdAt?: string | Date;
   updatedAt?: string | Date;
 }
