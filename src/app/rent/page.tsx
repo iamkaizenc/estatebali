@@ -7,9 +7,14 @@ import EmptyState from "@/components/EmptyState";
 import { useProperties } from "@/hooks/useProperties";
 
 export default function RentPage() {
-  const { properties: rentProperties, loading, error } = useProperties({ 
-    listingType: "rent",
-    excludeTypes: ['motorbike', 'scooter'] // Exclude motorbikes from rent page
+  const { properties: allProperties, loading, error } = useProperties({ 
+    listingType: "rent"
+  });
+  
+  // Filter out motorcycles (they should only appear in rent-motorbike page)
+  const rentProperties = (allProperties || []).filter((p: any) => {
+    const category = (p as any).category || p.type;
+    return category !== 'motorcycle' && category !== 'motorbike' && category !== 'scooter';
   });
 
   return (

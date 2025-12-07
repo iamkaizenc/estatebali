@@ -25,8 +25,9 @@ export function useProperties(options: UsePropertiesOptions = {}) {
         if (options.featured) params.append("featured", "true");
         if (options.location) params.append("area", options.location);
         if (options.query) params.append("query", options.query);
+        // propertyType maps to category field in database
         if (options.propertyType && options.propertyType.length > 0) {
-          params.append("type", options.propertyType[0]);
+          params.append("type", options.propertyType[0]); // This will be treated as category by API
         }
         if (options.userId) params.append("userId", options.userId);
         if (options.priceMin) params.append("priceMin", options.priceMin.toString());

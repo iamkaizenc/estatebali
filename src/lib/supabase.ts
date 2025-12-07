@@ -18,8 +18,9 @@ export interface DatabaseProperty {
   id: string;
   title: string;
   description: string | null;
-  type: string;
-  listing_type: string;
+  type: string; // Listing type: 'sale' | 'rent'
+  listing_type: string; // Listing type (duplicate of type)
+  category: string; // Property category: 'villa' | 'apartment' | 'house' | 'land' | 'motorcycle'
   source: string;
   price: number;
   price_per_month: number | null;
@@ -60,8 +61,9 @@ export function dbPropertyToProperty(dbProp: DatabaseProperty): Property {
     id: dbProp.id,
     title: dbProp.title,
     description: dbProp.description || '',
-    type: dbProp.type as any,
-    listingType: dbProp.listing_type as any,
+    // Use category if available, otherwise fallback to type
+    type: (dbProp.category || dbProp.type) as any,
+    listingType: (dbProp.type || dbProp.listing_type) as any,
     source: dbProp.source as any,
     price: dbProp.price,
     pricePerMonth: dbProp.price_per_month || undefined,
