@@ -22,12 +22,15 @@ export default function RentMotorbikePage() {
     sortBy: 'newest',
   });
 
-  // Debug log
+  // Debug logs
   useEffect(() => {
-    if (motorcycles) {
-      console.log('[RentMotorbikePage] Motorcycles loaded:', motorcycles.length);
-    }
-  }, [motorcycles]);
+    console.log('[RentMotorbikePage] State:', {
+      isLoading,
+      error: error?.message,
+      motorcyclesCount: motorcycles?.length || 0,
+      motorcycles: motorcycles,
+    });
+  }, [motorcycles, isLoading, error]);
 
   // Filter motorcycles client-side
   const filteredMotorcycles = (motorcycles || []).filter((moto: Motorcycle) => {
