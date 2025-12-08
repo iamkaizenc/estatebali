@@ -62,9 +62,11 @@ export function useMotorcycles(params?: UseMotorcyclesParams) {
       const { data: motorcycles, error: fetchError } = await query;
 
       if (fetchError) {
+        console.error('[useMotorcycles] Error:', fetchError);
         throw fetchError;
       }
 
+      console.log('[useMotorcycles] Fetched:', motorcycles?.length || 0, 'motorcycles');
       setData((motorcycles as Motorcycle[]) || []);
       setError(null);
     } catch (err) {

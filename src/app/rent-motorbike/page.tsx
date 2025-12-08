@@ -1,7 +1,7 @@
 'use client';
 
 import { useMotorcycles } from '@/hooks/useMotorcycles';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { Search, Filter, Bike, Clock, TrendingUp, AlertCircle } from 'lucide-react';
@@ -20,6 +20,13 @@ export default function RentMotorbikePage() {
     available: true,
     sortBy: 'newest',
   });
+
+  // Debug log
+  useEffect(() => {
+    if (motorcycles) {
+      console.log('[RentMotorbikePage] Motorcycles loaded:', motorcycles.length);
+    }
+  }, [motorcycles]);
 
   // Filter motorcycles client-side
   const filteredMotorcycles = (motorcycles || []).filter((moto: Motorcycle) => {
