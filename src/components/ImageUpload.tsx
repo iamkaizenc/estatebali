@@ -1,24 +1,33 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Upload, X, Image as ImageIcon } from "lucide-react";
 
 interface ImageUploadProps {
   onImagesChange: (urls: string[]) => void;
   maxImages?: number;
   bucketName?: string;
+  initialImages?: string[]; // Existing images to show
 }
 
 export function ImageUpload({ 
   onImagesChange, 
   maxImages = 10,
-  bucketName = "property-images"
+  bucketName = "property-images",
+  initialImages = []
 }: ImageUploadProps) {
-  const [images, setImages] = useState<string[]>([]);
+  const [images, setImages] = useState<string[]>(initialImages);
   const [previews, setPreviews] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Update images when initialImages change
+  useEffect(() => {
+    if (initialImages.length > 0 && images.length === 0) {
+      setImages(initialImages);
+    }
+  }, [initialImages]);
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -80,12 +89,13 @@ export function ImageUpload({
       }
     }
 
-    // Update state
+    // Update state - merge with existing images
     const updatedImages = [...images, ...newImages];
     const updatedPreviews = [...previews, ...newPreviews];
 
     setImages(updatedImages);
     setPreviews(updatedPreviews);
+    // Notify parent with all images (existing + new)
     onImagesChange(updatedImages);
     setUploading(false);
 
@@ -182,35 +192,73 @@ export function ImageUpload({
         </div>
       )}
 
-      {previews.length > 0 && (
+      {/* Existing Images + Preview Images */}
+      {(images.length > 0 || previews.length > 0) && (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {previews.map((preview, index) => (
-            <div key={index} className="relative group">
-              <div className="aspect-square rounded-lg overflow-hidden bg-dark-200">
-                <img
-                  src={preview}
-                  alt={`Preview ${index + 1}`}
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              <button
-                onClick={() => removeImage(index)}
-                className="absolute top-2 right-2 p-1.5 bg-red-500/90 hover:bg-red-500 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                title="Remove image"
-              >
-                <X className="h-4 w-4 text-white" />
-              </button>
-              {index === 0 && (
-                <div className="absolute bottom-2 left-2 px-2 py-1 bg-primary text-black text-xs font-medium rounded">
-                  Main
+          {/* Show existing images from props */}
+          {images.filter(img => !previews.includes(img)).map((imageUrl, index) => {
+            const imageIndex = index;
+            return (
+              <div key={`existing-${imageIndex}`} className="relative group">
+                <div className="aspect-square rounded-lg overflow-hidden bg-dark-200 border border-dark-300">
+                  <img
+                    src={imageUrl}
+                    alt={`Property image ${imageIndex + 1}`}
+                    className="w-full h-full object-cover"
+                  />
                 </div>
-              )}
-            </div>
-          ))}
+                <button
+                  onClick={() => removeImage(imageIndex)}
+                  className="absolute top-2 right-2 p-1.5 bg-red-500/90 hover:bg-red-500 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                  title="Remove image"
+                >
+                  <X className="h-4 w-4 text-white" />
+                </button>
+                {imageIndex === 0 && (
+                  <div className="absolute bottom-2 left-2 px-2 py-1 bg-primary text-black text-xs font-medium rounded">
+                    Main
+                  </div>
+                )}
+              </div>
+            );
+          })}
+          
+          {/* Show preview images (newly uploaded, not yet saved) */}
+          {previews.map((preview, previewIndex) => {
+            const imageIndex = images.length + previewIndex;
+            return (
+              <div key={`preview-${previewIndex}`} className="relative group">
+                <div className="aspect-square rounded-lg overflow-hidden bg-dark-200 border border-dark-300">
+                  <img
+                    src={preview}
+                    alt={`Preview ${previewIndex + 1}`}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <button
+                  onClick={() => {
+                    // Remove from previews
+                    const updatedPreviews = previews.filter((_, i) => i !== previewIndex);
+                    setPreviews(updatedPreviews);
+                    
+                    // Find corresponding image URL and remove it
+                    const imageUrlIndex = images.length + previewIndex;
+                    const updatedImages = images.filter((_, i) => i !== imageUrlIndex - images.length);
+                    setImages(updatedImages);
+                    onImagesChange(updatedImages);
+                  }}
+                  className="absolute top-2 right-2 p-1.5 bg-red-500/90 hover:bg-red-500 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                  title="Remove image"
+                >
+                  <X className="h-4 w-4 text-white" />
+                </button>
+              </div>
+            );
+          })}
         </div>
       )}
 
-      {images.length === 0 && !uploading && (
+      {images.length === 0 && previews.length === 0 && !uploading && (
         <div className="flex items-center justify-center gap-2 text-gray-500 text-sm">
           <ImageIcon className="h-4 w-4" />
           <span>No images uploaded yet</span>

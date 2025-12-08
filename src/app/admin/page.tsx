@@ -13,6 +13,7 @@ import {
   Home, TrendingUp, DollarSign, ShoppingBag, Settings, BarChart3, Shield, 
   Activity, Users, Image as ImageIcon, Search, Filter, ChevronDown, Mail, Phone
 } from "lucide-react";
+import { ImageUpload } from "@/components/ImageUpload";
 import { motion, AnimatePresence } from "framer-motion";
 
 type TabType = "properties" | "users" | "images";
