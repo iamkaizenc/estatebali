@@ -60,13 +60,15 @@ export default function RentMotorbikePage() {
   // Get unique locations for filter
   const locations = Array.from(new Set(motorcycles?.map((m: Motorcycle) => m.location).filter(Boolean) || []));
 
-  // Calculate stats
+  // Calculate stats (motorcycles from RLS are already filtered as available)
   const stats = {
-    available: motorcycles?.filter((m: Motorcycle) => m.available)?.length || 0,
+    available: motorcycles?.length || 0,
     scooters: motorcycles?.filter((m: Motorcycle) => m.type === 'scooter')?.length || 0,
     motorcycles: motorcycles?.filter((m: Motorcycle) => m.type === 'motorcycle')?.length || 0,
     cars: motorcycles?.filter((m: Motorcycle) => m.type === 'car')?.length || 0,
-    minPrice: Math.min(...(motorcycles?.map((m: Motorcycle) => m.price || 0) || [0])),
+    minPrice: motorcycles && motorcycles.length > 0 
+      ? Math.min(...motorcycles.map((m: Motorcycle) => m.price || 0))
+      : 0,
   };
 
   const formatPrice = (price: number) => {
@@ -206,7 +208,16 @@ export default function RentMotorbikePage() {
           <div className="text-center py-20">
             <Bike className="h-16 w-16 text-gray-600 mx-auto mb-4" />
             <h3 className="text-xl font-semibold mb-2">No motorbikes available</h3>
-            <p className="text-gray-400 mb-6">Try adjusting your filters</p>
+            <p className="text-gray-400 mb-2">
+              {motorcycles && motorcycles.length > 0
+                ? 'Try adjusting your search or filters'
+                : 'No motorcycles found in the database'}
+            </p>
+            {motorcycles && motorcycles.length > 0 && (
+              <p className="text-gray-500 text-sm mb-6">
+                Showing {motorcycles.length} total, but none match your current filters
+              </p>
+            )}
             <button
               onClick={() => {
                 setSearchQuery("");
