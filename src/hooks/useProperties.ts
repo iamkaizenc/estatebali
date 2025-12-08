@@ -75,7 +75,12 @@ export function useProperties(options: UsePropertiesOptions = {}) {
     };
 
     fetchProperties();
-  }, [options.listingType, options.featured, options.location, options.propertyType, options.query, options.priceMin, options.priceMax, options.bedrooms, options.bathrooms, options.userId, options.excludeTypes, options.sortBy, options.includeHidden, options.showOnRentMotorbike]);
+    
+    return () => {
+      isMounted = false;
+      abortController.abort();
+    };
+  }, [optionsString]);
 
   return { properties, loading, error, refetch: () => {
     const fetchProperties = async () => {
