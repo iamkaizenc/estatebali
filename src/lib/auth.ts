@@ -454,17 +454,26 @@ export function getAdminEmail(): string | null {
 export function logout(): void {
   if (typeof window === "undefined") return;
   
-  localStorage.removeItem("admin_token");
-  localStorage.removeItem("auth_token");
-  localStorage.removeItem("admin_authenticated");
-  localStorage.removeItem("admin_email");
-  localStorage.removeItem("admin_login_time");
-  
-  // Clear cookie
-  if (typeof document !== 'undefined') {
-    document.cookie = 'admin_token=; path=/; max-age=0; SameSite=Lax';
-    document.cookie = 'auth_token=; path=/; max-age=0; SameSite=Lax';
+  try {
+    // Clear all localStorage
+    localStorage.clear();
+    // Clear all sessionStorage
+    sessionStorage.clear();
+    
+    // Clear all cookies
+    if (typeof document !== 'undefined') {
+      document.cookie.split(";").forEach((c) => {
+        document.cookie = c
+          .replace(/^ +/, "")
+          .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+      });
+    }
+    
+    // Force hard redirect to login
+    window.location.href = "/login";
+  } catch (error) {
+    console.error('Logout error:', error);
+    // Force redirect even on error
+    window.location.href = "/login";
   }
-  
-  window.location.href = "/login";
 }
