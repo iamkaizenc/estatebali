@@ -26,8 +26,12 @@ export function useProperties(options: UsePropertiesOptions = {}) {
         if (options.location) params.append("area", options.location);
         if (options.query) params.append("query", options.query);
         // propertyType maps to category field in database
+        // If multiple types provided, we need to handle them differently
         if (options.propertyType && options.propertyType.length > 0) {
-          params.append("type", options.propertyType[0]); // This will be treated as category by API
+          // For motorcycle filtering, use the first type (or 'motorcycle' as fallback)
+          const categoryType = options.propertyType.find(t => ['motorcycle', 'motorbike', 'scooter'].includes(t.toLowerCase())) 
+            || options.propertyType[0];
+          params.append("type", categoryType.toLowerCase()); // This will be treated as category by API
         }
         if (options.userId) params.append("userId", options.userId);
         if (options.priceMin) params.append("priceMin", options.priceMin.toString());

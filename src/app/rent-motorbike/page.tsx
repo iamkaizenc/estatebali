@@ -9,17 +9,25 @@ import { Bike, Clock, Shield, TrendingUp, Search, Filter, ChevronDown } from "lu
 import { motion } from "framer-motion";
 
 export default function RentMotorbikePage() {
-  // Fetch all rent properties, then filter for motorcycles client-side
+  // Fetch all rent properties with category='motorcycle' filter
+  // Note: Database uses 'motorcycle' category, not 'motorbike' or 'scooter'
   const { properties: allRentProperties, loading, error } = useProperties({ 
     listingType: "rent",
-    propertyType: ['motorcycle'] as any // Filter by category
+    // We'll use a custom fetch since PropertyType enum doesn't include 'motorcycle'
   });
   
-  // Additional client-side filtering for motorcycles
-  // Database uses 'motorcycle' but we also check for 'motorbike' and 'scooter' variations
+  // Client-side filtering for motorcycles
+  // Database uses 'motorcycle' category, map it correctly
   const motorbikes = (allRentProperties || []).filter((p: any) => {
-    const category = (p as any).category || p.type;
-    return category === 'motorcycle' || category === 'motorbike' || category === 'scooter';
+    // Check both the type property (which maps from category) and direct category check
+    const propertyType = p.type?.toLowerCase();
+    const category = (p as any).category?.toLowerCase();
+    return propertyType === 'motorcycle' || 
+           propertyType === 'motorbike' || 
+           propertyType === 'scooter' ||
+           category === 'motorcycle' ||
+           category === 'motorbike' ||
+           category === 'scooter';
   });
   
   const [searchQuery, setSearchQuery] = useState("");

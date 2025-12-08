@@ -83,9 +83,10 @@ export async function GET(request: NextRequest) {
     // The 'type' parameter is used for category filtering
     if (type) {
       const categoryValues = ['villa', 'apartment', 'house', 'land', 'motorcycle', 'motorbike', 'scooter'];
-      if (categoryValues.includes(type.toLowerCase())) {
-        // Filter by category field
-        query = query.eq("category", type);
+      const normalizedType = type.toLowerCase();
+      if (categoryValues.includes(normalizedType)) {
+        // Filter by category field - use case-insensitive ilike for better matching
+        query = query.ilike("category", normalizedType);
       } else {
         // If not a category value, might be a listing type - handle separately
         // This should already be handled by listingType parameter above
