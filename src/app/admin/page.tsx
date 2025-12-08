@@ -227,6 +227,45 @@ function AdminDashboard() {
     }
   };
 
+  const handleToggleAvailable = async (id: string) => {
+    const property = properties.find(p => p.id === id);
+    if (!property) return;
+    
+    const updated = { ...property, available: !property.available };
+    
+    try {
+      const token = localStorage.getItem('admin_token') || localStorage.getItem('auth_token');
+      if (!token) {
+        alert('Authentication required. Please log in again.');
+        return;
+      }
+      
+      const response = await fetch(`/api/properties/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({ available: updated.available }),
+      });
+      
+      if (response.ok) {
+        const result = await response.json();
+        if (result.success) {
+          setProperties(properties.map(p => p.id === id ? updated : p));
+        } else {
+          alert(result.error || 'Failed to update property visibility');
+        }
+      } else {
+        const result = await response.json();
+        alert(result.error || 'Failed to update property visibility');
+      }
+    } catch (error: any) {
+      console.error('Toggle available error:', error);
+      alert('Error updating property visibility: ' + (error.message || 'Unknown error'));
+    }
+  };
+
   const handleEdit = (property: Property) => {
     setSelectedProperty(property);
     setFormData(property);
@@ -980,6 +1019,8 @@ function AdminDashboard() {
                         <option value="apartment" className="bg-dark-200">Apartment</option>
                         <option value="house" className="bg-dark-200">House</option>
                         <option value="land" className="bg-dark-200">Land</option>
+                        <option value="motorbike" className="bg-dark-200">Motorbike</option>
+                        <option value="scooter" className="bg-dark-200">Scooter</option>
                       </select>
                     </div>
                     <div>
@@ -1005,6 +1046,47 @@ function AdminDashboard() {
                         className="w-full px-4 py-3 bg-dark-200 rounded-xl border border-dark-300 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all text-white placeholder-gray-500"
                         placeholder="e.g., 450"
                       />
+                    </div>
+                  </div>
+
+                  {/* Visibility and Status Options */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-6 border-t border-dark-300">
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="checkbox"
+                        id="available"
+                        checked={formData.available !== false}
+                        onChange={(e) => setFormData({ ...formData, available: e.target.checked })}
+                        className="w-5 h-5 rounded border-dark-300 bg-dark-200 text-primary focus:ring-primary focus:ring-2"
+                      />
+                      <label htmlFor="available" className="text-sm font-medium text-gray-300 cursor-pointer">
+                        Visible to Users
+                      </label>
+                      <span className="text-xs text-gray-500">(Available)</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="checkbox"
+                        id="featured"
+                        checked={formData.featured || false}
+                        onChange={(e) => setFormData({ ...formData, featured: e.target.checked })}
+                        className="w-5 h-5 rounded border-dark-300 bg-dark-200 text-primary focus:ring-primary focus:ring-2"
+                      />
+                      <label htmlFor="featured" className="text-sm font-medium text-gray-300 cursor-pointer">
+                        Featured Property
+                      </label>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="checkbox"
+                        id="verified"
+                        checked={formData.verified || false}
+                        onChange={(e) => setFormData({ ...formData, verified: e.target.checked })}
+                        className="w-5 h-5 rounded border-dark-300 bg-dark-200 text-primary focus:ring-primary focus:ring-2"
+                      />
+                      <label htmlFor="verified" className="text-sm font-medium text-gray-300 cursor-pointer">
+                        Verified
+                      </label>
                     </div>
                   </div>
 
