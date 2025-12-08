@@ -69,14 +69,18 @@ export async function GET(request: NextRequest) {
       query = query.order("created_at", { ascending: false });
     }
 
-    // Filter by user_id (for user's own properties)
-    if (userId) {
-      query = query.eq("user_id", userId);
-      // If fetching own properties, don't filter by available (users should see their own properties)
-    } else if (includeHidden !== "true") {
-      // For public listings, only show available properties
+    // CRITICAL: Filter by available FIRST - before any other filters
+    // This ensures hidden properties are ALWAYS excluded from public listings
+    if (!userId && includeHidden !== "true") {
+      // For public listings (not user's own), ONLY show available properties
       // Admin can pass includeHidden=true to see all properties
       query = query.eq("available", true);
+    }
+
+    // Filter by user_id (for user's own properties)
+    // Users can see their own properties even if hidden
+    if (userId) {
+      query = query.eq("user_id", userId);
     }
 
     // Filter by listing type (use type field as it stores listing type in current schema)
@@ -88,8 +92,8 @@ export async function GET(request: NextRequest) {
     // Filter by featured
     if (featured === "true") {
       query = query.eq("featured", true);
-      // Featured properties should also be available
-      if (includeHidden !== "true") {
+      // Featured properties must also be available (double-check for public listings)
+      if (!userId && includeHidden !== "true") {
         query = query.eq("available", true);
       }
     }
