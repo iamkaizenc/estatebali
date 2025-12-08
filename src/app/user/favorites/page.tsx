@@ -41,7 +41,7 @@ function FavoritesPage() {
             
             // Use location field (not address) - location contains full address string
             const locationString = prop.location || "";
-            const area = prop.area || "";
+            const area = prop.size || prop.area || ""; // Use size field from database
             // Try to extract city from location if available, otherwise use area
             const city = locationString.split(",")[0]?.trim() || area || "";
             
