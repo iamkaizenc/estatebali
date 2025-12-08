@@ -9,30 +9,15 @@ import { Bike, Clock, Shield, TrendingUp, Search, Filter, ChevronDown } from "lu
 import { motion } from "framer-motion";
 
 export default function RentMotorbikePage() {
-  // First, try to fetch motorcycles marked with showOnRentMotorbike flag
-  const { properties: markedProperties, loading: markedLoading } = useProperties({ 
-    listingType: "rent",
-    propertyType: ['motorbike', 'scooter'] as any,
-    showOnRentMotorbike: true, // Only get bikes marked for this page
-  });
-  
-  // Fallback: If no marked bikes, get all motorcycles (until admin selects some)
-  const { properties: allProperties, loading: allLoading } = useProperties({ 
+  // Fetch all rent motorcycles first
+  const { properties: allRentProperties, loading, error } = useProperties({ 
     listingType: "rent",
     propertyType: ['motorbike', 'scooter'] as any,
   });
-  
-  // Use marked bikes if any exist, otherwise show all (for initial setup)
-  const loading = markedLoading || allLoading;
-  const hasMarkedBikes = markedProperties && markedProperties.length > 0;
-  const allRentProperties = hasMarkedBikes ? markedProperties : (allProperties || []);
   
   // Client-side filtering for motorcycles
-  const motorbikes = (allRentProperties || []).filter((p: any) => {
-    // If we have marked bikes, only show marked ones
-    // Otherwise, show all motorcycles (until admin selects)
-    if (hasMarkedBikes && !p.showOnRentMotorbike) return false;
-    
+  // Show bikes marked with showOnRentMotorbike flag, or all if none marked yet
+  const allMotorbikes = (allRentProperties || []).filter((p: any) => {
     // Check both the type property (which maps from category) and direct category check
     const propertyType = p.type?.toLowerCase();
     const category = (p as any).category?.toLowerCase();
@@ -44,8 +29,11 @@ export default function RentMotorbikePage() {
            category === 'scooter';
   });
   
-  // Calculate error (if any)
-  const error = null; // We'll handle errors separately if needed
+  // Check if any bikes are marked for rent-motorbike page
+  const markedBikes = allMotorbikes.filter((p: any) => p.showOnRentMotorbike === true);
+  
+  // If admin has marked some bikes, only show those. Otherwise show all (until selection is made)
+  const motorbikes = markedBikes.length > 0 ? markedBikes : allMotorbikes;
   
   const [searchQuery, setSearchQuery] = useState("");
   const [priceFilter, setPriceFilter] = useState("all");
