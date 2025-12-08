@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
-import { supabase } from '@/lib/supabase';
 import { Motorcycle } from '@/types/motorcycle';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
@@ -50,18 +49,23 @@ export default function MotorcycleDetailPage() {
 
       setMotorcycle(data as Motorcycle);
 
-      // Fetch similar motorcycles (same type, different id)
-      if (data) {
-        const { data: similar, error: similarError } = await supabase
-          .from('motorcycles')
-          .select('*')
-          .eq('type', data.type)
-          .neq('id', id)
-          .eq('available', true)
-          .limit(4);
-
-        if (!similarError && similar) {
-          setSimilarMotorcycles(similar as Motorcycle[]);
+      // Fetch similar motorcycles (same type, different id) using API route
+      if (data && data.type) {
+        try {
+          const similarResponse = await fetch(`/api/motorcycles?type=${data.type}&available=true`);
+          if (similarResponse.ok) {
+            const similarResult = await similarResponse.json();
+            if (similarResult.success) {
+              // Filter out current motorcycle and limit to 4
+              const similar = (similarResult.data || [])
+                .filter((m: Motorcycle) => m.id !== id)
+                .slice(0, 4);
+              setSimilarMotorcycles(similar);
+            }
+          }
+        } catch (err) {
+          console.error('Error fetching similar motorcycles:', err);
+          // Don't set error state for similar motorcycles - it's not critical
         }
       }
     } catch (err: any) {
