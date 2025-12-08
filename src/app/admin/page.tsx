@@ -61,10 +61,16 @@ function AdminDashboard() {
   const [userSearch, setUserSearch] = useState("");
 
   // Motorcycles state
-  const { data: motorcycles, isLoading: motorcyclesLoading, refetch: refetchMotorcycles } = useMotorcycles({});
+  // Admin should see all motorcycles including unavailable ones
+  const { data: motorcycles, isLoading: motorcyclesLoading, refetch: refetchMotorcycles } = useMotorcycles({ available: undefined });
   const [motorcycleSearch, setMotorcycleSearch] = useState("");
   const [motorcycleTypeFilter, setMotorcycleTypeFilter] = useState<string>("all");
   const [motorcycleLocationFilter, setMotorcycleLocationFilter] = useState<string>("all");
+  const [selectedMotorcycle, setSelectedMotorcycle] = useState<Motorcycle | null>(null);
+  const [isEditingMotorcycle, setIsEditingMotorcycle] = useState(false);
+  const [isAddingMotorcycle, setIsAddingMotorcycle] = useState(false);
+  const [motorcycleFormData, setMotorcycleFormData] = useState<Partial<Motorcycle>>({});
+  const [savingMotorcycle, setSavingMotorcycle] = useState(false);
 
   // Update properties when fetched from API
   useEffect(() => {

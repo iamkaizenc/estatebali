@@ -16,9 +16,9 @@ export default function RentMotorbikePage() {
   const [locationFilter, setLocationFilter] = useState<string>("all");
 
   // Fetch motorcycles directly from motorcycles table
-  // RLS policy automatically filters for available = true
-  // No need to pass available filter here
+  // Explicitly request only available motorcycles for public page
   const { data: motorcycles, isLoading, error, refetch } = useMotorcycles({
+    available: true,
     sortBy: 'newest',
   });
 

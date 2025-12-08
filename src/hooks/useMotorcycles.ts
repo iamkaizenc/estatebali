@@ -24,15 +24,24 @@ export function useMotorcycles(params?: UseMotorcyclesParams) {
       const queryParams = new URLSearchParams();
       if (params?.type) queryParams.append('type', params.type);
       if (params?.location) queryParams.append('location', params.location);
-      if (params?.available !== undefined) queryParams.append('available', params.available.toString());
+      // Only pass available if explicitly set (for admin panel, omit to see all)
+      // For public pages (rent-motorbike), pass available=true
+      if (params?.available === true) {
+        queryParams.append('available', 'true');
+      } else if (params?.available === false) {
+        queryParams.append('available', 'false');
+      }
+      // If params?.available is undefined, don't add filter (shows all)
       if (params?.featured) queryParams.append('featured', 'true');
       if (params?.minPrice !== undefined) queryParams.append('minPrice', params.minPrice.toString());
       if (params?.maxPrice !== undefined) queryParams.append('maxPrice', params.maxPrice.toString());
       if (params?.transmission) queryParams.append('transmission', params.transmission);
       if (params?.sortBy) queryParams.append('sortBy', params.sortBy);
 
-      console.log('[useMotorcycles] Fetching from API with params:', params);
-      const response = await fetch(`/api/motorcycles?${queryParams.toString()}`);
+      const apiUrl = `/api/motorcycles?${queryParams.toString()}`;
+      console.log('[useMotorcycles] Fetching from API:', apiUrl);
+      console.log('[useMotorcycles] With params:', params);
+      const response = await fetch(apiUrl);
       
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
