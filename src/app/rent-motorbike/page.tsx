@@ -4,7 +4,7 @@ import { useMotorcycles } from '@/hooks/useMotorcycles';
 import { useState, useEffect } from 'react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
-import { Search, Filter, Bike, Clock, TrendingUp, AlertCircle } from 'lucide-react';
+import { Search, Filter, Bike, Clock, TrendingUp, AlertCircle, MessageCircle } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Motorcycle } from '@/types/motorcycle';
@@ -122,15 +122,27 @@ export default function RentMotorbikePage() {
 
         {/* Coming Soon Banner */}
         <div className="bg-orange-500/10 border border-orange-500/30 rounded-xl p-6 mb-8">
-          <div className="flex items-start gap-4">
+          <div className="flex items-start gap-4 mb-4">
             <AlertCircle className="h-6 w-6 text-orange-400 flex-shrink-0 mt-1" />
-            <div>
+            <div className="flex-1">
               <h3 className="font-semibold text-orange-400 mb-2">Coming Soon</h3>
-              <p className="text-gray-300 text-sm">
+              <p className="text-gray-300 text-sm mb-4">
                 Motorbike rental service coming soon! Full booking system launching soon. 
                 We're working on bringing you the best motorbike rental options in Bali. 
                 Browse our available bikes below and stay tuned for updates!
               </p>
+              <p className="text-gray-400 text-sm mb-4">
+                Need to rent a motorbike or get more information? Contact us directly via WhatsApp!
+              </p>
+              <a
+                href="https://wa.me/17423798954?text=Hi! I'm interested in renting a motorbike in Bali. Can you provide more information?"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white font-semibold py-3 px-6 rounded-lg transition-colors"
+              >
+                <MessageCircle className="h-5 w-5" />
+                Contact Us on WhatsApp
+              </a>
             </div>
           </div>
         </div>
