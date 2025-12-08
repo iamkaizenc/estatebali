@@ -99,17 +99,29 @@ export async function PUT(
 
     const body = await request.json();
     
-    // Check if this is a partial update (e.g., just updating 'available' field)
-    const isPartialUpdate = Object.keys(body).length === 1 && body.hasOwnProperty('available');
+    // Check if this is a partial update (e.g., just updating 'available' or 'showOnRentMotorbike' field)
+    const isPartialUpdate = Object.keys(body).length === 1 && 
+      (body.hasOwnProperty('available') || body.hasOwnProperty('showOnRentMotorbike') || 
+       body.hasOwnProperty('featured') || body.hasOwnProperty('verified'));
     
     let dbProperty: Partial<any>;
     
     if (isPartialUpdate) {
-      // For partial updates (like just toggling available), only update that field
+      // For partial updates (like toggling available, showOnRentMotorbike, etc.), only update that field
       // Don't use propertyToDbProperty as it might add unwanted fields
-      dbProperty = {
-        available: body.available
-      };
+      dbProperty = {};
+      if (body.hasOwnProperty('available')) {
+        dbProperty.available = body.available;
+      }
+      if (body.hasOwnProperty('showOnRentMotorbike')) {
+        dbProperty.show_on_rent_motorbike = body.showOnRentMotorbike;
+      }
+      if (body.hasOwnProperty('featured')) {
+        dbProperty.featured = body.featured;
+      }
+      if (body.hasOwnProperty('verified')) {
+        dbProperty.verified = body.verified;
+      }
     } else {
       // For full updates, convert app property to database property
       dbProperty = propertyToDbProperty(body);
