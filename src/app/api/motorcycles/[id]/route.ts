@@ -15,7 +15,7 @@ export async function GET(
       );
     }
 
-    const { data, error } = await supabaseAdmin
+    const { data: motorcycle, error } = await supabaseAdmin
       .from('motorcycles')
       .select('*')
       .eq('id', params.id)
@@ -28,12 +28,22 @@ export async function GET(
           { status: 404 }
         );
       }
-      throw error;
+      console.error("Error fetching motorcycle:", error);
+      return NextResponse.json(
+        { success: false, error: error.message || "Failed to fetch motorcycle" },
+        { status: 500 }
+      );
     }
+
+    // Increment views
+    await supabaseAdmin
+      .from('motorcycles')
+      .update({ views: (motorcycle.views || 0) + 1 })
+      .eq('id', params.id);
 
     return NextResponse.json({
       success: true,
-      data,
+      data: motorcycle,
     });
   } catch (error: any) {
     console.error("Error fetching motorcycle:", error);
@@ -44,7 +54,7 @@ export async function GET(
   }
 }
 
-// PUT /api/motorcycles/[id] - Update motorcycle
+// PUT /api/motorcycles/[id] - Update motorcycle (admin only)
 export async function PUT(
   request: NextRequest,
   { params }: { params: { id: string } }
@@ -67,25 +77,30 @@ export async function PUT(
 
     const body = await request.json();
 
-    // Allow partial updates
-    const { data, error } = await supabaseAdmin
+    // Partial update - only update provided fields
+    const updateData: any = {
+      ...body,
+      updated_at: new Date().toISOString(),
+    };
+
+    const { data: motorcycle, error } = await supabaseAdmin
       .from('motorcycles')
-      .update({
-        ...body,
-        updated_at: new Date().toISOString(),
-      })
+      .update(updateData)
       .eq('id', params.id)
       .select()
       .single();
 
     if (error) {
       console.error("Error updating motorcycle:", error);
-      throw error;
+      return NextResponse.json(
+        { success: false, error: error.message || "Failed to update motorcycle" },
+        { status: 500 }
+      );
     }
 
     return NextResponse.json({
       success: true,
-      data,
+      data: motorcycle,
     });
   } catch (error: any) {
     console.error("Error updating motorcycle:", error);
@@ -96,7 +111,7 @@ export async function PUT(
   }
 }
 
-// DELETE /api/motorcycles/[id] - Delete motorcycle
+// DELETE /api/motorcycles/[id] - Delete motorcycle (admin only)
 export async function DELETE(
   request: NextRequest,
   { params }: { params: { id: string } }
@@ -124,7 +139,10 @@ export async function DELETE(
 
     if (error) {
       console.error("Error deleting motorcycle:", error);
-      throw error;
+      return NextResponse.json(
+        { success: false, error: error.message || "Failed to delete motorcycle" },
+        { status: 500 }
+      );
     }
 
     return NextResponse.json({
@@ -138,4 +156,3 @@ export async function DELETE(
     );
   }
 }
-
