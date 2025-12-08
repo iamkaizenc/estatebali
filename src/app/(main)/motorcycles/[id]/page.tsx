@@ -83,8 +83,8 @@ export default function MotorcycleDetailPage() {
   };
 
   const whatsappLink = motorcycle?.contact_whatsapp
-    ? `https://wa.me/${motorcycle.contact_whatsapp.replace(/[^0-9]/g, '')}?text=Hi! I'm interested in ${motorcycle.title}`
-    : 'https://wa.me/17423798954?text=Hi! I'm interested in renting a motorcycle';
+    ? `https://wa.me/${motorcycle.contact_whatsapp.replace(/[^0-9]/g, '')}?text=Hi! I am interested in ${motorcycle.title}`
+    : 'https://wa.me/17423798954?text=Hi! I am interested in renting a motorcycle';
 
   if (loading) {
     return (

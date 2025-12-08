@@ -2,7 +2,6 @@
 
 import { useMotorcycles } from '@/hooks/useMotorcycles';
 import { useState } from 'react';
-import { useTranslations } from 'next-intl';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { Search, Filter, Bike, Clock, TrendingUp, AlertCircle } from 'lucide-react';
@@ -11,7 +10,6 @@ import Link from 'next/link';
 import { Motorcycle } from '@/types/motorcycle';
 
 export default function RentMotorbikePage() {
-  const t = useTranslations('rentMotorbike');
   const [searchQuery, setSearchQuery] = useState("");
   const [typeFilter, setTypeFilter] = useState<'scooter' | 'motorcycle' | 'car' | 'all'>('all');
   const [priceFilter, setPriceFilter] = useState<string>("all");
@@ -91,21 +89,21 @@ export default function RentMotorbikePage() {
               <Bike className="h-6 w-6 text-primary" />
               <span className="text-2xl font-bold">{stats.available}</span>
             </div>
-            <p className="text-gray-400">{t('available')}</p>
+            <p className="text-gray-400">Available Bikes</p>
           </div>
           <div className="bg-dark-200 rounded-xl p-6 border border-dark-300">
             <div className="flex items-center gap-3 mb-2">
               <Clock className="h-6 w-6 text-primary" />
               <span className="text-2xl font-bold">24/7</span>
             </div>
-            <p className="text-gray-400">{t('support')}</p>
+            <p className="text-gray-400">Support</p>
           </div>
           <div className="bg-dark-200 rounded-xl p-6 border border-dark-300">
             <div className="flex items-center gap-3 mb-2">
               <TrendingUp className="h-6 w-6 text-primary" />
               <span className="text-2xl font-bold">{formatPrice(stats.minPrice)}+</span>
             </div>
-            <p className="text-gray-400">{t('perDay')}</p>
+            <p className="text-gray-400">Per Day</p>
           </div>
         </div>
 
@@ -130,7 +128,7 @@ export default function RentMotorbikePage() {
             <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
             <input
               type="text"
-              placeholder={t('searchPlaceholder') || "Search motorbikes by name or description..."}
+              placeholder="Search motorbikes by name or description..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-12 pr-4 py-3 bg-dark-200 border border-dark-300 rounded-xl focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 text-white placeholder-gray-500"
@@ -199,8 +197,8 @@ export default function RentMotorbikePage() {
         {!isLoading && !error && filteredMotorcycles.length === 0 && (
           <div className="text-center py-20">
             <Bike className="h-16 w-16 text-gray-600 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold mb-2">{t('noResults') || 'No motorbikes available'}</h3>
-            <p className="text-gray-400 mb-6">{t('noResultsMessage') || 'Try adjusting your filters'}</p>
+            <h3 className="text-xl font-semibold mb-2">No motorbikes available</h3>
+            <p className="text-gray-400 mb-6">Try adjusting your filters</p>
             <button
               onClick={() => {
                 setSearchQuery("");
@@ -210,7 +208,7 @@ export default function RentMotorbikePage() {
               }}
               className="px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
             >
-              {t('clearFilters') || 'Clear Filters'}
+              Clear Filters
             </button>
           </div>
         )}
@@ -220,7 +218,7 @@ export default function RentMotorbikePage() {
           <>
             <div className="mb-6">
               <p className="text-gray-400">
-                Showing <span className="text-white font-semibold">{filteredMotorcycles.length}</span> {t('results') || 'motorbikes'}
+                Showing <span className="text-white font-semibold">{filteredMotorcycles.length}</span> motorbikes
               </p>
             </div>
 
@@ -270,13 +268,13 @@ export default function RentMotorbikePage() {
                       </p>
                     )}
 
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-2xl font-bold text-primary">
-                          {formatPrice(moto.price)}
-                        </p>
-                        <p className="text-xs text-gray-500">{t('perDay') || 'Per Day'}</p>
-                      </div>
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-2xl font-bold text-primary">
+                            {formatPrice(moto.price)}
+                          </p>
+                          <p className="text-xs text-gray-500">Per Day</p>
+                        </div>
                       {moto.location && (
                         <p className="text-sm text-gray-400">{moto.location}</p>
                       )}
