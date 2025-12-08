@@ -1110,7 +1110,7 @@ function AdminDashboard() {
                         Featured Property
                       </label>
                       <span className="text-xs text-gray-500">
-                        {formData.type === 'motorcycle' || formData.type === 'motorbike' || formData.type === 'scooter' 
+                        {(formData.type === 'motorbike' || formData.type === 'scooter') 
                           ? ' (Will appear on Rent Motorbike page)' 
                           : ' (Shown on homepage)'}
                       </span>
