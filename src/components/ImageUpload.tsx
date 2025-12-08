@@ -22,12 +22,20 @@ export function ImageUpload({
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Update images when initialImages change
+  // Update images when initialImages change (for editing existing properties)
   useEffect(() => {
-    if (initialImages.length > 0 && images.length === 0) {
-      setImages(initialImages);
+    if (initialImages.length > 0) {
+      // Only update if initialImages actually changed (to avoid overwriting newly uploaded images)
+      const hasNewUploads = images.some(img => !initialImages.includes(img));
+      if (!hasNewUploads) {
+        setImages(initialImages);
+      }
+    } else if (initialImages.length === 0 && images.length > 0) {
+      // If initialImages is cleared, clear local images too
+      setImages([]);
+      setPreviews([]);
     }
-  }, [initialImages]);
+  }, [initialImages.join(',')]); // Use join to track array changes
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -90,7 +98,9 @@ export function ImageUpload({
     }
 
     // Update state - merge with existing images
-    const updatedImages = [...images, ...newImages];
+    // Keep existing images that came from initialImages, add new ones
+    const baseImages = initialImages.length > 0 ? initialImages : images;
+    const updatedImages = [...baseImages, ...newImages];
     const updatedPreviews = [...previews, ...newPreviews];
 
     setImages(updatedImages);
