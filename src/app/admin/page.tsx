@@ -7,16 +7,18 @@ import Footer from "@/components/Footer";
 import { ProtectedAdminRoute } from "@/components/ProtectedAdminRoute";
 import { useAuthSafe } from "@/contexts/AuthContext";
 import { useProperties } from "@/hooks/useProperties";
+import { useMotorcycles } from "@/hooks/useMotorcycles";
 import { Property, User } from "@/types";
+import { Motorcycle } from "@/types/motorcycle";
 import { 
   Edit, Trash2, Plus, Eye, EyeOff, Star, LogOut, User as UserIcon, X, Save, 
   Home, TrendingUp, DollarSign, ShoppingBag, Settings, BarChart3, Shield, 
-  Activity, Users, Image as ImageIcon, Search, Filter, ChevronDown, Mail, Phone
+  Activity, Users, Image as ImageIcon, Search, Filter, ChevronDown, Mail, Phone, Bike
 } from "lucide-react";
 import { ImageUpload } from "@/components/ImageUpload";
 import { motion, AnimatePresence } from "framer-motion";
 
-type TabType = "properties" | "users" | "images";
+type TabType = "properties" | "users" | "images" | "motorcycles";
 
 interface AdminUser extends Omit<User, 'createdAt'> {
   createdAt?: string | Date;
@@ -55,6 +57,12 @@ function AdminDashboard() {
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [usersLoading, setUsersLoading] = useState(false);
   const [userSearch, setUserSearch] = useState("");
+
+  // Motorcycles state
+  const { data: motorcycles, isLoading: motorcyclesLoading, refetch: refetchMotorcycles } = useMotorcycles({});
+  const [motorcycleSearch, setMotorcycleSearch] = useState("");
+  const [motorcycleTypeFilter, setMotorcycleTypeFilter] = useState<string>("all");
+  const [motorcycleLocationFilter, setMotorcycleLocationFilter] = useState<string>("all");
 
   // Update properties when fetched from API
   useEffect(() => {
@@ -530,6 +538,19 @@ function AdminDashboard() {
             <div className="flex items-center gap-2">
               <ImageIcon className="h-4 w-4" />
               Images
+            </div>
+          </button>
+          <button
+            onClick={() => setActiveTab("motorcycles")}
+            className={`px-6 py-3 font-medium transition-colors border-b-2 ${
+              activeTab === "motorcycles"
+                ? "border-primary text-primary"
+                : "border-transparent text-gray-400 hover:text-gray-300"
+            }`}
+          >
+            <div className="flex items-center gap-2">
+              <Bike className="h-4 w-4" />
+              Motorcycles ({motorcycles?.length || 0})
             </div>
           </button>
         </div>
@@ -1015,6 +1036,171 @@ function AdminDashboard() {
                   </button>
                 </div>
               </div>
+            </motion.div>
+          )}
+
+          {/* Motorcycles Tab */}
+          {activeTab === "motorcycles" && (
+            <motion.div
+              key="motorcycles"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+            >
+              {/* Stats */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                <div className="card p-6 bg-gradient-to-br from-dark-100 to-dark-200 border border-dark-300">
+                  <div className="text-3xl font-bold text-white mb-1">{motorcycles?.length || 0}</div>
+                  <div className="text-sm text-gray-400">Total Motorcycles</div>
+                </div>
+                <div className="card p-6 bg-gradient-to-br from-dark-100 to-dark-200 border border-dark-300">
+                  <div className="text-3xl font-bold text-white mb-1">
+                    {motorcycles?.filter((m: Motorcycle) => m.available).length || 0}
+                  </div>
+                  <div className="text-sm text-gray-400">Available</div>
+                </div>
+                <div className="card p-6 bg-gradient-to-br from-dark-100 to-dark-200 border border-dark-300">
+                  <div className="text-3xl font-bold text-white mb-1">
+                    {motorcycles?.filter((m: Motorcycle) => m.type === 'scooter').length || 0}
+                  </div>
+                  <div className="text-sm text-gray-400">Scooters</div>
+                </div>
+                <div className="card p-6 bg-gradient-to-br from-dark-100 to-dark-200 border border-dark-300">
+                  <div className="text-3xl font-bold text-white mb-1">
+                    {motorcycles?.filter((m: Motorcycle) => m.type === 'motorcycle').length || 0}
+                  </div>
+                  <div className="text-sm text-gray-400">Motorcycles</div>
+                </div>
+              </div>
+
+              {/* Filters */}
+              <div className="mb-6 flex flex-col md:flex-row gap-4">
+                <div className="flex-1 relative">
+                  <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  <input
+                    type="text"
+                    placeholder="Search motorcycles..."
+                    value={motorcycleSearch}
+                    onChange={(e) => setMotorcycleSearch(e.target.value)}
+                    className="w-full pl-12 pr-4 py-3 bg-dark-200 rounded-xl border border-dark-300 focus:border-primary focus:outline-none text-white"
+                  />
+                </div>
+                <select
+                  value={motorcycleTypeFilter}
+                  onChange={(e) => setMotorcycleTypeFilter(e.target.value)}
+                  className="px-4 py-3 bg-dark-200 rounded-xl border border-dark-300 focus:border-primary focus:outline-none text-white"
+                >
+                  <option value="all">All Types</option>
+                  <option value="scooter">Scooter</option>
+                  <option value="motorcycle">Motorcycle</option>
+                  <option value="car">Car</option>
+                </select>
+                <select
+                  value={motorcycleLocationFilter}
+                  onChange={(e) => setMotorcycleLocationFilter(e.target.value)}
+                  className="px-4 py-3 bg-dark-200 rounded-xl border border-dark-300 focus:border-primary focus:outline-none text-white"
+                >
+                  <option value="all">All Locations</option>
+                  {Array.from(new Set(motorcycles?.map((m: Motorcycle) => m.location) || [])).map((loc) => (
+                    <option key={loc} value={loc}>{loc}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Motorcycles Table */}
+              {motorcyclesLoading ? (
+                <div className="text-center py-20">
+                  <div className="h-8 w-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+                  <p className="text-gray-400">Loading motorcycles...</p>
+                </div>
+              ) : (
+                <div className="card overflow-hidden border border-dark-300">
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead className="bg-dark-200 border-b border-dark-300">
+                        <tr>
+                          <th className="px-6 py-4 text-left text-sm font-semibold text-gray-300">Image</th>
+                          <th className="px-6 py-4 text-left text-sm font-semibold text-gray-300">Code</th>
+                          <th className="px-6 py-4 text-left text-sm font-semibold text-gray-300">Title</th>
+                          <th className="px-6 py-4 text-left text-sm font-semibold text-gray-300">Type</th>
+                          <th className="px-6 py-4 text-left text-sm font-semibold text-gray-300">Price</th>
+                          <th className="px-6 py-4 text-left text-sm font-semibold text-gray-300">Location</th>
+                          <th className="px-6 py-4 text-left text-sm font-semibold text-gray-300">Status</th>
+                          <th className="px-6 py-4 text-left text-sm font-semibold text-gray-300">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-dark-300">
+                        {motorcycles
+                          ?.filter((moto: Motorcycle) => {
+                            if (motorcycleSearch && !moto.title.toLowerCase().includes(motorcycleSearch.toLowerCase()) && !moto.system_code?.toLowerCase().includes(motorcycleSearch.toLowerCase())) return false;
+                            if (motorcycleTypeFilter !== 'all' && moto.type !== motorcycleTypeFilter) return false;
+                            if (motorcycleLocationFilter !== 'all' && moto.location !== motorcycleLocationFilter) return false;
+                            return true;
+                          })
+                          .map((moto: Motorcycle) => (
+                            <tr key={moto.id} className="hover:bg-dark-200 transition-colors">
+                              <td className="px-6 py-4">
+                                {moto.images && moto.images.length > 0 ? (
+                                  <div className="relative w-16 h-16 rounded-lg overflow-hidden bg-dark-300">
+                                    <Image
+                                      src={moto.images[0]}
+                                      alt={moto.title}
+                                      fill
+                                      className="object-cover"
+                                      unoptimized
+                                    />
+                                  </div>
+                                ) : (
+                                  <div className="w-16 h-16 rounded-lg bg-dark-300 flex items-center justify-center">
+                                    <Bike className="h-6 w-6 text-gray-600" />
+                                  </div>
+                                )}
+                              </td>
+                              <td className="px-6 py-4 text-sm text-gray-300">{moto.system_code}</td>
+                              <td className="px-6 py-4">
+                                <div className="font-medium text-white">{moto.title}</div>
+                              </td>
+                              <td className="px-6 py-4">
+                                <span className="px-2 py-1 bg-primary/20 text-primary rounded text-xs capitalize">
+                                  {moto.type}
+                                </span>
+                              </td>
+                              <td className="px-6 py-4 text-sm text-white">
+                                Rp {moto.price?.toLocaleString() || 0}
+                              </td>
+                              <td className="px-6 py-4 text-sm text-gray-400">{moto.location}</td>
+                              <td className="px-6 py-4">
+                                <span className={`px-2 py-1 rounded text-xs ${
+                                  moto.available ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'
+                                }`}>
+                                  {moto.available ? 'Available' : 'Unavailable'}
+                                </span>
+                              </td>
+                              <td className="px-6 py-4">
+                                <div className="flex items-center gap-2">
+                                  <Link
+                                    href={`/motorcycles/${moto.id}`}
+                                    className="p-2 hover:bg-dark-300 rounded-lg transition-colors"
+                                    target="_blank"
+                                  >
+                                    <Eye className="h-4 w-4 text-gray-400" />
+                                  </Link>
+                                </div>
+                              </td>
+                            </tr>
+                          ))}
+                      </tbody>
+                    </table>
+                    {(!motorcycles || motorcycles.length === 0) && (
+                      <div className="text-center py-12">
+                        <Bike className="h-16 w-16 mx-auto mb-4 text-gray-600" />
+                        <h3 className="text-xl font-semibold mb-2">No motorcycles found</h3>
+                        <p className="text-gray-400">No motorcycles in the database yet.</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
             </motion.div>
           )}
         </AnimatePresence>

@@ -1,212 +1,291 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
-import PropertyCard from "@/components/PropertyCard";
-import { useProperties } from "@/hooks/useProperties";
-import { Bike, Clock, Shield, TrendingUp, Search, Filter, ChevronDown } from "lucide-react";
-import { motion } from "framer-motion";
+import { useMotorcycles } from '@/hooks/useMotorcycles';
+import { useState } from 'react';
+import { useTranslations } from 'next-intl';
+import Header from '@/components/Header';
+import Footer from '@/components/Footer';
+import { Search, Filter, Bike, Clock, TrendingUp, AlertCircle } from 'lucide-react';
+import Image from 'next/image';
+import Link from 'next/link';
+import { Motorcycle } from '@/types/motorcycle';
 
 export default function RentMotorbikePage() {
-  // Fetch all rent motorcycles first
-  const { properties: allRentProperties, loading, error } = useProperties({ 
-    listingType: "rent",
-    propertyType: ['motorbike', 'scooter'] as any,
-  });
-  
-  // Client-side filtering for motorcycles
-  // Show bikes marked with showOnRentMotorbike flag, or all if none marked yet
-  const allMotorbikes = (allRentProperties || []).filter((p: any) => {
-    // Check both the type property (which maps from category) and direct category check
-    const propertyType = p.type?.toLowerCase();
-    const category = (p as any).category?.toLowerCase();
-    return propertyType === 'motorcycle' || 
-           propertyType === 'motorbike' || 
-           propertyType === 'scooter' ||
-           category === 'motorcycle' ||
-           category === 'motorbike' ||
-           category === 'scooter';
-  });
-  
-  // Check if any bikes are marked for rent-motorbike page
-  const markedBikes = allMotorbikes.filter((p: any) => p.showOnRentMotorbike === true);
-  
-  // If admin has marked some bikes, only show those. Otherwise show all (until selection is made)
-  const motorbikes = markedBikes.length > 0 ? markedBikes : allMotorbikes;
-  
+  const t = useTranslations('rentMotorbike');
   const [searchQuery, setSearchQuery] = useState("");
-  const [priceFilter, setPriceFilter] = useState("all");
+  const [typeFilter, setTypeFilter] = useState<'scooter' | 'motorcycle' | 'car' | 'all'>('all');
+  const [priceFilter, setPriceFilter] = useState<string>("all");
+  const [locationFilter, setLocationFilter] = useState<string>("all");
 
-  // Filter motorbikes client-side
-  const filteredMotorbikes = motorbikes.filter(bike => {
-    const matchesSearch = !searchQuery || 
-      bike.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      bike.description?.toLowerCase().includes(searchQuery.toLowerCase());
-    
-    const matchesPrice = priceFilter === "all" || 
-      (priceFilter === "low" && bike.price < 75000) ||
-      (priceFilter === "mid" && bike.price >= 75000 && bike.price < 150000) ||
-      (priceFilter === "high" && bike.price >= 150000);
-    
-    return matchesSearch && matchesPrice;
+  // Fetch motorcycles directly from motorcycles table
+  const { data: motorcycles, isLoading, error, refetch } = useMotorcycles({
+    available: true,
+    sortBy: 'newest',
   });
+
+  // Filter motorcycles client-side
+  const filteredMotorcycles = (motorcycles || []).filter((moto: Motorcycle) => {
+    // Search filter
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      const matchesTitle = moto.title?.toLowerCase().includes(query);
+      const matchesDescription = moto.description?.toLowerCase().includes(query);
+      const matchesCode = moto.system_code?.toLowerCase().includes(query);
+      if (!matchesTitle && !matchesDescription && !matchesCode) return false;
+    }
+
+    // Type filter
+    if (typeFilter !== 'all' && moto.type !== typeFilter) return false;
+
+    // Location filter
+    if (locationFilter !== 'all' && moto.location !== locationFilter) return false;
+
+    // Price filter
+    if (priceFilter !== "all") {
+      const price = moto.price || 0;
+      if (priceFilter === "0-100000" && price > 100000) return false;
+      if (priceFilter === "100000-200000" && (price < 100000 || price > 200000)) return false;
+      if (priceFilter === "200000+" && price < 200000) return false;
+    }
+
+    return true;
+  });
+
+  // Get unique locations for filter
+  const locations = Array.from(new Set(motorcycles?.map((m: Motorcycle) => m.location).filter(Boolean) || []));
+
+  // Calculate stats
+  const stats = {
+    available: motorcycles?.filter((m: Motorcycle) => m.available)?.length || 0,
+    scooters: motorcycles?.filter((m: Motorcycle) => m.type === 'scooter')?.length || 0,
+    motorcycles: motorcycles?.filter((m: Motorcycle) => m.type === 'motorcycle')?.length || 0,
+    cars: motorcycles?.filter((m: Motorcycle) => m.type === 'car')?.length || 0,
+    minPrice: Math.min(...(motorcycles?.map((m: Motorcycle) => m.price || 0) || [0])),
+  };
+
+  const formatPrice = (price: number) => {
+    if (price >= 1000000) {
+      return `Rp ${(price / 1000000).toFixed(1)}M`;
+    }
+    return `Rp ${price.toLocaleString()}`;
+  };
 
   return (
-    <div className="min-h-screen bg-black">
+    <div className="min-h-screen bg-black text-white">
       <Header />
-      
+
       <main className="container mx-auto px-4 pt-24 pb-20">
-        {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-8"
-        >
-          <div className="flex items-center gap-3 mb-2">
-            <div className="p-3 bg-primary/20 rounded-xl">
-              <Bike className="h-8 w-8 text-primary" />
-            </div>
-            <div>
-              <h1 className="text-4xl font-bold">Rent a Motorbike in Bali</h1>
-              <p className="text-gray-400">Explore Bali on two wheels - Daily & weekly rentals available</p>
-            </div>
+        {/* Hero Section */}
+        <div className="text-center mb-12">
+          <div className="flex items-center justify-center gap-3 mb-4">
+            <Bike className="h-8 w-8 text-primary" />
+            <h1 className="text-4xl md:text-5xl font-bold">{t('title')}</h1>
           </div>
-        </motion.div>
-
-        {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="card p-6 bg-gradient-to-br from-dark-100 to-dark-200 border border-dark-300"
-          >
-            <div className="flex items-center gap-3 mb-2">
-              <Bike className="h-6 w-6 text-primary" />
-              <div>
-                <div className="text-2xl font-bold text-white">{filteredMotorbikes.length}</div>
-                <div className="text-sm text-gray-400">Available Bikes</div>
-              </div>
-            </div>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="card p-6 bg-gradient-to-br from-dark-100 to-dark-200 border border-dark-300"
-          >
-            <div className="flex items-center gap-3 mb-2">
-              <Clock className="h-6 w-6 text-green-500" />
-              <div>
-                <div className="text-2xl font-bold text-white">24/7</div>
-                <div className="text-sm text-gray-400">Support</div>
-              </div>
-            </div>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            className="card p-6 bg-gradient-to-br from-dark-100 to-dark-200 border border-dark-300"
-          >
-            <div className="flex items-center gap-3 mb-2">
-              <TrendingUp className="h-6 w-6 text-blue-500" />
-              <div>
-                <div className="text-2xl font-bold text-white">IDR 50K+</div>
-                <div className="text-sm text-gray-400">Per Day</div>
-              </div>
-            </div>
-          </motion.div>
+          <p className="text-gray-400 text-lg">{t('subtitle')}</p>
         </div>
 
-        {/* Coming Soon Notice */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.4 }}
-          className="card p-6 mb-8 bg-orange-500/10 border-2 border-orange-500/30"
-        >
-          <div className="flex items-start gap-4">
-            <div className="p-2 bg-orange-500/20 rounded-lg flex-shrink-0">
-              <Shield className="h-6 w-6 text-orange-500" />
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <div className="bg-dark-200 rounded-xl p-6 border border-dark-300">
+            <div className="flex items-center gap-3 mb-2">
+              <Bike className="h-6 w-6 text-primary" />
+              <span className="text-2xl font-bold">{stats.available}</span>
             </div>
+            <p className="text-gray-400">{t('available')}</p>
+          </div>
+          <div className="bg-dark-200 rounded-xl p-6 border border-dark-300">
+            <div className="flex items-center gap-3 mb-2">
+              <Clock className="h-6 w-6 text-primary" />
+              <span className="text-2xl font-bold">24/7</span>
+            </div>
+            <p className="text-gray-400">{t('support')}</p>
+          </div>
+          <div className="bg-dark-200 rounded-xl p-6 border border-dark-300">
+            <div className="flex items-center gap-3 mb-2">
+              <TrendingUp className="h-6 w-6 text-primary" />
+              <span className="text-2xl font-bold">{formatPrice(stats.minPrice)}+</span>
+            </div>
+            <p className="text-gray-400">{t('perDay')}</p>
+          </div>
+        </div>
+
+        {/* Coming Soon Banner */}
+        <div className="bg-orange-500/10 border border-orange-500/30 rounded-xl p-6 mb-8">
+          <div className="flex items-start gap-4">
+            <AlertCircle className="h-6 w-6 text-orange-400 flex-shrink-0 mt-1" />
             <div>
-              <h3 className="text-lg font-semibold text-orange-400 mb-2">🚧 Coming Soon</h3>
-              <p className="text-gray-300 mb-2">
-                Motorbike rental service coming soon! Full booking system launching soon.
-              </p>
-              <p className="text-sm text-gray-400">
+              <h3 className="font-semibold text-orange-400 mb-2">Coming Soon</h3>
+              <p className="text-gray-300 text-sm">
+                Motorbike rental service coming soon! Full booking system launching soon. 
                 We're working on bringing you the best motorbike rental options in Bali. 
                 Browse our available bikes below and stay tuned for updates!
               </p>
             </div>
           </div>
-        </motion.div>
+        </div>
 
         {/* Search and Filters */}
-        <div className="mb-6 flex flex-col md:flex-row gap-4">
-          <div className="flex-1 relative">
+        <div className="mb-8 space-y-4">
+          <div className="relative">
             <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
             <input
               type="text"
-              placeholder="Search motorbikes by name or description..."
+              placeholder={t('searchPlaceholder') || "Search motorbikes by name or description..."}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-12 pr-4 py-3 bg-dark-200 rounded-xl border border-dark-300 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all text-white placeholder-gray-500"
+              className="w-full pl-12 pr-4 py-3 bg-dark-200 border border-dark-300 rounded-xl focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 text-white placeholder-gray-500"
             />
           </div>
-          <div className="relative">
-            <Filter className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+
+          <div className="flex flex-wrap gap-4">
+            <select
+              value={typeFilter}
+              onChange={(e) => setTypeFilter(e.target.value as any)}
+              className="px-4 py-2 bg-dark-200 border border-dark-300 rounded-lg focus:border-primary focus:outline-none text-white"
+            >
+              <option value="all">All Types</option>
+              <option value="scooter">Scooter</option>
+              <option value="motorcycle">Motorcycle</option>
+              <option value="car">Car</option>
+            </select>
+
+            <select
+              value={locationFilter}
+              onChange={(e) => setLocationFilter(e.target.value)}
+              className="px-4 py-2 bg-dark-200 border border-dark-300 rounded-lg focus:border-primary focus:outline-none text-white"
+            >
+              <option value="all">All Locations</option>
+              {locations.map((loc) => (
+                <option key={loc} value={loc}>{loc}</option>
+              ))}
+            </select>
+
             <select
               value={priceFilter}
               onChange={(e) => setPriceFilter(e.target.value)}
-              className="pl-12 pr-10 py-3 bg-dark-200 rounded-xl border border-dark-300 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all text-white appearance-none"
+              className="px-4 py-2 bg-dark-200 border border-dark-300 rounded-lg focus:border-primary focus:outline-none text-white"
             >
-              <option value="all" className="bg-dark-200">All Prices</option>
-              <option value="low" className="bg-dark-200">Under IDR 75K</option>
-              <option value="mid" className="bg-dark-200">IDR 75K - 150K</option>
-              <option value="high" className="bg-dark-200">Above IDR 150K</option>
+              <option value="all">All Prices</option>
+              <option value="0-100000">Rp 0 - 100K</option>
+              <option value="100000-200000">Rp 100K - 200K</option>
+              <option value="200000+">Rp 200K+</option>
             </select>
-            <ChevronDown className="absolute right-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" />
           </div>
         </div>
 
-        {/* Motorbikes List */}
-        {loading ? (
-          <div className="text-center py-20">
-            <div className="h-8 w-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+        {/* Loading State */}
+        {isLoading && (
+          <div className="flex flex-col items-center justify-center py-20">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mb-4"></div>
             <p className="text-gray-400">Loading motorbikes...</p>
           </div>
-        ) : error ? (
+        )}
+
+        {/* Error State */}
+        {error && !isLoading && (
+          <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-6 text-center">
+            <AlertCircle className="h-8 w-8 text-red-400 mx-auto mb-4" />
+            <p className="text-red-400 mb-4">{error.message || 'Failed to load motorbikes'}</p>
+            <button
+              onClick={() => refetch()}
+              className="px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
+            >
+              Retry
+            </button>
+          </div>
+        )}
+
+        {/* Empty State */}
+        {!isLoading && !error && filteredMotorcycles.length === 0 && (
           <div className="text-center py-20">
-            <p className="text-red-400 mb-4">{error}</p>
+            <Bike className="h-16 w-16 text-gray-600 mx-auto mb-4" />
+            <h3 className="text-xl font-semibold mb-2">{t('noResults') || 'No motorbikes available'}</h3>
+            <p className="text-gray-400 mb-6">{t('noResultsMessage') || 'Try adjusting your filters'}</p>
+            <button
+              onClick={() => {
+                setSearchQuery("");
+                setTypeFilter('all');
+                setPriceFilter('all');
+                setLocationFilter('all');
+              }}
+              className="px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
+            >
+              {t('clearFilters') || 'Clear Filters'}
+            </button>
           </div>
-        ) : filteredMotorbikes.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredMotorbikes.map((bike, index) => (
-              <motion.div
-                key={bike.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.05 }}
-              >
-                <PropertyCard property={bike} />
-              </motion.div>
-            ))}
-          </div>
-        ) : (
-          <div className="card p-12 text-center">
-            <Bike className="h-16 w-16 mx-auto mb-4 text-gray-600" />
-            <h3 className="text-xl font-semibold mb-2">No motorbikes available</h3>
-            <p className="text-gray-400">
-              {searchQuery || priceFilter !== "all"
-                ? "Try adjusting your search or filters"
-                : "No motorbikes available at the moment. Check back soon!"}
-            </p>
-          </div>
+        )}
+
+        {/* Motorcycles Grid */}
+        {!isLoading && !error && filteredMotorcycles.length > 0 && (
+          <>
+            <div className="mb-6">
+              <p className="text-gray-400">
+                Showing <span className="text-white font-semibold">{filteredMotorcycles.length}</span> {t('results') || 'motorbikes'}
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredMotorcycles.map((moto: Motorcycle) => (
+                <Link
+                  key={moto.id}
+                  href={`/motorcycles/${moto.id}`}
+                  className="group bg-dark-200 rounded-xl overflow-hidden border border-dark-300 hover:border-primary transition-all hover:shadow-lg hover:shadow-primary/10"
+                >
+                  {/* Image */}
+                  <div className="relative h-48 bg-dark-300 overflow-hidden">
+                    {moto.images && moto.images.length > 0 ? (
+                      <Image
+                        src={moto.images[0]}
+                        alt={moto.title}
+                        fill
+                        className="object-cover group-hover:scale-105 transition-transform duration-300"
+                        unoptimized
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <Bike className="h-16 w-16 text-gray-600" />
+                      </div>
+                    )}
+                    {moto.featured && (
+                      <div className="absolute top-3 left-3 bg-primary text-white px-3 py-1 rounded-full text-xs font-semibold">
+                        Featured
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Content */}
+                  <div className="p-6">
+                    <div className="flex items-start justify-between mb-2">
+                      <h3 className="text-lg font-semibold group-hover:text-primary transition-colors">
+                        {moto.title}
+                      </h3>
+                      <span className="text-xs bg-primary/20 text-primary px-2 py-1 rounded">
+                        {moto.type}
+                      </span>
+                    </div>
+
+                    {moto.description && (
+                      <p className="text-gray-400 text-sm mb-4 line-clamp-2">
+                        {moto.description}
+                      </p>
+                    )}
+
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-2xl font-bold text-primary">
+                          {formatPrice(moto.price)}
+                        </p>
+                        <p className="text-xs text-gray-500">{t('perDay') || 'Per Day'}</p>
+                      </div>
+                      {moto.location && (
+                        <p className="text-sm text-gray-400">{moto.location}</p>
+                      )}
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </>
         )}
       </main>
 
@@ -214,4 +293,3 @@ export default function RentMotorbikePage() {
     </div>
   );
 }
-
