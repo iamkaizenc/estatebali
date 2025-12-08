@@ -29,8 +29,11 @@ export default function HomePage({ params }: HomePageProps) {
   const isOriginalLanguage = !isAITranslated(locale);
   
   const { properties, loading: propertiesLoading } = useProperties();
-  const { properties: featuredPropertiesList, loading: featuredLoading } = useProperties({ featured: true });
-  const featuredProperties = featuredPropertiesList;
+  // Get most viewed properties (sorted by views descending)
+  const { properties: mostViewedProperties, loading: mostViewedLoading } = useProperties({ 
+    sortBy: 'views',
+    // Limit to 6 most viewed properties
+  });
 
   const handleSearch = (filters: SearchFilters) => {
     // Build query string from filters
@@ -177,34 +180,34 @@ export default function HomePage({ params }: HomePageProps) {
         </div>
       </section>
 
-      {/* Featured Properties */}
+      {/* Most Popular Properties (Most Viewed) */}
       <section className="container mx-auto px-4 py-20">
         <div className="flex justify-between items-center mb-8">
           <div>
-            <h2 className="text-3xl font-bold mb-2">Featured Properties</h2>
-            <p className="text-gray-400">Hand-picked luxury properties in prime locations</p>
+            <h2 className="text-3xl font-bold mb-2">Most Popular Properties</h2>
+            <p className="text-gray-400">Discover the most viewed and trending properties in Bali</p>
           </div>
-          <Link href={`/${locale}/featured`} className="btn-primary hidden md:block">
-            View All Featured
+          <Link href="/properties?sortBy=views" className="btn-primary hidden md:block">
+            View All Popular
           </Link>
         </div>
         
-        {featuredLoading ? (
+        {mostViewedLoading ? (
           <div className="text-center py-20">
             <div className="h-8 w-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
             <p className="text-gray-400">Loading properties...</p>
           </div>
-        ) : featuredProperties.length > 0 ? (
+        ) : mostViewedProperties.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {featuredProperties.map((property) => (
+            {mostViewedProperties.slice(0, 6).map((property) => (
               <PropertyCard key={property.id} property={property} />
             ))}
           </div>
         ) : (
           <EmptyState
             icon="home"
-            title="No Featured Properties Yet"
-            description="Our team is curating the best properties in Bali. Check back soon to discover premium listings."
+            title="No Popular Properties Yet"
+            description="Check back soon to discover the most viewed properties in Bali."
             actionLabel="Browse All Properties"
             actionHref="/properties"
           />

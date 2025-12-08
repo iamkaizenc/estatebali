@@ -52,11 +52,21 @@ export async function GET(request: NextRequest) {
     const priceMax = searchParams.get("priceMax");
     const bedrooms = searchParams.get("bedrooms");
     const bathrooms = searchParams.get("bathrooms");
+    const sortBy = searchParams.get("sortBy"); // 'views', 'created_at', 'price'
 
     let query = supabaseAdmin
       .from("properties")
-      .select("*")
-      .order("created_at", { ascending: false });
+      .select("*");
+
+    // Default sorting or custom sorting
+    if (sortBy === "views") {
+      query = query.order("views", { ascending: false, nullsFirst: false });
+    } else if (sortBy === "price") {
+      query = query.order("price", { ascending: true });
+    } else {
+      // Default: newest first
+      query = query.order("created_at", { ascending: false });
+    }
 
     // Filter by user_id (for user's own properties)
     if (userId) {
@@ -72,6 +82,12 @@ export async function GET(request: NextRequest) {
     // Filter by featured
     if (featured === "true") {
       query = query.eq("featured", true);
+    }
+
+    // If sorting by views and no featured filter, also filter by available
+    // to only show active listings
+    if (sortBy === "views" && featured !== "true") {
+      query = query.eq("available", true);
     }
 
     // Filter by area
@@ -117,7 +133,10 @@ export async function GET(request: NextRequest) {
     }
 
     // Pagination
-    if (limit) {
+    // If sorting by views and no limit specified, limit to top results
+    if (sortBy === "views" && !limit) {
+      query = query.limit(20); // Get top 20 most viewed
+    } else if (limit) {
       query = query.limit(parseInt(limit));
     }
     if (offset) {
