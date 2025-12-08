@@ -9,46 +9,33 @@ import { Bike, Clock, Shield, TrendingUp, Search, Filter, ChevronDown } from "lu
 import { motion } from "framer-motion";
 
 export default function RentMotorbikePage() {
-  // First try to fetch FEATURED rent properties with motorcycle category
-  // If no featured bikes, fall back to all available motorcycles
-  const { properties: featuredProperties, loading: featuredLoading, error: featuredError } = useProperties({ 
+  // Fetch all rent properties with motorcycle category
+  // We'll filter for featured ones on client-side, but show all if no featured exist
+  const { properties: allRentProperties, loading, error } = useProperties({ 
     listingType: "rent",
-    featured: true, // Try to get featured properties first
-    propertyType: ['motorbike', 'scooter'] as any,
+    propertyType: ['motorbike', 'scooter'] as any, // Hook converts these to 'motorcycle' for API
   });
-  
-  // Fallback: If no featured bikes, get all motorcycles
-  const { properties: allProperties, loading: allLoading, error: allError } = useProperties({ 
-    listingType: "rent",
-    propertyType: ['motorbike', 'scooter'] as any,
-  });
-  
-  // Determine which data to use
-  const loading = featuredLoading || allLoading;
-  const error = featuredError || allError;
-  const hasFeatured = featuredProperties && featuredProperties.length > 0;
-  const allRentProperties = hasFeatured ? featuredProperties : (allProperties || []);
   
   // Client-side filtering for motorcycles
-  // Prefer featured bikes if available, otherwise show all available motorcycles
-  const motorbikes = (allRentProperties || []).filter((p: any) => {
+  // Database uses 'motorcycle' category, map it correctly
+  const allMotorbikes = (allRentProperties || []).filter((p: any) => {
     // Check both the type property (which maps from category) and direct category check
     const propertyType = p.type?.toLowerCase();
     const category = (p as any).category?.toLowerCase();
-    const isMotorcycle = propertyType === 'motorcycle' || 
-                         propertyType === 'motorbike' || 
-                         propertyType === 'scooter' ||
-                         category === 'motorcycle' ||
-                         category === 'motorbike' ||
-                         category === 'scooter';
-    
-    // If we have featured bikes, only show featured ones
-    // Otherwise, show all available motorcycles
-    if (hasFeatured) {
-      return isMotorcycle && p.featured;
-    }
-    return isMotorcycle;
+    return propertyType === 'motorcycle' || 
+           propertyType === 'motorbike' || 
+           propertyType === 'scooter' ||
+           category === 'motorcycle' ||
+           category === 'motorbike' ||
+           category === 'scooter';
   });
+  
+  // Check if there are any featured motorcycles
+  const featuredMotorbikes = allMotorbikes.filter((p: any) => p.featured === true);
+  
+  // Use featured bikes if any exist, otherwise show all available motorcycles
+  // This allows admin to select specific bikes while still showing bikes before selection
+  const motorbikes = featuredMotorbikes.length > 0 ? featuredMotorbikes : allMotorbikes;
   
   const [searchQuery, setSearchQuery] = useState("");
   const [priceFilter, setPriceFilter] = useState("all");
