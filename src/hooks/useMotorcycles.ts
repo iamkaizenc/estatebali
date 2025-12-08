@@ -21,6 +21,12 @@ export function useMotorcycles(params?: UseMotorcyclesParams) {
       setIsLoading(true);
       setError(null);
 
+      if (!supabase) {
+        console.error('[useMotorcycles] Supabase client is null');
+        throw new Error('Supabase client is not configured');
+      }
+
+      console.log('[useMotorcycles] Starting fetch with params:', params);
       let query = supabase.from('motorcycles').select('*');
 
       // Filters
@@ -62,11 +68,21 @@ export function useMotorcycles(params?: UseMotorcyclesParams) {
       const { data: motorcycles, error: fetchError } = await query;
 
       if (fetchError) {
-        console.error('[useMotorcycles] Error:', fetchError);
+        console.error('[useMotorcycles] Supabase Error:', fetchError);
+        console.error('[useMotorcycles] Error Code:', fetchError.code);
+        console.error('[useMotorcycles] Error Message:', fetchError.message);
+        console.error('[useMotorcycles] Error Details:', fetchError.details);
+        console.error('[useMotorcycles] Error Hint:', fetchError.hint);
         throw fetchError;
       }
 
+      console.log('[useMotorcycles] Raw data from Supabase:', motorcycles);
       console.log('[useMotorcycles] Fetched:', motorcycles?.length || 0, 'motorcycles');
+      
+      if (motorcycles && motorcycles.length > 0) {
+        console.log('[useMotorcycles] First motorcycle sample:', motorcycles[0]);
+      }
+      
       setData((motorcycles as Motorcycle[]) || []);
       setError(null);
     } catch (err) {
