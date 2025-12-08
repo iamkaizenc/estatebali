@@ -419,6 +419,155 @@ function AdminDashboard() {
     setFormData({});
   };
 
+  // Motorcycles handlers
+  const handleEditMotorcycle = (motorcycle: Motorcycle) => {
+    setSelectedMotorcycle(motorcycle);
+    setMotorcycleFormData(motorcycle);
+    setIsEditingMotorcycle(true);
+    setIsAddingMotorcycle(false);
+  };
+
+  const handleAddNewMotorcycle = () => {
+    setSelectedMotorcycle(null);
+    setMotorcycleFormData({
+      system_code: "",
+      title: "",
+      description: "",
+      price: 0,
+      location: "Canggu",
+      type: "scooter",
+      available: true,
+      images: [],
+      features: [],
+    });
+    setIsAddingMotorcycle(true);
+    setIsEditingMotorcycle(false);
+  };
+
+  const handleSaveMotorcycle = async () => {
+    setSavingMotorcycle(true);
+    try {
+      const token = localStorage.getItem('admin_token') || localStorage.getItem('auth_token');
+      if (!token) {
+        alert('Authentication required. Please log in again.');
+        router.push('/login');
+        setSavingMotorcycle(false);
+        return;
+      }
+      
+      const url = isAddingMotorcycle ? '/api/motorcycles' : `/api/motorcycles/${selectedMotorcycle?.id}`;
+      const method = isAddingMotorcycle ? 'POST' : 'PUT';
+      
+      const response = await fetch(url, {
+        method,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify(motorcycleFormData),
+      });
+      
+      if (response.ok) {
+        const saved = await response.json();
+        if (saved.success && saved.data) {
+          setIsEditingMotorcycle(false);
+          setIsAddingMotorcycle(false);
+          setSelectedMotorcycle(null);
+          setMotorcycleFormData({});
+          refetchMotorcycles();
+        } else {
+          alert(saved.error || 'Failed to save motorcycle');
+        }
+      } else {
+        const error = await response.json();
+        console.error('Save motorcycle error response:', error);
+        alert(error.error || error.message || 'Failed to save motorcycle');
+      }
+    } catch (error: any) {
+      console.error('Save motorcycle error:', error);
+      alert('Error saving motorcycle: ' + (error.message || 'Unknown error'));
+    } finally {
+      setSavingMotorcycle(false);
+    }
+  };
+
+  const handleCancelMotorcycle = () => {
+    setIsEditingMotorcycle(false);
+    setIsAddingMotorcycle(false);
+    setSelectedMotorcycle(null);
+    setMotorcycleFormData({});
+  };
+
+  const handleDeleteMotorcycle = async (id: string) => {
+    if (confirm("Are you sure you want to delete this motorcycle?")) {
+      try {
+        const token = localStorage.getItem('admin_token') || localStorage.getItem('auth_token');
+        if (!token) {
+          alert('Authentication required. Please log in again.');
+          router.push('/login');
+          return;
+        }
+        
+        const response = await fetch(`/api/motorcycles/${id}`, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+        
+        if (response.ok) {
+          refetchMotorcycles();
+        } else {
+          const result = await response.json();
+          alert(result.error || 'Failed to delete motorcycle');
+        }
+      } catch (error: any) {
+        console.error('Delete motorcycle error:', error);
+        alert('Failed to delete motorcycle: ' + (error.message || 'Unknown error'));
+      }
+    }
+  };
+
+  const handleToggleAvailableMotorcycle = async (id: string) => {
+    const motorcycle = motorcycles?.find(m => m.id === id);
+    if (!motorcycle) return;
+    
+    const updated = { ...motorcycle, available: !motorcycle.available };
+    
+    try {
+      const token = localStorage.getItem('admin_token') || localStorage.getItem('auth_token');
+      if (!token) {
+        alert('Authentication required. Please log in again.');
+        return;
+      }
+      
+      const response = await fetch(`/api/motorcycles/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({ available: updated.available }),
+      });
+      
+      if (response.ok) {
+        const result = await response.json();
+        if (result.success) {
+          refetchMotorcycles();
+        } else {
+          alert(result.error || 'Failed to update motorcycle visibility');
+        }
+      } else {
+        const result = await response.json();
+        alert(result.error || 'Failed to update motorcycle visibility');
+      }
+    } catch (error: any) {
+      console.error('Toggle available motorcycle error:', error);
+      alert('Error updating motorcycle visibility: ' + (error.message || 'Unknown error'));
+    }
+  };
+
   const handleUpdateUserRole = async (userId: string, newRole: string) => {
     try {
       const token = localStorage.getItem('admin_token') || localStorage.getItem('auth_token');
@@ -1186,13 +1335,39 @@ function AdminDashboard() {
                               </td>
                               <td className="px-6 py-4">
                                 <div className="flex items-center gap-2">
+                                  <button
+                                    onClick={() => handleEditMotorcycle(moto)}
+                                    className="p-2 hover:bg-dark-300 rounded-lg transition-colors"
+                                    title="Edit"
+                                  >
+                                    <Edit className="h-4 w-4 text-blue-400" />
+                                  </button>
                                   <Link
                                     href={`/motorcycles/${moto.id}`}
                                     className="p-2 hover:bg-dark-300 rounded-lg transition-colors"
                                     target="_blank"
+                                    title="View"
                                   >
                                     <Eye className="h-4 w-4 text-gray-400" />
                                   </Link>
+                                  <button
+                                    onClick={() => handleToggleAvailableMotorcycle(moto.id)}
+                                    className="p-2 hover:bg-dark-300 rounded-lg transition-colors"
+                                    title={moto.available ? "Mark as Unavailable" : "Mark as Available"}
+                                  >
+                                    {moto.available ? (
+                                      <Eye className="h-4 w-4 text-green-400" />
+                                    ) : (
+                                      <EyeOff className="h-4 w-4 text-red-400" />
+                                    )}
+                                  </button>
+                                  <button
+                                    onClick={() => handleDeleteMotorcycle(moto.id)}
+                                    className="p-2 hover:bg-dark-300 rounded-lg transition-colors"
+                                    title="Delete"
+                                  >
+                                    <Trash2 className="h-4 w-4 text-red-400" />
+                                  </button>
                                 </div>
                               </td>
                             </tr>
@@ -1523,6 +1698,365 @@ function AdminDashboard() {
                       className="px-6 py-3 bg-dark-200 hover:bg-dark-300 rounded-xl transition-colors border border-dark-300 text-gray-300 hover:text-white"
                     >
                       Cancel
+                    </button>
+                  </div>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Edit/Add Motorcycle Modal */}
+        <AnimatePresence>
+          {(isEditingMotorcycle || isAddingMotorcycle) && (
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm p-4"
+              onClick={handleCancelMotorcycle}
+            >
+              <motion.div 
+                initial={{ scale: 0.95, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.95, opacity: 0 }}
+                className="card max-w-4xl w-full max-h-[90vh] overflow-y-auto border-2 border-dark-300 shadow-2xl"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="flex justify-between items-center mb-6 pb-4 border-b border-dark-300">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-primary/20 rounded-lg">
+                      <Bike className="h-5 w-5 text-primary" />
+                    </div>
+                    <h2 className="text-2xl font-bold">
+                      {isAddingMotorcycle ? "Add New Motorcycle" : "Edit Motorcycle"}
+                    </h2>
+                  </div>
+                  <button
+                    onClick={handleCancelMotorcycle}
+                    className="p-2 hover:bg-dark-300 rounded-lg transition-colors"
+                  >
+                    <X className="h-5 w-5" />
+                  </button>
+                </div>
+
+                <div className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm font-medium mb-2 text-gray-300">System Code *</label>
+                      <input
+                        type="text"
+                        value={motorcycleFormData.system_code || ""}
+                        onChange={(e) => setMotorcycleFormData({ ...motorcycleFormData, system_code: e.target.value })}
+                        className="w-full px-4 py-3 bg-dark-200 rounded-xl border border-dark-300 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all text-white placeholder-gray-500"
+                        placeholder="e.g., MC001"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-2 text-gray-300">Title *</label>
+                      <input
+                        type="text"
+                        value={motorcycleFormData.title || ""}
+                        onChange={(e) => setMotorcycleFormData({ ...motorcycleFormData, title: e.target.value })}
+                        className="w-full px-4 py-3 bg-dark-200 rounded-xl border border-dark-300 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all text-white placeholder-gray-500"
+                        placeholder="e.g., Honda Scoopy"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium mb-2 text-gray-300">Description</label>
+                    <textarea
+                      value={motorcycleFormData.description || ""}
+                      onChange={(e) => setMotorcycleFormData({ ...motorcycleFormData, description: e.target.value })}
+                      rows={4}
+                      className="w-full px-4 py-3 bg-dark-200 rounded-xl border border-dark-300 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all resize-none text-white placeholder-gray-500"
+                      placeholder="Describe the motorcycle..."
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div>
+                      <label className="block text-sm font-medium mb-2 text-gray-300">Type *</label>
+                      <select
+                        value={motorcycleFormData.type || "scooter"}
+                        onChange={(e) => setMotorcycleFormData({ ...motorcycleFormData, type: e.target.value as any })}
+                        className="w-full px-4 py-3 bg-dark-200 rounded-xl border border-dark-300 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all text-white"
+                      >
+                        <option value="scooter" className="bg-dark-200">Scooter</option>
+                        <option value="motorcycle" className="bg-dark-200">Motorcycle</option>
+                        <option value="car" className="bg-dark-200">Car</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-2 text-gray-300">Location *</label>
+                      <input
+                        type="text"
+                        value={motorcycleFormData.location || "Canggu"}
+                        onChange={(e) => setMotorcycleFormData({ ...motorcycleFormData, location: e.target.value })}
+                        className="w-full px-4 py-3 bg-dark-200 rounded-xl border border-dark-300 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all text-white placeholder-gray-500"
+                        placeholder="e.g., Canggu, Bali"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-2 text-gray-300">Price (IDR) *</label>
+                      <input
+                        type="number"
+                        value={motorcycleFormData.price || 0}
+                        onChange={(e) => setMotorcycleFormData({ ...motorcycleFormData, price: parseInt(e.target.value) })}
+                        className="w-full px-4 py-3 bg-dark-200 rounded-xl border border-dark-300 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all text-white placeholder-gray-500"
+                        placeholder="e.g., 80000"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div>
+                      <label className="block text-sm font-medium mb-2 text-gray-300">Daily Price (IDR)</label>
+                      <input
+                        type="number"
+                        value={motorcycleFormData.daily_price || ""}
+                        onChange={(e) => setMotorcycleFormData({ ...motorcycleFormData, daily_price: e.target.value ? parseInt(e.target.value) : undefined })}
+                        className="w-full px-4 py-3 bg-dark-200 rounded-xl border border-dark-300 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all text-white placeholder-gray-500"
+                        placeholder="Optional"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-2 text-gray-300">Weekly Price (IDR)</label>
+                      <input
+                        type="number"
+                        value={motorcycleFormData.weekly_price || ""}
+                        onChange={(e) => setMotorcycleFormData({ ...motorcycleFormData, weekly_price: e.target.value ? parseInt(e.target.value) : undefined })}
+                        className="w-full px-4 py-3 bg-dark-200 rounded-xl border border-dark-300 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all text-white placeholder-gray-500"
+                        placeholder="Optional"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-2 text-gray-300">Monthly Price (IDR)</label>
+                      <input
+                        type="number"
+                        value={motorcycleFormData.monthly_price || ""}
+                        onChange={(e) => setMotorcycleFormData({ ...motorcycleFormData, monthly_price: e.target.value ? parseInt(e.target.value) : undefined })}
+                        className="w-full px-4 py-3 bg-dark-200 rounded-xl border border-dark-300 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all text-white placeholder-gray-500"
+                        placeholder="Optional"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div>
+                      <label className="block text-sm font-medium mb-2 text-gray-300">Brand</label>
+                      <input
+                        type="text"
+                        value={motorcycleFormData.brand || ""}
+                        onChange={(e) => setMotorcycleFormData({ ...motorcycleFormData, brand: e.target.value })}
+                        className="w-full px-4 py-3 bg-dark-200 rounded-xl border border-dark-300 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all text-white placeholder-gray-500"
+                        placeholder="e.g., Honda"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-2 text-gray-300">Model</label>
+                      <input
+                        type="text"
+                        value={motorcycleFormData.model || ""}
+                        onChange={(e) => setMotorcycleFormData({ ...motorcycleFormData, model: e.target.value })}
+                        className="w-full px-4 py-3 bg-dark-200 rounded-xl border border-dark-300 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all text-white placeholder-gray-500"
+                        placeholder="e.g., Scoopy"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-2 text-gray-300">Year</label>
+                      <input
+                        type="number"
+                        value={motorcycleFormData.year || ""}
+                        onChange={(e) => setMotorcycleFormData({ ...motorcycleFormData, year: e.target.value ? parseInt(e.target.value) : undefined })}
+                        className="w-full px-4 py-3 bg-dark-200 rounded-xl border border-dark-300 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all text-white placeholder-gray-500"
+                        placeholder="e.g., 2023"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div>
+                      <label className="block text-sm font-medium mb-2 text-gray-300">CC (Engine)</label>
+                      <input
+                        type="number"
+                        value={motorcycleFormData.cc || ""}
+                        onChange={(e) => setMotorcycleFormData({ ...motorcycleFormData, cc: e.target.value ? parseInt(e.target.value) : undefined })}
+                        className="w-full px-4 py-3 bg-dark-200 rounded-xl border border-dark-300 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all text-white placeholder-gray-500"
+                        placeholder="e.g., 125"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-2 text-gray-300">Transmission</label>
+                      <select
+                        value={motorcycleFormData.transmission || ""}
+                        onChange={(e) => setMotorcycleFormData({ ...motorcycleFormData, transmission: e.target.value as any })}
+                        className="w-full px-4 py-3 bg-dark-200 rounded-xl border border-dark-300 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all text-white"
+                      >
+                        <option value="" className="bg-dark-200">Select</option>
+                        <option value="automatic" className="bg-dark-200">Automatic</option>
+                        <option value="manual" className="bg-dark-200">Manual</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-2 text-gray-300">Fuel Type</label>
+                      <input
+                        type="text"
+                        value={motorcycleFormData.fuel_type || "petrol"}
+                        onChange={(e) => setMotorcycleFormData({ ...motorcycleFormData, fuel_type: e.target.value })}
+                        className="w-full px-4 py-3 bg-dark-200 rounded-xl border border-dark-300 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all text-white placeholder-gray-500"
+                        placeholder="e.g., petrol"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Images */}
+                  <div>
+                    <label className="block text-sm font-medium mb-2 text-gray-300">Images</label>
+                    <ImageUpload
+                      initialImages={motorcycleFormData.images || []}
+                      onImagesChange={(images) => setMotorcycleFormData({ ...motorcycleFormData, images })}
+                    />
+                  </div>
+
+                  {/* Features */}
+                  <div>
+                    <label className="block text-sm font-medium mb-2 text-gray-300">Features (comma-separated)</label>
+                    <input
+                      type="text"
+                      value={motorcycleFormData.features?.join(', ') || ""}
+                      onChange={(e) => setMotorcycleFormData({ 
+                        ...motorcycleFormData, 
+                        features: e.target.value.split(',').map(f => f.trim()).filter(Boolean)
+                      })}
+                      className="w-full px-4 py-3 bg-dark-200 rounded-xl border border-dark-300 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all text-white placeholder-gray-500"
+                      placeholder="e.g., GPS, Bluetooth, USB Charger"
+                    />
+                  </div>
+
+                  {/* Additional Options */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6 border-t border-dark-300">
+                    <div>
+                      <label className="block text-sm font-medium mb-2 text-gray-300">Deposit Required (IDR)</label>
+                      <input
+                        type="number"
+                        value={motorcycleFormData.deposit_required || ""}
+                        onChange={(e) => setMotorcycleFormData({ ...motorcycleFormData, deposit_required: e.target.value ? parseInt(e.target.value) : undefined })}
+                        className="w-full px-4 py-3 bg-dark-200 rounded-xl border border-dark-300 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all text-white placeholder-gray-500"
+                        placeholder="Optional"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-2 text-gray-300">Contact WhatsApp</label>
+                      <input
+                        type="text"
+                        value={motorcycleFormData.contact_whatsapp || ""}
+                        onChange={(e) => setMotorcycleFormData({ ...motorcycleFormData, contact_whatsapp: e.target.value })}
+                        className="w-full px-4 py-3 bg-dark-200 rounded-xl border border-dark-300 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all text-white placeholder-gray-500"
+                        placeholder="e.g., +6281234567890"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm font-medium mb-2 text-gray-300">Min Rental Days</label>
+                      <input
+                        type="number"
+                        value={motorcycleFormData.min_rental_days || 1}
+                        onChange={(e) => setMotorcycleFormData({ ...motorcycleFormData, min_rental_days: parseInt(e.target.value) || 1 })}
+                        className="w-full px-4 py-3 bg-dark-200 rounded-xl border border-dark-300 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all text-white placeholder-gray-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-2 text-gray-300">Max Rental Days</label>
+                      <input
+                        type="number"
+                        value={motorcycleFormData.max_rental_days || ""}
+                        onChange={(e) => setMotorcycleFormData({ ...motorcycleFormData, max_rental_days: e.target.value ? parseInt(e.target.value) : undefined })}
+                        className="w-full px-4 py-3 bg-dark-200 rounded-xl border border-dark-300 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all text-white placeholder-gray-500"
+                        placeholder="Optional"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Checkboxes */}
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-6 pt-6 border-t border-dark-300">
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="checkbox"
+                        id="motorcycle_available"
+                        checked={motorcycleFormData.available !== false}
+                        onChange={(e) => setMotorcycleFormData({ ...motorcycleFormData, available: e.target.checked })}
+                        className="w-5 h-5 rounded border-dark-300 bg-dark-200 text-primary focus:ring-primary focus:ring-2"
+                      />
+                      <label htmlFor="motorcycle_available" className="text-sm font-medium text-gray-300 cursor-pointer">
+                        Available
+                      </label>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="checkbox"
+                        id="motorcycle_featured"
+                        checked={motorcycleFormData.featured || false}
+                        onChange={(e) => setMotorcycleFormData({ ...motorcycleFormData, featured: e.target.checked })}
+                        className="w-5 h-5 rounded border-dark-300 bg-dark-200 text-primary focus:ring-primary focus:ring-2"
+                      />
+                      <label htmlFor="motorcycle_featured" className="text-sm font-medium text-gray-300 cursor-pointer">
+                        Featured
+                      </label>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="checkbox"
+                        id="motorcycle_insurance"
+                        checked={motorcycleFormData.insurance_included !== false}
+                        onChange={(e) => setMotorcycleFormData({ ...motorcycleFormData, insurance_included: e.target.checked })}
+                        className="w-5 h-5 rounded border-dark-300 bg-dark-200 text-primary focus:ring-primary focus:ring-2"
+                      />
+                      <label htmlFor="motorcycle_insurance" className="text-sm font-medium text-gray-300 cursor-pointer">
+                        Insurance Included
+                      </label>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="checkbox"
+                        id="motorcycle_helmet"
+                        checked={motorcycleFormData.helmet_included !== false}
+                        onChange={(e) => setMotorcycleFormData({ ...motorcycleFormData, helmet_included: e.target.checked })}
+                        className="w-5 h-5 rounded border-dark-300 bg-dark-200 text-primary focus:ring-primary focus:ring-2"
+                      />
+                      <label htmlFor="motorcycle_helmet" className="text-sm font-medium text-gray-300 cursor-pointer">
+                        Helmet Included
+                      </label>
+                    </div>
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="flex justify-end gap-4 pt-6 border-t border-dark-300">
+                    <button
+                      onClick={handleCancelMotorcycle}
+                      className="px-6 py-3 bg-dark-200 hover:bg-dark-300 text-white rounded-xl transition-colors font-medium"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleSaveMotorcycle}
+                      disabled={savingMotorcycle}
+                      className="px-6 py-3 bg-primary hover:bg-primary/90 text-white rounded-xl transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                    >
+                      {savingMotorcycle ? (
+                        <>
+                          <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                          Saving...
+                        </>
+                      ) : (
+                        <>
+                          <Save className="h-4 w-4" />
+                          {isAddingMotorcycle ? "Add Motorcycle" : "Save Changes"}
+                        </>
+                      )}
                     </button>
                   </div>
                 </div>
