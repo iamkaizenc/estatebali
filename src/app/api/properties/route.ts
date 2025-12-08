@@ -53,6 +53,7 @@ export async function GET(request: NextRequest) {
     const bedrooms = searchParams.get("bedrooms");
     const bathrooms = searchParams.get("bathrooms");
     const sortBy = searchParams.get("sortBy"); // 'views', 'created_at', 'price'
+    const includeHidden = searchParams.get("includeHidden"); // Admin flag to include hidden properties
 
     let query = supabaseAdmin
       .from("properties")
@@ -71,6 +72,11 @@ export async function GET(request: NextRequest) {
     // Filter by user_id (for user's own properties)
     if (userId) {
       query = query.eq("user_id", userId);
+      // If fetching own properties, don't filter by available (users should see their own properties)
+    } else if (includeHidden !== "true") {
+      // For public listings, only show available properties
+      // Admin can pass includeHidden=true to see all properties
+      query = query.eq("available", true);
     }
 
     // Filter by listing type (use type field as it stores listing type in current schema)
@@ -82,12 +88,10 @@ export async function GET(request: NextRequest) {
     // Filter by featured
     if (featured === "true") {
       query = query.eq("featured", true);
-    }
-
-    // If sorting by views and no featured filter, also filter by available
-    // to only show active listings
-    if (sortBy === "views" && featured !== "true") {
-      query = query.eq("available", true);
+      // Featured properties should also be available
+      if (includeHidden !== "true") {
+        query = query.eq("available", true);
+      }
     }
 
     // Filter by area

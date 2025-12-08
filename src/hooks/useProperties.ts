@@ -8,6 +8,7 @@ interface UsePropertiesOptions extends SearchFilters {
   userId?: string;
   excludeTypes?: string[]; // Types to exclude (e.g., ['motorbike', 'scooter'])
   sortBy?: 'views' | 'created_at' | 'price'; // Sorting option
+  includeHidden?: boolean; // Include hidden (available=false) properties (admin only)
 }
 
 export function useProperties(options: UsePropertiesOptions = {}) {
@@ -27,6 +28,7 @@ export function useProperties(options: UsePropertiesOptions = {}) {
         if (options.location) params.append("area", options.location);
         if (options.query) params.append("query", options.query);
         if (options.sortBy) params.append("sortBy", options.sortBy);
+        if (options.includeHidden) params.append("includeHidden", "true");
         // propertyType maps to category field in database
         // For motorcycle filtering, we need to send 'motorcycle' to API
         // since database uses 'motorcycle' category, not 'motorbike' or 'scooter'
@@ -65,7 +67,7 @@ export function useProperties(options: UsePropertiesOptions = {}) {
     };
 
     fetchProperties();
-  }, [options.listingType, options.featured, options.location, options.propertyType, options.query, options.priceMin, options.priceMax, options.bedrooms, options.bathrooms, options.userId, options.excludeTypes, options.sortBy]);
+  }, [options.listingType, options.featured, options.location, options.propertyType, options.query, options.priceMin, options.priceMax, options.bedrooms, options.bathrooms, options.userId, options.excludeTypes, options.sortBy, options.includeHidden]);
 
   return { properties, loading, error, refetch: () => {
     const fetchProperties = async () => {
@@ -80,6 +82,8 @@ export function useProperties(options: UsePropertiesOptions = {}) {
         if (options.propertyType && options.propertyType.length > 0) {
           params.append("type", options.propertyType[0]);
         }
+        if (options.includeHidden) params.append("includeHidden", "true");
+        if (options.sortBy) params.append("sortBy", options.sortBy);
 
         const response = await fetch(`/api/properties?${params.toString()}`);
         const result = await response.json();

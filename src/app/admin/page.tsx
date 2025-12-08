@@ -26,7 +26,7 @@ interface AdminUser extends Omit<User, 'createdAt'> {
 function AdminDashboard() {
   const router = useRouter();
   const { user, logout } = useAuthSafe();
-  const { properties: initialProperties, loading: propertiesLoading, refetch } = useProperties();
+  const { properties: initialProperties, loading: propertiesLoading, refetch } = useProperties({ includeHidden: true }); // Admin should see all properties including hidden ones
   const [activeTab, setActiveTab] = useState<TabType>("properties");
   
   // Custom logout handler for admin panel - redirects to home
