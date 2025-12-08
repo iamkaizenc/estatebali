@@ -41,9 +41,10 @@ function FavoritesPage() {
             
             // Use location field (not address) - location contains full address string
             const locationString = prop.location || "";
-            const area = prop.size || prop.area || ""; // Use size field from database
-            // Try to extract city from location if available, otherwise use area
-            const city = locationString.split(",")[0]?.trim() || area || "";
+            const areaName = prop.area || ""; // area = text field for area name (e.g., "Seminyak")
+            const areaSize = prop.size || 0; // size = integer for property size in sqm
+            // Try to extract city from location if available, otherwise use area name
+            const city = locationString.split(",")[0]?.trim() || areaName || "";
             
             // Map category to type (property type)
             // Database: category = property type, type = listing type
@@ -58,14 +59,14 @@ function FavoritesPage() {
               listingType: listingType as any,
               price: prop.price || 0,
               location: {
-                area: area,
+                area: areaName,
                 city: city,
                 address: locationString,
               },
               details: {
                 bedrooms: 0,
                 bathrooms: 0,
-                area: 0,
+                area: areaSize,
               },
               images: prop.images || [],
               featured: prop.featured || false,

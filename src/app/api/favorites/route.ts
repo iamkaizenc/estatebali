@@ -45,7 +45,7 @@ export async function GET(request: NextRequest) {
 
     // Get favorites with property details
     // Use correct schema: location (not address), type (listing type), category (property type)
-    // Note: Use 'size' instead of 'area' if area doesn't exist in properties table
+    // area = text (location area name), size = integer (property size in sqm)
     const { data: favorites, error } = await supabaseAdmin
       .from("favorites")
       .select(`
@@ -58,6 +58,7 @@ export async function GET(request: NextRequest) {
           type,
           category,
           price,
+          area,
           size,
           location,
           images,
