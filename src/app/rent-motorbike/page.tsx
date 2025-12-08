@@ -9,16 +9,21 @@ import { Bike, Clock, Shield, TrendingUp, Search, Filter, ChevronDown } from "lu
 import { motion } from "framer-motion";
 
 export default function RentMotorbikePage() {
-  // Fetch rent properties with motorcycle category
-  // useProperties hook will convert motorbike/scooter to 'motorcycle' for API call
+  // Fetch FEATURED rent properties with motorcycle category
+  // Only featured motorbikes will be shown on this page (selected by admin)
   const { properties: allRentProperties, loading, error } = useProperties({ 
     listingType: "rent",
+    featured: true, // Only get featured properties
     propertyType: ['motorbike', 'scooter'] as any, // Hook converts these to 'motorcycle' for API
   });
   
   // Client-side filtering for motorcycles (backup filtering)
   // Database uses 'motorcycle' category, map it correctly
+  // Also ensure they are featured (double-check)
   const motorbikes = (allRentProperties || []).filter((p: any) => {
+    // Must be featured (admin-selected)
+    if (!p.featured) return false;
+    
     // Check both the type property (which maps from category) and direct category check
     const propertyType = p.type?.toLowerCase();
     const category = (p as any).category?.toLowerCase();
