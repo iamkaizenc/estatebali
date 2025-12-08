@@ -16,8 +16,15 @@ export function useProperties(options: UsePropertiesOptions = {}) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Memoize options to prevent infinite loops
+  const optionsString = JSON.stringify(options);
+
   useEffect(() => {
+    let isMounted = true;
+    let abortController = new AbortController();
+    
     const fetchProperties = async () => {
+      if (!isMounted) return;
       try {
         setLoading(true);
         setError(null);

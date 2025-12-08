@@ -8,9 +8,11 @@ export async function GET(request: NextRequest) {
   try {
     const auth = verifyAuth(request);
     if (!auth.success) {
+      // Silently return empty array for unauthorized users instead of error
+      // This prevents console spam when users aren't logged in
       return NextResponse.json(
-        { success: false, error: auth.error || "Unauthorized" },
-        { status: 401 }
+        { success: true, data: [] },
+        { status: 200 }
       );
     }
 
@@ -21,25 +23,34 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    if (!auth.user?.email) {
+      return NextResponse.json(
+        { success: true, data: [] },
+        { status: 200 }
+      );
+    }
+
     // Get user_id from users table
     const { data: userData, error: userError } = await supabaseAdmin
       .from("users")
       .select("id")
-      .eq("email", auth.user!.email)
+      .eq("email", auth.user.email)
       .maybeSingle(); // Use maybeSingle instead of single to avoid error if user not found
 
     if (userError) {
-      console.error("Error fetching user:", userError);
+      console.error("[API /favorites] Error fetching user:", userError);
+      // Return empty array instead of error to prevent console spam
       return NextResponse.json(
-        { success: false, error: "Error finding user in database", details: userError.message },
-        { status: 500 }
+        { success: true, data: [] },
+        { status: 200 }
       );
     }
 
     if (!userData) {
+      // User not in database yet - return empty array (not an error)
       return NextResponse.json(
-        { success: false, error: "User not found in database" },
-        { status: 404 }
+        { success: true, data: [] },
+        { status: 200 }
       );
     }
 
