@@ -213,6 +213,7 @@ export function propertyToDbProperty(prop: Partial<Property>): Partial<DatabaseP
     featured: prop.featured,
     verified: prop.verified,
     available: prop.available !== undefined ? prop.available : true,
+    show_on_rent_motorbike: prop.showOnRentMotorbike || false,
   };
 
   // Remove undefined values to avoid sending them
