@@ -43,10 +43,6 @@ export default function MotorcycleDetailPage() {
       }
       
       const data = result.data;
-      const fetchError = null;
-
-      if (fetchError) throw fetchError;
-
       setMotorcycle(data as Motorcycle);
 
       // Fetch similar motorcycles (same type, different id) using API route
