@@ -34,25 +34,33 @@ function FavoritesPage() {
 
         if (result.success) {
           // Transform favorites data to Property format
-          // NOTE: 'city' column doesn't exist in database, using 'area' or 'address' instead
+          // Use correct schema: location (not address), type (listing type), category (property type)
           const properties = result.data.map((fav: any) => {
             const prop = fav.properties;
-            // Extract city from address if available, otherwise use area or empty string
-            const address = prop.address || "";
+            if (!prop) return null;
+            
+            // Use location field (not address) - location contains full address string
+            const locationString = prop.location || "";
             const area = prop.area || "";
-            // Try to extract city from address (e.g., "Bali, Indonesia" -> "Bali")
-            const city = address.split(",")[0]?.trim() || area || "";
+            // Try to extract city from location if available, otherwise use area
+            const city = locationString.split(",")[0]?.trim() || area || "";
+            
+            // Map category to type (property type)
+            // Database: category = property type, type = listing type
+            // Frontend: type = property type, listingType = listing type
+            const propertyType = prop.category || prop.type || "villa";
+            const listingType = prop.type === 'sale' || prop.type === 'rent' ? prop.type : 'rent';
             
             return {
               id: prop.id,
               title: prop.title,
-              type: prop.type,
-              listingType: prop.listing_type,
-              price: prop.price,
+              type: propertyType as any,
+              listingType: listingType as any,
+              price: prop.price || 0,
               location: {
                 area: area,
                 city: city,
-                address: address,
+                address: locationString,
               },
               details: {
                 bedrooms: 0,
@@ -60,10 +68,11 @@ function FavoritesPage() {
                 area: 0,
               },
               images: prop.images || [],
-              featured: prop.featured,
-              verified: prop.verified,
+              featured: prop.featured || false,
+              verified: prop.verified || false,
+              available: prop.available !== undefined ? prop.available : true,
             } as Property;
-          });
+          }).filter(Boolean); // Remove any null entries
           setFavorites(properties);
         } else {
           setError(result.error || "Failed to fetch favorites");

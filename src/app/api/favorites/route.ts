@@ -36,8 +36,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Get favorites with property details
-    // NOTE: Removed 'city' from select as it doesn't exist in the actual database schema
-    // The city information can be derived from 'area' or 'address' fields if needed
+    // Use correct schema: location (not address), type (listing type), category (property type)
     const { data: favorites, error } = await supabaseAdmin
       .from("favorites")
       .select(`
@@ -48,13 +47,14 @@ export async function GET(request: NextRequest) {
           id,
           title,
           type,
-          listing_type,
+          category,
           price,
           area,
-          address,
+          location,
           images,
           featured,
-          verified
+          verified,
+          available
         )
       `)
       .eq("user_id", userData.id)
