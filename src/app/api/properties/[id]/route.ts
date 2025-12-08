@@ -27,11 +27,21 @@ export async function GET(
       });
     }
 
-    const { data, error } = await supabaseAdmin
+    // Check if request includes admin token (to allow viewing hidden properties)
+    const authHeader = request.headers.get("authorization");
+    const isAdminRequest = authHeader?.startsWith("Bearer ");
+    
+    let query = supabaseAdmin
       .from("properties")
       .select("*")
-      .eq("id", params.id)
-      .single();
+      .eq("id", params.id);
+    
+    // For public requests (no admin token), only show available properties
+    if (!isAdminRequest) {
+      query = query.eq("available", true);
+    }
+    
+    const { data, error } = await query.single();
 
     if (error || !data) {
       return NextResponse.json(
