@@ -23,6 +23,16 @@ export async function GET(request: NextRequest) {
     const maxPrice = searchParams.get('maxPrice');
     const sortBy = searchParams.get('sortBy') || 'newest';
 
+    console.log('[API /motorcycles] Query params:', {
+      type,
+      location,
+      available,
+      featured,
+      minPrice,
+      maxPrice,
+      sortBy,
+    });
+
     let query = supabaseAdmin.from('motorcycles').select('*');
 
     // Filters
@@ -37,8 +47,10 @@ export async function GET(request: NextRequest) {
     // Public pages should pass available=true, admin pages can omit it to see all
     if (available !== null && available !== undefined && available !== '') {
       query = query.eq('available', available === 'true');
+      console.log('[API /motorcycles] Filtering by available:', available === 'true');
+    } else {
+      console.log('[API /motorcycles] No available filter - showing all motorcycles');
     }
-    // Otherwise show all (no filter on available)
     if (featured === 'true') {
       query = query.eq('featured', true);
     }
@@ -65,13 +77,17 @@ export async function GET(request: NextRequest) {
     const { data: motorcycles, error } = await query;
 
     if (error) {
-      console.error("Error fetching motorcycles:", error);
+      console.error("[API /motorcycles] Error fetching motorcycles:", error);
+      console.error("[API /motorcycles] Error code:", error.code);
+      console.error("[API /motorcycles] Error message:", error.message);
       return NextResponse.json(
         { success: false, error: error.message || "Failed to fetch motorcycles" },
         { status: 500 }
       );
     }
 
+    console.log("[API /motorcycles] Successfully fetched:", motorcycles?.length || 0, "motorcycles");
+    
     return NextResponse.json({
       success: true,
       data: motorcycles || [],
