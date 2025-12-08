@@ -1230,8 +1230,15 @@ function AdminDashboard() {
                 </div>
               </div>
 
-              {/* Filters */}
-              <div className="mb-6 flex flex-col md:flex-row gap-4">
+              {/* Add New Button and Filters */}
+              <div className="mb-6 flex flex-col md:flex-row gap-4 items-start md:items-center">
+                <button
+                  onClick={handleAddNewMotorcycle}
+                  className="px-6 py-3 bg-primary text-white rounded-xl hover:bg-primary/90 transition-colors flex items-center gap-2 font-medium"
+                >
+                  <Plus className="h-5 w-5" />
+                  Add New Motorcycle
+                </button>
                 <div className="flex-1 relative">
                   <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                   <input
