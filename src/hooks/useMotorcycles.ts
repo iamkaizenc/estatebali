@@ -11,7 +11,19 @@ export function useMotorcycles(params?: UseMotorcyclesParams) {
   const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
-    fetchMotorcycles();
+    let isMounted = true;
+    
+    const loadData = async () => {
+      if (isMounted) {
+        await fetchMotorcycles();
+      }
+    };
+    
+    loadData();
+    
+    return () => {
+      isMounted = false;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [JSON.stringify(params)]);
 
