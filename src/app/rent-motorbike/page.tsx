@@ -77,9 +77,9 @@ export default function RentMotorbikePage() {
         <div className="text-center mb-12">
           <div className="flex items-center justify-center gap-3 mb-4">
             <Bike className="h-8 w-8 text-primary" />
-            <h1 className="text-4xl md:text-5xl font-bold">{t('title')}</h1>
+            <h1 className="text-4xl md:text-5xl font-bold">Rent a Motorbike in Bali</h1>
           </div>
-          <p className="text-gray-400 text-lg">{t('subtitle')}</p>
+          <p className="text-gray-400 text-lg">Explore Bali on two wheels - Daily & weekly rentals available</p>
         </div>
 
         {/* Stats Cards */}
