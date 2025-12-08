@@ -9,6 +9,7 @@ interface UsePropertiesOptions extends SearchFilters {
   excludeTypes?: string[]; // Types to exclude (e.g., ['motorbike', 'scooter'])
   sortBy?: 'views' | 'created_at' | 'price'; // Sorting option
   includeHidden?: boolean; // Include hidden (available=false) properties (admin only)
+  showOnRentMotorbike?: boolean; // Show only properties marked for rent-motorbike page
 }
 
 export function useProperties(options: UsePropertiesOptions = {}) {
