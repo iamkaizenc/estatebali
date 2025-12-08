@@ -13,6 +13,7 @@ export interface Property {
   title: string;
   description: string;
   type: PropertyType;
+  category?: string; // Database category field (for admin panel checks)
   listingType: ListingType;
   source: ListingSource;
   price: number;

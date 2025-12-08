@@ -1169,6 +1169,26 @@ function AdminDashboard() {
                       </span>
                     </div>
                     {/* Show on Rent Motorbike Page - Only for motorcycles */}
+                    <div className="flex items-center gap-3">
+                      {(formData.type === 'motorbike' || formData.type === 'scooter' || (formData as any).category === 'motorcycle') && (
+                        <>
+                          <input
+                            type="checkbox"
+                            id="showOnRentMotorbike"
+                            checked={formData.showOnRentMotorbike || false}
+                            onChange={(e) => setFormData({ ...formData, showOnRentMotorbike: e.target.checked })}
+                            className="w-5 h-5 rounded border-dark-300 bg-dark-200 text-primary focus:ring-primary focus:ring-2"
+                          />
+                          <label htmlFor="showOnRentMotorbike" className="text-sm font-medium text-gray-300 cursor-pointer">
+                            Show on Rent Motorbike Page
+                          </label>
+                          <span className="text-xs text-gray-500">
+                            (ONLY on /rent-motorbike)
+                          </span>
+                        </>
+                      )}
+                    </div>
+                    {/* Show on Rent Motorbike Page - Only for motorcycles */}
                     {(formData.type === 'motorbike' || formData.type === 'scooter' || (formData as any).category === 'motorcycle') && (
                       <div className="flex items-center gap-3">
                         <input

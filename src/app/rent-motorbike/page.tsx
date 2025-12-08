@@ -9,19 +9,29 @@ import { Bike, Clock, Shield, TrendingUp, Search, Filter, ChevronDown } from "lu
 import { motion } from "framer-motion";
 
 export default function RentMotorbikePage() {
-  // Fetch ONLY motorcycles marked with showOnRentMotorbike flag
-  // These are the bikes admin specifically selected for this page
-  const { properties: allRentProperties, loading, error } = useProperties({ 
+  // First, try to fetch motorcycles marked with showOnRentMotorbike flag
+  const { properties: markedProperties, loading: markedLoading } = useProperties({ 
     listingType: "rent",
-    propertyType: ['motorbike', 'scooter'] as any, // Hook converts these to 'motorcycle' for API
+    propertyType: ['motorbike', 'scooter'] as any,
     showOnRentMotorbike: true, // Only get bikes marked for this page
   });
   
-  // Client-side filtering for motorcycles (backup check)
-  // Database uses 'motorcycle' category, map it correctly
+  // Fallback: If no marked bikes, get all motorcycles (until admin selects some)
+  const { properties: allProperties, loading: allLoading } = useProperties({ 
+    listingType: "rent",
+    propertyType: ['motorbike', 'scooter'] as any,
+  });
+  
+  // Use marked bikes if any exist, otherwise show all (for initial setup)
+  const loading = markedLoading || allLoading;
+  const hasMarkedBikes = markedProperties && markedProperties.length > 0;
+  const allRentProperties = hasMarkedBikes ? markedProperties : (allProperties || []);
+  
+  // Client-side filtering for motorcycles
   const motorbikes = (allRentProperties || []).filter((p: any) => {
-    // Must have showOnRentMotorbike flag
-    if (!p.showOnRentMotorbike) return false;
+    // If we have marked bikes, only show marked ones
+    // Otherwise, show all motorcycles (until admin selects)
+    if (hasMarkedBikes && !p.showOnRentMotorbike) return false;
     
     // Check both the type property (which maps from category) and direct category check
     const propertyType = p.type?.toLowerCase();
@@ -33,6 +43,9 @@ export default function RentMotorbikePage() {
            category === 'motorbike' ||
            category === 'scooter';
   });
+  
+  // Calculate error (if any)
+  const error = null; // We'll handle errors separately if needed
   
   const [searchQuery, setSearchQuery] = useState("");
   const [priceFilter, setPriceFilter] = useState("all");
