@@ -1047,6 +1047,62 @@ function AdminDashboard() {
                     </div>
                   </div>
 
+                  {/* Images Section */}
+                  <div className="pt-6 border-t border-dark-300">
+                    <label className="block text-sm font-medium mb-4 text-gray-300">
+                      Property Images *
+                    </label>
+                    
+                    {/* Existing Images Preview */}
+                    {formData.images && formData.images.length > 0 && (
+                      <div className="mb-6">
+                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                          {formData.images.map((imageUrl, index) => (
+                            <div key={index} className="relative group">
+                              <div className="aspect-square rounded-lg overflow-hidden bg-dark-200 border border-dark-300">
+                                <img
+                                  src={imageUrl}
+                                  alt={`Property image ${index + 1}`}
+                                  className="w-full h-full object-cover"
+                                />
+                              </div>
+                              <button
+                                onClick={() => {
+                                  const updatedImages = formData.images?.filter((_, i) => i !== index) || [];
+                                  setFormData({ ...formData, images: updatedImages });
+                                }}
+                                className="absolute top-2 right-2 p-1.5 bg-red-500/90 hover:bg-red-500 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                                title="Remove image"
+                              >
+                                <X className="h-4 w-4 text-white" />
+                              </button>
+                              {index === 0 && (
+                                <div className="absolute bottom-2 left-2 px-2 py-1 bg-primary text-black text-xs font-medium rounded">
+                                  Main
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Image Upload Component */}
+                    <ImageUpload
+                      initialImages={formData.images || []}
+                      onImagesChange={(urls) => {
+                        // Update formData with all images
+                        setFormData({ ...formData, images: urls });
+                      }}
+                      maxImages={10}
+                      bucketName="property-images"
+                    />
+                    
+                    <p className="text-xs text-gray-500 mt-2">
+                      First image will be used as the main property image. Maximum 10 images allowed.
+                    </p>
+                  </div>
+
                   <div className="flex gap-4 pt-6 border-t border-dark-300">
                     <button
                       onClick={handleSave}
