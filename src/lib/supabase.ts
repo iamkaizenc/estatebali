@@ -161,13 +161,32 @@ export function propertyToDbProperty(prop: Partial<Property>): Partial<DatabaseP
     ? prop.shortTermBooking.pricePerNight || null
     : null;
 
+  // Map frontend property types to database category values
+  // Frontend can have: motorbike, scooter, motorcycle, car, suv, villa, apartment, house, land
+  // Database accepts: motorcycle, car, villa, apartment, house, land
+  const mapCategoryToDatabase = (frontendType: string | undefined): string | undefined => {
+    if (!frontendType) return undefined;
+    const normalized = frontendType.toLowerCase();
+    // Map motorbike/scooter to motorcycle
+    if (['motorbike', 'scooter', 'motorcycle'].includes(normalized)) {
+      return 'motorcycle';
+    }
+    // Map suv to car (or keep as is if constraint allows suv)
+    if (normalized === 'suv') {
+      return 'car';
+    }
+    // Other types pass through (villa, apartment, house, land, car)
+    return normalized;
+  };
+
   const result: Partial<DatabaseProperty> = {
     title: prop.title,
     description: prop.description || null,
     // listingType from frontend goes to type field in database
     type: prop.listingType,
     // type from frontend goes to category field in database
-    category: prop.type,
+    // Map frontend types (motorbike/scooter) to database category (motorcycle)
+    category: mapCategoryToDatabase(prop.type),
     listing_source: prop.source || 'manual',
     price: prop.price,
     price_per_month: prop.pricePerMonth || null,
