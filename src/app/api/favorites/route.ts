@@ -22,15 +22,23 @@ export async function GET(request: NextRequest) {
     }
 
     // Get user_id from users table
-    const { data: userData } = await supabaseAdmin
+    const { data: userData, error: userError } = await supabaseAdmin
       .from("users")
       .select("id")
       .eq("email", auth.user!.email)
-      .single();
+      .maybeSingle(); // Use maybeSingle instead of single to avoid error if user not found
+
+    if (userError) {
+      console.error("Error fetching user:", userError);
+      return NextResponse.json(
+        { success: false, error: "Error finding user in database", details: userError.message },
+        { status: 500 }
+      );
+    }
 
     if (!userData) {
       return NextResponse.json(
-        { success: false, error: "User not found" },
+        { success: false, error: "User not found in database" },
         { status: 404 }
       );
     }
@@ -116,15 +124,23 @@ export async function POST(request: NextRequest) {
     }
 
     // Get user_id from users table
-    const { data: userData } = await supabaseAdmin
+    const { data: userData, error: userError } = await supabaseAdmin
       .from("users")
       .select("id")
       .eq("email", auth.user!.email)
-      .single();
+      .maybeSingle(); // Use maybeSingle instead of single to avoid error if user not found
+
+    if (userError) {
+      console.error("Error fetching user:", userError);
+      return NextResponse.json(
+        { success: false, error: "Error finding user in database", details: userError.message },
+        { status: 500 }
+      );
+    }
 
     if (!userData) {
       return NextResponse.json(
-        { success: false, error: "User not found" },
+        { success: false, error: "User not found in database" },
         { status: 404 }
       );
     }
