@@ -1917,6 +1917,8 @@ function AdminDashboard() {
                     <ImageUpload
                       initialImages={motorcycleFormData.images || []}
                       onImagesChange={(images) => setMotorcycleFormData({ ...motorcycleFormData, images })}
+                      bucketName="property-images"
+                      maxImages={10}
                     />
                   </div>
 
