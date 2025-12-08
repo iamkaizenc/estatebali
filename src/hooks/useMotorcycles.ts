@@ -41,16 +41,30 @@ export function useMotorcycles(params?: UseMotorcyclesParams) {
       const apiUrl = `/api/motorcycles?${queryParams.toString()}`;
       console.log('[useMotorcycles] Fetching from API:', apiUrl);
       console.log('[useMotorcycles] With params:', params);
+      console.log('[useMotorcycles] Query params string:', queryParams.toString());
+      
       const response = await fetch(apiUrl);
       
+      console.log('[useMotorcycles] Response status:', response.status);
+      console.log('[useMotorcycles] Response ok:', response.ok);
+      
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
+        const errorText = await response.text();
+        console.error('[useMotorcycles] Error response text:', errorText);
+        let errorData;
+        try {
+          errorData = JSON.parse(errorText);
+        } catch {
+          errorData = { error: errorText || `HTTP ${response.status}` };
+        }
         throw new Error(errorData.error || `Failed to fetch motorcycles (${response.status})`);
       }
 
       const result = await response.json();
+      console.log('[useMotorcycles] API Response:', result);
       
       if (!result.success) {
+        console.error('[useMotorcycles] API returned success=false:', result);
         throw new Error(result.error || 'Failed to fetch motorcycles');
       }
 
@@ -60,7 +74,9 @@ export function useMotorcycles(params?: UseMotorcyclesParams) {
       if (motorcycles.length > 0) {
         console.log('[useMotorcycles] First motorcycle sample:', motorcycles[0]);
       } else {
-        console.warn('[useMotorcycles] No motorcycles returned from API');
+        console.warn('[useMotorcycles] ⚠️ No motorcycles returned from API');
+        console.warn('[useMotorcycles] API URL was:', apiUrl);
+        console.warn('[useMotorcycles] Full API response:', result);
       }
       
       setData(motorcycles);
