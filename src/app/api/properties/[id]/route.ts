@@ -89,25 +89,52 @@ export async function PUT(
 
     const body = await request.json();
     
-    // Convert app property to database property
-    const dbProperty = propertyToDbProperty(body);
+    // Check if this is a partial update (e.g., just updating 'available' field)
+    const isPartialUpdate = Object.keys(body).length === 1 && body.hasOwnProperty('available');
     
-    // Get user_id for ownership check (if not admin)
-    // For admin users, we'll set owner_id/user_id if needed
-    if (auth.user && auth.user.role !== 'admin' && auth.user.role !== 'super_admin') {
-      // Get user_id from users table to set ownership
-      const { data: userData } = await supabaseAdmin
-        .from("users")
-        .select("id")
-        .eq("email", auth.user.email)
+    let dbProperty: Partial<any>;
+    
+    if (isPartialUpdate) {
+      // For partial updates (like just toggling available), only update that field
+      // Don't use propertyToDbProperty as it might add unwanted fields
+      dbProperty = {
+        available: body.available
+      };
+    } else {
+      // For full updates, convert app property to database property
+      dbProperty = propertyToDbProperty(body);
+      
+      // Get user_id for ownership check (if not admin)
+      // For admin users, we'll set owner_id/user_id if needed
+      if (auth.user && auth.user.role !== 'admin' && auth.user.role !== 'super_admin') {
+        // Get user_id from users table to set ownership
+        const { data: userData } = await supabaseAdmin
+          .from("users")
+          .select("id")
+          .eq("email", auth.user.email)
+          .single();
+        
+        if (userData) {
+          // Ensure ownership is maintained for non-admin users
+          (dbProperty as any).user_id = userData.id;
+          if (!dbProperty.owner_id) {
+            (dbProperty as any).owner_id = userData.id;
+          }
+        }
+      }
+    }
+    
+    // Get existing property to preserve listing_source if not being updated
+    if (!isPartialUpdate && !body.source && !dbProperty.listing_source) {
+      const { data: existing } = await supabaseAdmin
+        .from("properties")
+        .select("listing_source")
+        .eq("id", params.id)
         .single();
       
-      if (userData) {
-        // Ensure ownership is maintained for non-admin users
-        (dbProperty as any).user_id = userData.id;
-        if (!dbProperty.owner_id) {
-          (dbProperty as any).owner_id = userData.id;
-        }
+      if (existing?.listing_source) {
+        // Preserve existing listing_source if not being updated
+        (dbProperty as any).listing_source = existing.listing_source;
       }
     }
     
