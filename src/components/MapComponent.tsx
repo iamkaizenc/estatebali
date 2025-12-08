@@ -1,58 +1,86 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
 import { Property } from "@/types";
+import { getLocationCoordinates, BALI_CENTER } from "@/lib/locations";
 
 interface MapComponentProps {
   properties: Property[];
+  onPropertyClick?: (property: Property) => void;
+  filterLocation?: string;
+  filterType?: string;
+  filterPriceMin?: number;
+  filterPriceMax?: number;
 }
 
-// Default coordinates for popular Bali areas
-const areaCoordinates: Record<string, { lat: number; lng: number }> = {
-  "Seminyak": { lat: -8.6846, lng: 115.1702 },
-  "Canggu": { lat: -8.6489, lng: 115.1382 },
-  "Ubud": { lat: -8.5069, lng: 115.2625 },
-  "Sanur": { lat: -8.6899, lng: 115.2604 },
-  "Uluwatu": { lat: -8.8294, lng: 115.0851 },
-  "Nusa Dua": { lat: -8.7919, lng: 115.2245 },
-  "Jimbaran": { lat: -8.8045, lng: 115.1768 },
-  "Kuta": { lat: -8.7222, lng: 115.1687 },
-  "Denpasar": { lat: -8.6705, lng: 115.2126 },
-  "Pecatu": { lat: -8.8424, lng: 115.0932 },
-  "Pererenan": { lat: -8.6444, lng: 115.1394 },
-  "Berawa": { lat: -8.6525, lng: 115.1442 },
-  "Mengwi": { lat: -8.5725, lng: 115.1836 },
-  "Tabanan": { lat: -8.5411, lng: 115.1259 },
-  "Gianyar": { lat: -8.5419, lng: 115.3222 },
-};
-
-// Get coordinates for a property (from coordinates or area fallback)
+// Get coordinates for a property
 function getPropertyCoordinates(property: Property): { lat: number; lng: number } | null {
   // First try to use provided coordinates
-  if (property.location.coordinates) {
-    return property.location.coordinates;
+  if (property.location?.coordinates?.lat && property.location?.coordinates?.lng) {
+    const lat = Number(property.location.coordinates.lat);
+    const lng = Number(property.location.coordinates.lng);
+    // Validate coordinates are not 0,0 (invalid)
+    if (lat !== 0 && lng !== 0) {
+      return { lat, lng };
+    }
   }
   
-  // Fallback to area-based coordinates
-  const area = property.location.area;
-  if (area && areaCoordinates[area]) {
-    return areaCoordinates[area];
-  }
-  
-  // Fallback to city-based coordinates
-  const city = property.location.city;
-  if (city === "Denpasar") {
-    return areaCoordinates["Denpasar"];
+  // Fallback to location-based coordinates
+  const locationCoords = getLocationCoordinates(property.location?.area || property.location?.city || property.location?.address);
+  if (locationCoords) {
+    return locationCoords;
   }
   
   // Default to Bali center if nothing matches
-  return { lat: -8.3405, lng: 115.092 };
+  return BALI_CENTER;
 }
 
-export default function MapComponent({ properties }: MapComponentProps) {
+export default function MapComponent({ 
+  properties, 
+  onPropertyClick,
+  filterLocation,
+  filterType,
+  filterPriceMin,
+  filterPriceMax,
+}: MapComponentProps) {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<any>(null);
   const markersRef = useRef<any[]>([]);
+  const [mapLoaded, setMapLoaded] = useState(false);
+
+  // Filter properties based on filters
+  const filteredProperties = useMemo(() => {
+    return properties.filter((property) => {
+      // Location filter
+      if (filterLocation && filterLocation !== 'all') {
+        const area = property.location?.area?.toLowerCase() || '';
+        const city = property.location?.city?.toLowerCase() || '';
+        const location = property.location?.address?.toLowerCase() || '';
+        const filterLower = filterLocation.toLowerCase();
+        
+        if (!area.includes(filterLower) && !city.includes(filterLower) && !location.includes(filterLower)) {
+          return false;
+        }
+      }
+      
+      // Type filter
+      if (filterType && filterType !== 'all') {
+        if (property.type !== filterType && property.category !== filterType) {
+          return false;
+        }
+      }
+      
+      // Price filter
+      if (filterPriceMin !== undefined && property.price < filterPriceMin) {
+        return false;
+      }
+      if (filterPriceMax !== undefined && property.price > filterPriceMax) {
+        return false;
+      }
+      
+      return true;
+    });
+  }, [properties, filterLocation, filterType, filterPriceMin, filterPriceMax]);
 
   useEffect(() => {
     // Only load Leaflet on client side
@@ -70,18 +98,63 @@ export default function MapComponent({ properties }: MapComponentProps) {
           shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
         });
 
+        // Custom marker icons based on property type
+        const getMarkerIcon = (propertyType: string) => {
+          const colorMap: Record<string, string> = {
+            'villa': '#00FF66', // Primary green
+            'apartment': '#3B82F6', // Blue
+            'house': '#F59E0B', // Orange
+            'land': '#10B981', // Green
+            'motorcycle': '#EF4444', // Red
+            'scooter': '#EF4444',
+            'car': '#6366F1', // Indigo
+            'suv': '#6366F1',
+          };
+          
+          const color = colorMap[propertyType.toLowerCase()] || '#00FF66';
+          
+          return L.divIcon({
+            html: `<div style="
+              background-color: ${color};
+              width: 32px;
+              height: 32px;
+              border-radius: 50% 50% 50% 0;
+              transform: rotate(-45deg);
+              border: 3px solid white;
+              box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+              display: flex;
+              align-items: center;
+              justify-content: center;
+            ">
+              <div style="
+                transform: rotate(45deg);
+                color: white;
+                font-size: 14px;
+                font-weight: bold;
+              ">${propertyType === 'villa' ? '🏠' : propertyType === 'apartment' ? '🏢' : propertyType === 'land' ? '🏞️' : '📍'}</div>
+            </div>`,
+            className: 'custom-marker',
+            iconSize: [32, 32],
+            iconAnchor: [16, 32],
+            popupAnchor: [0, -32],
+          });
+        };
+
         // Initialize map centered on Bali
         if (!mapInstanceRef.current) {
           mapInstanceRef.current = L.map(mapRef.current!, {
-            center: [-8.3405, 115.092],
-            zoom: 10,
+            center: [BALI_CENTER.lat, BALI_CENTER.lng],
+            zoom: BALI_CENTER.zoom,
+            zoomControl: true,
           });
 
           // Add tile layer
           L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-            attribution: '&copy; OpenStreetMap contributors',
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
             maxZoom: 19,
           }).addTo(mapInstanceRef.current);
+          
+          setMapLoaded(true);
         }
 
         // Clear existing markers
@@ -91,14 +164,19 @@ export default function MapComponent({ properties }: MapComponentProps) {
         markersRef.current = [];
 
         // Add markers for each property
-        const validProperties = properties.filter(p => p.location && (p.location.coordinates || p.location.area || p.location.city));
+        const validProperties = filteredProperties.filter(p => {
+          const coords = getPropertyCoordinates(p);
+          return coords !== null;
+        });
         
         if (validProperties.length > 0) {
           validProperties.forEach((property) => {
             const coords = getPropertyCoordinates(property);
             
             if (coords) {
-              const marker = L.marker([coords.lat, coords.lng]).addTo(mapInstanceRef.current);
+              const marker = L.marker([coords.lat, coords.lng], {
+                icon: getMarkerIcon(property.type || property.category || 'villa'),
+              }).addTo(mapInstanceRef.current);
 
               const formatPrice = (price: number) => {
                 if (price >= 1000000000) {
@@ -106,35 +184,85 @@ export default function MapComponent({ properties }: MapComponentProps) {
                 } else if (price >= 1000000) {
                   return `Rp ${(price / 1000000).toFixed(0)}M`;
                 }
-                return `Rp ${price.toLocaleString()}`;
+                return `Rp ${price.toLocaleString('id-ID')}`;
               };
 
-              marker.bindPopup(`
-                <div style="color: #000; min-width: 200px;">
-                  <h3 style="font-weight: bold; margin-bottom: 8px; font-size: 16px;">${property.title}</h3>
-                  <p style="margin-bottom: 4px; color: #666; font-size: 14px;">${property.location.area || ''}${property.location.city ? `, ${property.location.city}` : ''}</p>
-                  <p style="color: #00FF66; font-weight: bold; margin-bottom: 8px; font-size: 16px;">
+              const mainImage = property.images && property.images.length > 0 
+                ? property.images[0] 
+                : '/placeholder.jpg';
+
+              const popupContent = `
+                <div style="color: #000; min-width: 250px; max-width: 300px;">
+                  ${mainImage !== '/placeholder.jpg' ? `
+                    <img 
+                      src="${mainImage}" 
+                      alt="${property.title}" 
+                      style="width: 100%; height: 150px; object-fit: cover; border-radius: 8px; margin-bottom: 12px;"
+                      onerror="this.src='/placeholder.jpg'"
+                    />
+                  ` : ''}
+                  <h3 style="font-weight: bold; margin-bottom: 8px; font-size: 16px; line-height: 1.4;">${property.title}</h3>
+                  <p style="margin-bottom: 4px; color: #666; font-size: 14px;">
+                    📍 ${property.location?.area || ''}${property.location?.city ? `, ${property.location.city}` : ''}
+                  </p>
+                  ${property.details?.bedrooms ? `
+                    <p style="margin-bottom: 4px; color: #666; font-size: 13px;">
+                      🛏️ ${property.details.bedrooms} bed${property.details.bathrooms ? ` • 🛁 ${property.details.bathrooms} bath` : ''}
+                    </p>
+                  ` : ''}
+                  <p style="color: #00FF66; font-weight: bold; margin-bottom: 12px; font-size: 18px;">
                     ${formatPrice(property.price)}
                     ${property.listingType === "rent" ? "/mo" : ""}
                   </p>
-                  <a href="/property/${property.id}" style="color: #00FF66; text-decoration: underline; font-size: 14px;">
+                  <a 
+                    href="/property/${property.id}" 
+                    style="
+                      display: inline-block;
+                      background-color: #00FF66;
+                      color: #000;
+                      padding: 8px 16px;
+                      border-radius: 6px;
+                      text-decoration: none;
+                      font-weight: bold;
+                      font-size: 14px;
+                      transition: background-color 0.2s;
+                    "
+                    onmouseover="this.style.backgroundColor='#00CC52'"
+                    onmouseout="this.style.backgroundColor='#00FF66'"
+                  >
                     View Details →
                   </a>
                 </div>
-              `);
+              `;
+
+              marker.bindPopup(popupContent);
+
+              // Handle marker click
+              marker.on('click', () => {
+                if (onPropertyClick) {
+                  onPropertyClick(property);
+                }
+              });
 
               markersRef.current.push(marker);
             }
           });
 
-          // Fit map to show all markers
+          // Fit map to show all markers with padding
           if (markersRef.current.length > 0) {
             const group = new L.FeatureGroup(markersRef.current);
-            mapInstanceRef.current.fitBounds(group.getBounds().pad(0.1));
+            mapInstanceRef.current.fitBounds(group.getBounds().pad(0.1), {
+              maxZoom: 16,
+            });
+          } else {
+            // No markers, center on Bali
+            mapInstanceRef.current.setView([BALI_CENTER.lat, BALI_CENTER.lng], BALI_CENTER.zoom);
           }
+        } else {
+          // No valid properties, center on Bali
+          mapInstanceRef.current.setView([BALI_CENTER.lat, BALI_CENTER.lng], BALI_CENTER.zoom);
         }
       } catch (error) {
-        // eslint-disable-next-line no-console
         console.error("Error loading map:", error);
       }
     };
@@ -150,8 +278,13 @@ export default function MapComponent({ properties }: MapComponentProps) {
         markersRef.current = [];
       }
     };
-  }, [properties]);
+  }, [filteredProperties, onPropertyClick]);
 
-  return <div ref={mapRef} className="h-[70vh] w-full rounded-2xl bg-dark-100" />;
+  return (
+    <div 
+      ref={mapRef} 
+      className="h-[70vh] w-full rounded-2xl bg-dark-100 border border-dark-300 overflow-hidden"
+      style={{ zIndex: 1 }}
+    />
+  );
 }
-
