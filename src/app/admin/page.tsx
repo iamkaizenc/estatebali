@@ -597,10 +597,18 @@ function AdminDashboard() {
                     className="pl-12 pr-10 py-3 bg-dark-200 rounded-xl border border-dark-300 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all text-white appearance-none"
                   >
                     <option value="all" className="bg-dark-200">All Types</option>
-                    <option value="villa" className="bg-dark-200">Villa</option>
-                    <option value="apartment" className="bg-dark-200">Apartment</option>
-                    <option value="house" className="bg-dark-200">House</option>
-                    <option value="land" className="bg-dark-200">Land</option>
+                    <optgroup label="🏠 Emlak / Real Estate" className="bg-dark-200">
+                      <option value="villa" className="bg-dark-200">Villa</option>
+                      <option value="apartment" className="bg-dark-200">Apartment</option>
+                      <option value="house" className="bg-dark-200">House</option>
+                      <option value="land" className="bg-dark-200">Land</option>
+                    </optgroup>
+                    <optgroup label="🏍️ Taşıt / Vehicle" className="bg-dark-200">
+                      <option value="motorbike" className="bg-dark-200">Motorsiklet / Motorbike</option>
+                      <option value="scooter" className="bg-dark-200">Scooter</option>
+                      <option value="car" className="bg-dark-200">Araba / Car</option>
+                      <option value="suv" className="bg-dark-200">SUV</option>
+                    </optgroup>
                   </select>
                   <ChevronDown className="absolute right-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" />
                 </div>
