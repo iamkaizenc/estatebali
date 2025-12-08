@@ -54,6 +54,7 @@ export async function GET(request: NextRequest) {
     const bathrooms = searchParams.get("bathrooms");
     const sortBy = searchParams.get("sortBy"); // 'views', 'created_at', 'price'
     const includeHidden = searchParams.get("includeHidden"); // Admin flag to include hidden properties
+    const showOnRentMotorbike = searchParams.get("showOnRentMotorbike"); // For rent-motorbike page only
 
     let query = supabaseAdmin
       .from("properties")
@@ -75,6 +76,17 @@ export async function GET(request: NextRequest) {
       // For public listings (not user's own), ONLY show available properties
       // Admin can pass includeHidden=true to see all properties
       query = query.eq("available", true);
+    }
+
+    // Filter show_on_rent_motorbike flag
+    // If showOnRentMotorbike=true: Only show bikes marked for rent-motorbike page
+    // If showOnRentMotorbike=false or not set: Exclude bikes marked for rent-motorbike page
+    if (showOnRentMotorbike === "true") {
+      // Rent-motorbike page: Only show bikes marked for this page
+      query = query.eq("show_on_rent_motorbike", true);
+    } else if (!userId && includeHidden !== "true") {
+      // Other public pages: Exclude bikes marked for rent-motorbike page
+      query = query.or("show_on_rent_motorbike.is.null,show_on_rent_motorbike.eq.false");
     }
 
     // Filter by user_id (for user's own properties)

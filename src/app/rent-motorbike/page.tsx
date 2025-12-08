@@ -9,16 +9,20 @@ import { Bike, Clock, Shield, TrendingUp, Search, Filter, ChevronDown } from "lu
 import { motion } from "framer-motion";
 
 export default function RentMotorbikePage() {
-  // Fetch all rent properties with motorcycle category
-  // We'll filter for featured ones on client-side, but show all if no featured exist
+  // Fetch ONLY motorcycles marked with showOnRentMotorbike flag
+  // These are the bikes admin specifically selected for this page
   const { properties: allRentProperties, loading, error } = useProperties({ 
     listingType: "rent",
     propertyType: ['motorbike', 'scooter'] as any, // Hook converts these to 'motorcycle' for API
+    showOnRentMotorbike: true, // Only get bikes marked for this page
   });
   
-  // Client-side filtering for motorcycles
+  // Client-side filtering for motorcycles (backup check)
   // Database uses 'motorcycle' category, map it correctly
-  const allMotorbikes = (allRentProperties || []).filter((p: any) => {
+  const motorbikes = (allRentProperties || []).filter((p: any) => {
+    // Must have showOnRentMotorbike flag
+    if (!p.showOnRentMotorbike) return false;
+    
     // Check both the type property (which maps from category) and direct category check
     const propertyType = p.type?.toLowerCase();
     const category = (p as any).category?.toLowerCase();
@@ -29,13 +33,6 @@ export default function RentMotorbikePage() {
            category === 'motorbike' ||
            category === 'scooter';
   });
-  
-  // Check if there are any featured motorcycles
-  const featuredMotorbikes = allMotorbikes.filter((p: any) => p.featured === true);
-  
-  // Use featured bikes if any exist, otherwise show all available motorcycles
-  // This allows admin to select specific bikes while still showing bikes before selection
-  const motorbikes = featuredMotorbikes.length > 0 ? featuredMotorbikes : allMotorbikes;
   
   const [searchQuery, setSearchQuery] = useState("");
   const [priceFilter, setPriceFilter] = useState("all");

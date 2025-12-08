@@ -117,6 +117,7 @@ export interface Property {
   featured?: boolean;
   verified?: boolean;
   available: boolean;
+  showOnRentMotorbike?: boolean; // Show only on rent-motorbike page (exclude from other listings)
   status?: PropertyStatus;
 }
 

@@ -188,6 +188,45 @@ function AdminDashboard() {
     }
   };
 
+  const handleToggleShowOnRentMotorbike = async (id: string) => {
+    const property = properties.find(p => p.id === id);
+    if (!property) return;
+    
+    const updated = { ...property, showOnRentMotorbike: !property.showOnRentMotorbike };
+    
+    try {
+      const token = localStorage.getItem('admin_token') || localStorage.getItem('auth_token');
+      if (!token) {
+        alert('Authentication required. Please log in again.');
+        return;
+      }
+      
+      const response = await fetch(`/api/properties/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({ showOnRentMotorbike: updated.showOnRentMotorbike }),
+      });
+      
+      if (response.ok) {
+        const result = await response.json();
+        if (result.success) {
+          setProperties(properties.map(p => p.id === id ? updated : p));
+        } else {
+          alert(result.error || 'Failed to update property show on rent motorbike status');
+        }
+      } else {
+        const result = await response.json();
+        alert(result.error || 'Failed to update property show on rent motorbike status');
+      }
+    } catch (error: any) {
+      console.error('Toggle show on rent motorbike error:', error);
+      alert('Error updating property: ' + (error.message || 'Unknown error'));
+    }
+  };
+
   const handleToggleVerified = async (id: string) => {
     const property = properties.find(p => p.id === id);
     if (!property) return;
@@ -741,6 +780,20 @@ function AdminDashboard() {
                         >
                           <Star className={`h-4 w-4 ${property.featured ? 'fill-primary' : ''}`} />
                         </button>
+                        {/* Show on Rent Motorbike toggle - only for motorcycles */}
+                        {(property.type === 'motorbike' || property.type === 'scooter' || (property as any).category === 'motorcycle') && (
+                          <button
+                            onClick={() => handleToggleShowOnRentMotorbike(property.id)}
+                            className={`px-3 py-2 rounded-lg transition-colors flex items-center justify-center gap-2 text-sm ${
+                              property.showOnRentMotorbike 
+                                ? 'bg-orange-500/20 text-orange-400 hover:bg-orange-500/30' 
+                                : 'bg-dark-200 hover:bg-dark-300 text-gray-400'
+                            }`}
+                            title={property.showOnRentMotorbike ? "Remove from Rent Motorbike page" : "Show on Rent Motorbike page"}
+                          >
+                            🏍️
+                          </button>
+                        )}
                         <button
                           onClick={() => router.push(`/property/${property.id}`)}
                           className="px-3 py-2 bg-dark-200 hover:bg-dark-300 rounded-lg transition-colors"
@@ -1111,10 +1164,28 @@ function AdminDashboard() {
                       </label>
                       <span className="text-xs text-gray-500">
                         {(formData.type === 'motorbike' || formData.type === 'scooter') 
-                          ? ' (Will appear on Rent Motorbike page)' 
+                          ? ' (Shown on homepage)' 
                           : ' (Shown on homepage)'}
                       </span>
                     </div>
+                    {/* Show on Rent Motorbike Page - Only for motorcycles */}
+                    {(formData.type === 'motorbike' || formData.type === 'scooter' || (formData as any).category === 'motorcycle') && (
+                      <div className="flex items-center gap-3">
+                        <input
+                          type="checkbox"
+                          id="showOnRentMotorbike"
+                          checked={formData.showOnRentMotorbike || false}
+                          onChange={(e) => setFormData({ ...formData, showOnRentMotorbike: e.target.checked })}
+                          className="w-5 h-5 rounded border-dark-300 bg-dark-200 text-primary focus:ring-primary focus:ring-2"
+                        />
+                        <label htmlFor="showOnRentMotorbike" className="text-sm font-medium text-gray-300 cursor-pointer">
+                          Show on Rent Motorbike Page
+                        </label>
+                        <span className="text-xs text-gray-500">
+                          (Will ONLY appear on /rent-motorbike, hidden from other listings)
+                        </span>
+                      </div>
+                    )}
                     <div className="flex items-center gap-3">
                       <input
                         type="checkbox"

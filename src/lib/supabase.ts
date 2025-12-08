@@ -54,6 +54,7 @@ export interface DatabaseProperty {
   featured?: boolean;
   verified?: boolean;
   available?: boolean;
+  show_on_rent_motorbike?: boolean; // Show only on rent-motorbike page
 }
 
 // Convert database property to app property
@@ -128,6 +129,7 @@ export function dbPropertyToProperty(dbProp: DatabaseProperty): Property {
     featured: dbProp.featured || false,
     verified: dbProp.verified || false,
     available: dbProp.available !== undefined ? dbProp.available : true,
+    showOnRentMotorbike: dbProp.show_on_rent_motorbike || false,
   };
 }
 

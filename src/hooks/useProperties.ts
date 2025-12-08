@@ -29,6 +29,7 @@ export function useProperties(options: UsePropertiesOptions = {}) {
         if (options.query) params.append("query", options.query);
         if (options.sortBy) params.append("sortBy", options.sortBy);
         if (options.includeHidden) params.append("includeHidden", "true");
+        if (options.showOnRentMotorbike) params.append("showOnRentMotorbike", "true");
         // propertyType maps to category field in database
         // For motorcycle filtering, we need to send 'motorcycle' to API
         // since database uses 'motorcycle' category, not 'motorbike' or 'scooter'
@@ -67,7 +68,7 @@ export function useProperties(options: UsePropertiesOptions = {}) {
     };
 
     fetchProperties();
-  }, [options.listingType, options.featured, options.location, options.propertyType, options.query, options.priceMin, options.priceMax, options.bedrooms, options.bathrooms, options.userId, options.excludeTypes, options.sortBy, options.includeHidden]);
+  }, [options.listingType, options.featured, options.location, options.propertyType, options.query, options.priceMin, options.priceMax, options.bedrooms, options.bathrooms, options.userId, options.excludeTypes, options.sortBy, options.includeHidden, options.showOnRentMotorbike]);
 
   return { properties, loading, error, refetch: () => {
     const fetchProperties = async () => {
