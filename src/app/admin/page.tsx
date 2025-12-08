@@ -695,15 +695,36 @@ function AdminDashboard() {
                           </span>
                         ) : (
                           <span className="px-2 py-1 bg-gray-500/20 text-gray-400 rounded text-xs font-medium">
-                            Sold
+                            Hidden
                           </span>
                         )}
                       </div>
 
                       <div className="flex gap-2 pt-4 border-t border-dark-300">
                         <button
-                          onClick={() => handleToggleFeatured(property.id)}
+                          onClick={() => handleToggleAvailable(property.id)}
                           className={`flex-1 px-3 py-2 rounded-lg transition-colors flex items-center justify-center gap-2 text-sm ${
+                            property.available 
+                              ? 'bg-green-500/20 text-green-500 hover:bg-green-500/30' 
+                              : 'bg-gray-500/20 text-gray-400 hover:bg-gray-500/30'
+                          }`}
+                          title={property.available ? "Hide from users" : "Show to users"}
+                        >
+                          {property.available ? (
+                            <>
+                              <Eye className="h-4 w-4" />
+                              Visible
+                            </>
+                          ) : (
+                            <>
+                              <EyeOff className="h-4 w-4" />
+                              Hidden
+                            </>
+                          )}
+                        </button>
+                        <button
+                          onClick={() => handleToggleFeatured(property.id)}
+                          className={`px-3 py-2 rounded-lg transition-colors flex items-center justify-center gap-2 text-sm ${
                             property.featured 
                               ? 'bg-primary/20 text-primary hover:bg-primary/30' 
                               : 'bg-dark-200 hover:bg-dark-300 text-gray-400'
@@ -711,7 +732,6 @@ function AdminDashboard() {
                           title={property.featured ? "Remove from featured" : "Add to featured"}
                         >
                           <Star className={`h-4 w-4 ${property.featured ? 'fill-primary' : ''}`} />
-                          {property.featured ? 'Featured' : 'Feature'}
                         </button>
                         <button
                           onClick={() => router.push(`/property/${property.id}`)}
