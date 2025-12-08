@@ -33,6 +33,10 @@ export async function GET(request: NextRequest) {
       sortBy,
     });
 
+    // Select ALL columns from motorcycles table
+    // This includes: price, images, description, location, type, brand, model, 
+    // year, cc, fuel_type, transmission, features, available, featured, 
+    // deposit_required, insurance_included, helmet_included, min_rental_days, etc.
     let query = supabaseAdmin.from('motorcycles').select('*');
 
     // Filters
