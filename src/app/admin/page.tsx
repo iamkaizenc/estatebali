@@ -33,15 +33,33 @@ function AdminDashboard() {
   const { properties: initialProperties, loading: propertiesLoading, refetch } = useProperties({ includeHidden: true }); // Admin should see all properties including hidden ones
   const [activeTab, setActiveTab] = useState<TabType>("properties");
   
-  // Custom logout handler for admin panel - redirects to home
-  const handleLogout = () => {
+  // Custom logout handler for admin panel - redirects to login
+  const handleLogout = async () => {
     try {
-      logout(); // Clear auth state
-      router.push('/'); // Redirect to homepage
-      router.refresh(); // Refresh the page
+      // Clear auth state via context
+      logout();
+      
+      // Clear all storage
+      if (typeof window !== 'undefined') {
+        localStorage.clear();
+        sessionStorage.clear();
+      }
+      
+      // Clear cookies
+      if (typeof document !== 'undefined') {
+        document.cookie.split(";").forEach((c) => {
+          document.cookie = c
+            .replace(/^ +/, "")
+            .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+        });
+      }
+      
+      // Force hard redirect to login (NOT router.push)
+      window.location.href = '/login';
     } catch (error) {
       console.error('Logout error:', error);
-      router.push('/'); // Redirect even if logout fails
+      // Force redirect even if there's an error
+      window.location.href = '/login';
     }
   };
   

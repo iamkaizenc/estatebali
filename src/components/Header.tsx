@@ -14,9 +14,36 @@ export default function Header() {
   // Use useAuthSafe to handle SSR/static generation gracefully
   const { isAuthenticated, user, isAdmin, logout } = useAuthSafe();
 
-  const handleLogout = () => {
-    logout();
-    setMobileMenuOpen(false);
+  const handleLogout = async () => {
+    try {
+      // Close mobile menu
+      setMobileMenuOpen(false);
+      
+      // Clear auth state via context
+      logout();
+      
+      // Additional cleanup
+      if (typeof window !== 'undefined') {
+        localStorage.clear();
+        sessionStorage.clear();
+      }
+      
+      // Clear cookies
+      if (typeof document !== 'undefined') {
+        document.cookie.split(";").forEach((c) => {
+          document.cookie = c
+            .replace(/^ +/, "")
+            .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+        });
+      }
+      
+      // Force hard redirect (NOT router.push - prevents black screen)
+      window.location.href = '/login';
+    } catch (error) {
+      console.error('Logout error:', error);
+      // Force redirect even on error
+      window.location.href = '/login';
+    }
   };
 
   return (

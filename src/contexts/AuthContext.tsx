@@ -45,12 +45,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = async (email: string, password: string) => {
     // Safety check: ensure we're in browser environment
     if (typeof window === 'undefined') {
-      console.error('[Login] Window is undefined, cannot login');
       return { success: false, error: 'Login is only available in the browser' };
     }
 
     console.log('[Login] Attempting login for:', email);
-    console.log('[Login] AuthContext login function called');
     
     try {
       console.log('[Login] Sending request to /api/auth/login');
@@ -64,7 +62,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       console.log('[Login] Response status:', response.status, response.statusText);
       const result = await response.json();
-      console.log('[Login] Response data:', JSON.stringify(result, null, 2));
+      console.log('[Login] Response data:', { success: result.success, hasToken: !!result.token, error: result.error });
 
       if (result.success && result.token) {
         // Store token (client-side only)
@@ -85,26 +83,44 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
       return { success: false, error: result.error || 'Login failed' };
     } catch (error: any) {
-      console.error('[Login] Error caught:', error);
-      console.error('[Login] Error message:', error.message);
-      console.error('[Login] Error stack:', error.stack);
       return { success: false, error: error.message || 'Login failed. Please try again.' };
     }
   };
 
   const logout = () => {
-    // Clear storage (client-side only)
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('auth_token');
-      localStorage.removeItem('admin_token');
+    try {
+      // Clear storage (client-side only)
+      if (typeof window !== 'undefined') {
+        // Clear all localStorage
+        localStorage.clear();
+        // Also clear sessionStorage
+        sessionStorage.clear();
+      }
+      // Clear cookies (if in browser)
+      if (typeof document !== 'undefined') {
+        document.cookie = 'auth_token=; path=/; max-age=0; SameSite=Lax';
+        document.cookie = 'admin_token=; path=/; max-age=0; SameSite=Lax';
+        // Clear all cookies
+        document.cookie.split(";").forEach((c) => {
+          document.cookie = c
+            .replace(/^ +/, "")
+            .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+        });
+      }
+      // Clear user state
+      setUser(null);
+      
+      // Force hard redirect (NOT router.push - this causes SPA routing issues)
+      if (typeof window !== 'undefined') {
+        window.location.href = '/login';
+      }
+    } catch (error) {
+      console.error('Logout error:', error);
+      // Force redirect even if there's an error
+      if (typeof window !== 'undefined') {
+        window.location.href = '/login';
+      }
     }
-    // Clear cookie (if in browser)
-    if (typeof document !== 'undefined') {
-      document.cookie = 'auth_token=; path=/; max-age=0; SameSite=Lax';
-      document.cookie = 'admin_token=; path=/; max-age=0; SameSite=Lax';
-    }
-    setUser(null);
-    router.push('/login');
   };
   
   const isAdmin = user?.role === 'admin' || user?.role === 'super_admin';
@@ -171,25 +187,30 @@ export function useAuthSafe() {
       },
       logout: () => {
         // Safe logout that works even if context isn't available
-        if (typeof window !== 'undefined') {
-          try {
-            localStorage.removeItem('auth_token');
-            localStorage.removeItem('admin_token');
-          } catch (e) {
-            // Silently fail
+        try {
+          if (typeof window !== 'undefined') {
+            // Clear all storage
+            localStorage.clear();
+            sessionStorage.clear();
           }
-        }
-        if (typeof document !== 'undefined') {
-          try {
-            document.cookie = 'auth_token=; path=/; max-age=0; SameSite=Lax';
-            document.cookie = 'admin_token=; path=/; max-age=0; SameSite=Lax';
-          } catch (e) {
-            // Silently fail
+          if (typeof document !== 'undefined') {
+            // Clear all cookies
+            document.cookie.split(";").forEach((c) => {
+              document.cookie = c
+                .replace(/^ +/, "")
+                .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+            });
           }
-        }
-        // Try to redirect if we're in the browser
-        if (typeof window !== 'undefined') {
-          window.location.href = '/login';
+          // Force hard redirect
+          if (typeof window !== 'undefined') {
+            window.location.href = '/login';
+          }
+        } catch (error) {
+          console.error('Logout error:', error);
+          // Force redirect even on error
+          if (typeof window !== 'undefined') {
+            window.location.href = '/login';
+          }
         }
       },
       isAuthenticated: false,
