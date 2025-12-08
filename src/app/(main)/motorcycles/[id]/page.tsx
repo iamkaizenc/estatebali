@@ -30,12 +30,21 @@ export default function MotorcycleDetailPage() {
       setLoading(true);
       setError(null);
 
-      // Fetch motorcycle
-      const { data, error: fetchError } = await supabase
-        .from('motorcycles')
-        .select('*')
-        .eq('id', id)
-        .single();
+      // Fetch motorcycle using API route instead of direct Supabase client
+      const response = await fetch(`/api/motorcycles/${id}`);
+      
+      if (!response.ok) {
+        throw new Error(`Failed to fetch motorcycle: ${response.status}`);
+      }
+      
+      const result = await response.json();
+      
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to fetch motorcycle');
+      }
+      
+      const data = result.data;
+      const fetchError = null;
 
       if (fetchError) throw fetchError;
 
