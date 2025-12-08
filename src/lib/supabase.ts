@@ -86,6 +86,8 @@ export function dbPropertyToProperty(dbProp: DatabaseProperty): Property {
     description: dbProp.description || '',
     // category field contains property type (villa, apartment, etc.)
     type: (dbProp.category || dbProp.type) as any,
+    // Preserve category for admin panel checks
+    category: dbProp.category,
     // type field contains listing type (sale/rent)
     listingType: (dbProp.type || dbProp.listing_type) as any,
     source: (dbProp.listing_source || 'manual') as any,
