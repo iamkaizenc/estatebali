@@ -1035,12 +1035,18 @@ function AdminDashboard() {
                         onChange={(e) => setFormData({ ...formData, type: e.target.value as any })}
                         className="w-full px-4 py-3 bg-dark-200 rounded-xl border border-dark-300 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all text-white"
                       >
-                        <option value="villa" className="bg-dark-200">Villa</option>
-                        <option value="apartment" className="bg-dark-200">Apartment</option>
-                        <option value="house" className="bg-dark-200">House</option>
-                        <option value="land" className="bg-dark-200">Land</option>
-                        <option value="motorbike" className="bg-dark-200">Motorbike</option>
-                        <option value="scooter" className="bg-dark-200">Scooter</option>
+                        <optgroup label="🏠 Emlak / Real Estate" className="bg-dark-200">
+                          <option value="villa" className="bg-dark-200">Villa</option>
+                          <option value="apartment" className="bg-dark-200">Apartment</option>
+                          <option value="house" className="bg-dark-200">House</option>
+                          <option value="land" className="bg-dark-200">Land</option>
+                        </optgroup>
+                        <optgroup label="🏍️ Taşıt / Vehicle" className="bg-dark-200">
+                          <option value="motorbike" className="bg-dark-200">Motorsiklet / Motorbike</option>
+                          <option value="scooter" className="bg-dark-200">Scooter</option>
+                          <option value="car" className="bg-dark-200">Araba / Car</option>
+                          <option value="suv" className="bg-dark-200">SUV</option>
+                        </optgroup>
                       </select>
                     </div>
                     <div>
