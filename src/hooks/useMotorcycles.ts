@@ -12,10 +12,16 @@ export function useMotorcycles(params?: UseMotorcyclesParams) {
 
   useEffect(() => {
     let isMounted = true;
+    let timeoutId: NodeJS.Timeout;
     
     const loadData = async () => {
       if (isMounted) {
-        await fetchMotorcycles();
+        // Small delay to prevent multiple rapid calls
+        timeoutId = setTimeout(async () => {
+          if (isMounted) {
+            await fetchMotorcycles();
+          }
+        }, 100);
       }
     };
     
@@ -23,6 +29,9 @@ export function useMotorcycles(params?: UseMotorcyclesParams) {
     
     return () => {
       isMounted = false;
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [JSON.stringify(params)]);
@@ -55,7 +64,16 @@ export function useMotorcycles(params?: UseMotorcyclesParams) {
       console.log('[useMotorcycles] With params:', params);
       console.log('[useMotorcycles] Query params string:', queryParams.toString());
       
-      const response = await fetch(apiUrl);
+      // Add timeout to prevent hanging requests
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+      
+      const response = await fetch(apiUrl, {
+        signal: controller.signal,
+        cache: 'no-store', // Prevent caching
+      });
+      
+      clearTimeout(timeoutId);
       
       console.log('[useMotorcycles] Response status:', response.status);
       console.log('[useMotorcycles] Response ok:', response.ok);
@@ -96,7 +114,11 @@ export function useMotorcycles(params?: UseMotorcyclesParams) {
     } catch (err) {
       const error = err as Error;
       setError(error);
-      console.error('[useMotorcycles] Error fetching motorcycles:', error);
+      if (error.name === 'AbortError') {
+        console.error('[useMotorcycles] Request timeout - API took too long to respond');
+      } else {
+        console.error('[useMotorcycles] Error fetching motorcycles:', error);
+      }
       setData([]);
     } finally {
       setIsLoading(false);
