@@ -151,7 +151,7 @@ export async function POST(request: NextRequest) {
       .select("id")
       .eq("user_id", userData.id)
       .eq("property_id", propertyId)
-      .single();
+      .maybeSingle(); // Use maybeSingle to avoid error if not found
 
     if (existing) {
       return NextResponse.json(
