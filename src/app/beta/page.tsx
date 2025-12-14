@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useCallback, FormEvent, ChangeEvent } from 'react';
+import Image from 'next/image';
+import Link from 'next/link';
 import { isValidEmail } from '@/lib/validators';
 
 type SubmitState = 'idle' | 'loading' | 'success' | 'duplicate' | 'error';
@@ -57,9 +59,16 @@ export default function BetaPage() {
     <div className="min-h-screen bg-[#FAFAFA] flex flex-col">
       {/* Header */}
       <header className="w-full px-6 py-5">
-        <span className="text-[15px] font-medium tracking-tight text-neutral-800">
-          Estate Bali
-        </span>
+        <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
+          <Image 
+            src="/logo.svg" 
+            alt="Estate Bali Logo" 
+            width={120} 
+            height={48}
+            className="h-8 w-auto"
+            priority
+          />
+        </Link>
       </header>
 
       {/* Main Content */}
@@ -67,6 +76,12 @@ export default function BetaPage() {
         <div className="w-full max-w-[560px]">
           {/* Hero Section */}
           <div className="text-center mb-10">
+            {/* Apple Logo */}
+            <div className="flex justify-center mb-6">
+              <svg className="w-12 h-12 text-neutral-900" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M17.05 20.28c-.98.95-2.05.88-3.08.4-1.09-.5-2.08-.48-3.24 0-1.44.62-2.2.44-3.06-.4C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09l.01-.01zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/>
+              </svg>
+            </div>
             <p className="text-[13px] font-medium tracking-wide text-[#3D7A5A] uppercase mb-3">
               Estate Bali
             </p>
@@ -145,6 +160,18 @@ export default function BetaPage() {
                     <p className="text-[13px] text-red-600 text-center">{errorMessage}</p>
                   )}
                 </div>
+
+                <div className="mt-6 pt-6 border-t border-neutral-200">
+                  <Link
+                    href="/"
+                    className="inline-flex items-center gap-2 w-full justify-center px-4 py-2.5 text-[14px] font-medium text-neutral-600 hover:text-neutral-900 transition-colors duration-150"
+                  >
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                    </svg>
+                    Back to Home
+                  </Link>
+                </div>
               </form>
             ) : (
               <div className="py-4 text-center" role="status" aria-live="polite">
@@ -156,9 +183,18 @@ export default function BetaPage() {
                 <p className="text-[17px] font-medium text-neutral-900 mb-1">
                   {submitState === 'success' ? "You're on the waitlist." : "You're already on the list."}
                 </p>
-                <p className="text-[14px] text-neutral-500">
+                <p className="text-[14px] text-neutral-500 mb-6">
                   {submitState === 'success' ? "We'll be in touch soon." : "We'll reach out when it's your turn."}
                 </p>
+                <Link
+                  href="/"
+                  className="inline-flex items-center gap-2 px-6 py-3 text-[15px] font-medium text-neutral-900 bg-neutral-100 hover:bg-neutral-200 rounded-lg transition-colors duration-150"
+                >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                  </svg>
+                  Back to Home
+                </Link>
               </div>
             )}
           </div>
@@ -175,7 +211,7 @@ export default function BetaPage() {
       {/* Footer */}
       <footer className="w-full px-6 py-6 text-center">
         <p className="text-[13px] text-neutral-400">
-          Bali, Indonesia • info@estatebali.app
+          Bali, Indonesia • <a href="mailto:support@estatebali.app" className="hover:text-neutral-600 transition-colors">support@estatebali.app</a>
         </p>
       </footer>
     </div>
