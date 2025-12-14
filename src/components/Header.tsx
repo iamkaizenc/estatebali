@@ -60,7 +60,6 @@ export default function Header() {
               className="h-10 w-auto"
               priority
             />
-            <span className="text-xl font-bold hidden sm:inline">Estate Bali</span>
           </Link>
 
           {/* Desktop Navigation */}
