@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
     // Check Supabase configuration
     const supabaseConfigured = isSupabaseConfigured && !!supabaseAdmin;
 
-    if (!supabaseConfigured) {
+    if (!supabaseConfigured || !supabaseAdmin) {
       return NextResponse.json({
         success: false,
         error: "Supabase not configured",
