@@ -47,11 +47,25 @@ export default function Header() {
   };
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 glass border-b border-white/10">
-      <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between h-16">
+    <header className="fixed top-0 left-0 right-0 z-50 glass border-b border-white/10 backdrop-blur-xl bg-black/80">
+      <motion.div 
+        className={`mx-auto ${
+          isAuthenticated 
+            ? 'max-w-[95%] px-8 xl:px-12' 
+            : 'max-w-7xl px-6'
+        }`}
+        initial={false}
+        animate={{
+          paddingLeft: isAuthenticated ? '3rem' : '1.5rem',
+          paddingRight: isAuthenticated ? '3rem' : '1.5rem',
+        }}
+        transition={{ duration: 0.5, ease: [0.4, 0, 0.2, 1] }}
+      >
+        <div className={`flex items-center justify-between h-16 transition-all duration-500 ${
+          isAuthenticated ? 'gap-8' : 'gap-4'
+        }`}>
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-3">
+          <Link href="/" className="flex items-center gap-3 flex-shrink-0">
             <Image 
               src="/logo.png" 
               alt="Estate Bali Logo" 
@@ -63,7 +77,9 @@ export default function Header() {
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden lg:flex items-center gap-8">
+          <nav className={`hidden lg:flex items-center flex-1 justify-center transition-all duration-500 ${
+            isAuthenticated ? 'gap-10 xl:gap-12' : 'gap-8'
+          }`}>
             <Link href="/buy" className="hover:text-primary transition-colors">
               Buy
             </Link>
@@ -199,20 +215,22 @@ export default function Header() {
           </nav>
 
           {/* Desktop Actions */}
-          <div className="hidden lg:flex items-center gap-4">
+          <div className={`hidden lg:flex items-center flex-nowrap transition-all duration-500 ${
+            isAuthenticated ? 'gap-6 xl:gap-8' : 'gap-4'
+          }`}>
             {isAuthenticated ? (
               <>
                 {isAdmin ? (
                   <>
                     <Link 
                       href="/admin" 
-                      className="px-4 py-2 bg-primary/20 hover:bg-primary/30 text-primary rounded-lg transition-colors"
+                      className="px-4 py-2 bg-primary/20 hover:bg-primary/30 text-primary rounded-lg transition-colors whitespace-nowrap"
                     >
                       Admin Panel
                     </Link>
                     <button
                       onClick={handleLogout}
-                      className="p-2 hover:bg-dark-200 rounded-lg transition-colors"
+                      className="p-2 hover:bg-dark-200 rounded-lg transition-colors flex-shrink-0"
                       title="Logout"
                     >
                       <LogOut className="h-5 w-5" />
@@ -222,34 +240,34 @@ export default function Header() {
                   <>
                     <Link
                       href="/user"
-                      className="px-4 py-2 bg-primary/20 hover:bg-primary/30 text-primary rounded-lg transition-colors"
+                      className="px-4 py-2 bg-primary/20 hover:bg-primary/30 text-primary rounded-lg transition-colors whitespace-nowrap"
                     >
                       My Dashboard
                     </Link>
                     <Link
                       href="/create"
-                      className="btn-primary flex items-center gap-2"
+                      className="btn-primary flex items-center gap-2 whitespace-nowrap"
                     >
                       <Plus className="h-4 w-4" />
                       Create Listing
                     </Link>
                     <NotificationBell />
-                    <Link href="/user/favorites" className="p-2 hover:bg-dark-200 rounded-lg transition-colors">
+                    <Link href="/user/favorites" className="p-2 hover:bg-dark-200 rounded-lg transition-colors flex-shrink-0">
                       <Heart className="h-5 w-5" />
                     </Link>
-                    <Link href="/user/messages" className="p-2 hover:bg-dark-200 rounded-lg transition-colors">
+                    <Link href="/user/messages" className="p-2 hover:bg-dark-200 rounded-lg transition-colors flex-shrink-0">
                       <MessageSquare className="h-5 w-5" />
                     </Link>
                     <button
                       onClick={handleLogout}
-                      className="p-2 hover:bg-dark-200 rounded-lg transition-colors"
+                      className="p-2 hover:bg-dark-200 rounded-lg transition-colors flex-shrink-0"
                       title="Logout"
                     >
                       <LogOut className="h-5 w-5" />
                     </button>
                   </>
                 )}
-                <div className="flex items-center gap-2 px-3 py-1.5 bg-dark-200 rounded-lg">
+                <div className="flex items-center gap-2 px-3 py-1.5 bg-dark-200 rounded-lg flex-shrink-0 whitespace-nowrap">
                   <User className="h-4 w-4 text-gray-400" />
                   <span className="text-sm">{user?.name || user?.email}</span>
                 </div>
@@ -285,7 +303,7 @@ export default function Header() {
             )}
           </button>
         </div>
-      </div>
+      </motion.div>
 
       {/* Mobile Menu */}
       <AnimatePresence>
