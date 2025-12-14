@@ -140,9 +140,8 @@ export async function loginUser(email: string, password: string): Promise<{ succ
     // ALWAYS create Supabase client at runtime (don't rely on module-level import)
     // This ensures environment variables are loaded
     const runtimeSupabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    // SECURITY: Only use server-side service role key, never NEXT_PUBLIC_ variant
-    const runtimeSupabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-      || process.env.SUPABASE_SERVICE_KEY;
+    // SECURITY: Only use server-side SUPABASE_SERVICE_ROLE_KEY, never NEXT_PUBLIC_ variant or legacy SUPABASE_SERVICE_KEY
+    const runtimeSupabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
     
     // Only log in development
     if (process.env.NODE_ENV === 'development') {

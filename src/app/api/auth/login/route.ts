@@ -30,11 +30,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Try multiple possible environment variable names
+    // Get Supabase configuration from environment
+    // SECURITY: Only use server-side SUPABASE_SERVICE_ROLE_KEY, never NEXT_PUBLIC_ variant
     const runtimeUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const runtimeServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-      || process.env.SUPABASE_SERVICE_KEY
-      || process.env.NEXT_PUBLIC_SUPABASE_SERVICE_ROLE_KEY;
+    const runtimeServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
     // If environment variables are NOT available, return error
     if (!runtimeUrl || !runtimeServiceKey) {
