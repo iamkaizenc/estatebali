@@ -11,6 +11,19 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
+    // CORS headers for mobile app access
+    const origin = request.headers.get('origin');
+    const corsHeaders = {
+      'Access-Control-Allow-Origin': origin || '*',
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    };
+
+    // Handle preflight requests
+    if (request.method === 'OPTIONS') {
+      return new NextResponse(null, { status: 200, headers: corsHeaders });
+    }
+
     // If Supabase is not configured, return mock data
     if (!isSupabaseConfigured || !supabaseAdmin) {
       const property = mockProperties.find(p => p.id === params.id);
@@ -24,7 +37,7 @@ export async function GET(
         success: true,
         data: property,
         usingMockData: true,
-      });
+      }, { headers: corsHeaders });
     }
 
     // Check if request includes admin token (to allow viewing hidden properties)
@@ -55,12 +68,18 @@ export async function GET(
     return NextResponse.json({
       success: true,
       data: property,
-    });
+    }, { headers: corsHeaders });
   } catch (error: any) {
     console.error("Error fetching property:", error);
+    const origin = request.headers.get('origin');
+    const corsHeaders = {
+      'Access-Control-Allow-Origin': origin || '*',
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    };
     return NextResponse.json(
       { success: false, error: error.message || "Failed to fetch property" },
-      { status: 500 }
+      { status: 500, headers: corsHeaders }
     );
   }
 }

@@ -10,6 +10,19 @@ import { mockProperties } from "@/data/mockData";
 // GET /api/properties - Get all properties
 export async function GET(request: NextRequest) {
   try {
+    // CORS headers for mobile app access
+    const origin = request.headers.get('origin');
+    const corsHeaders = {
+      'Access-Control-Allow-Origin': origin || '*',
+      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    };
+
+    // Handle preflight requests
+    if (request.method === 'OPTIONS') {
+      return new NextResponse(null, { status: 200, headers: corsHeaders });
+    }
+
     // If Supabase is not configured, return mock data
     if (!isSupabaseConfigured || !supabaseAdmin) {
       const { searchParams } = new URL(request.url);
@@ -36,7 +49,7 @@ export async function GET(request: NextRequest) {
         data: filteredProperties,
         count: filteredProperties.length,
         usingMockData: true,
-      });
+      }, { headers: corsHeaders });
     }
 
     const { searchParams } = new URL(request.url);
@@ -177,12 +190,18 @@ export async function GET(request: NextRequest) {
       success: true,
       data: properties,
       count: properties.length,
-    });
+    }, { headers: corsHeaders });
   } catch (error: any) {
     console.error("Error fetching properties:", error);
+    const origin = request.headers.get('origin');
+    const corsHeaders = {
+      'Access-Control-Allow-Origin': origin || '*',
+      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    };
     return NextResponse.json(
       { success: false, error: error.message || "Failed to fetch properties" },
-      { status: 500 }
+      { status: 500, headers: corsHeaders }
     );
   }
 }
