@@ -67,11 +67,12 @@ export default function Footer() {
             {/* App Store and Google Play Badges */}
             <div className="flex flex-col gap-2">
               <p className="text-sm text-gray-400 mb-2">Download our app <span className="text-primary text-xs">(Coming Soon)</span></p>
-              <div
-                className="inline-block opacity-50 cursor-not-allowed"
-                aria-label="Download on App Store - Coming Soon"
+              <Link
+                href="/beta"
+                className="inline-block hover:opacity-80 transition-opacity"
+                aria-label="Join iOS Beta on TestFlight"
               >
-                <div className="bg-black rounded-lg px-3 py-2 flex items-center gap-2 border border-gray-700">
+                <div className="bg-black rounded-lg px-3 py-2 flex items-center gap-2 border border-gray-700 hover:border-primary transition-colors">
                   <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M17.05 20.28c-.98.95-2.05.88-3.08.4-1.09-.5-2.08-.48-3.24 0-1.44.62-2.2.44-3.06-.4C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09l.01-.01zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/>
                   </svg>
@@ -80,7 +81,7 @@ export default function Footer() {
                     <div className="text-sm font-semibold leading-tight">App Store</div>
                   </div>
                 </div>
-              </div>
+              </Link>
               <div
                 className="inline-block opacity-50 cursor-not-allowed"
                 aria-label="Get it on Google Play - Coming Soon"
@@ -130,6 +131,12 @@ export default function Footer() {
               <li>
                 <Link href="/agents" className="hover:text-primary transition-colors">
                   Find Agents
+                </Link>
+              </li>
+              <li>
+                <Link href="/beta" className="hover:text-primary transition-colors flex items-center gap-2">
+                  iOS Beta
+                  <span className="px-1.5 py-0.5 bg-primary text-black text-xs font-bold rounded">New</span>
                 </Link>
               </li>
             </ul>

@@ -193,6 +193,10 @@ export default function Header() {
             <Link href="/about" className="hover:text-primary transition-colors">
               About
             </Link>
+            <Link href="/beta" className="hover:text-primary transition-colors flex items-center gap-1">
+              iOS Beta
+              <span className="px-1.5 py-0.5 bg-primary text-black text-xs font-bold rounded">New</span>
+            </Link>
           </nav>
 
           {/* Desktop Actions */}
@@ -343,6 +347,14 @@ export default function Header() {
                 onClick={() => setMobileMenuOpen(false)}
               >
                 About
+              </Link>
+              <Link 
+                href="/beta" 
+                className="py-2 hover:text-primary transition-colors flex items-center gap-2"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                iOS Beta
+                <span className="px-1.5 py-0.5 bg-primary text-black text-xs font-bold rounded">New</span>
               </Link>
               
               {isAuthenticated ? (

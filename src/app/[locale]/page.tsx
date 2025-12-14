@@ -214,6 +214,37 @@ export default function HomePage({ params }: HomePageProps) {
         )}
       </section>
 
+      {/* iOS Beta Banner */}
+      <section className="container mx-auto px-4 py-8">
+        <Link href="/beta">
+          <motion.div
+            whileHover={{ scale: 1.02 }}
+            className="relative overflow-hidden bg-gradient-to-r from-primary/20 via-primary/10 to-primary/20 border border-primary/30 rounded-2xl p-6 md:p-8"
+          >
+            <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+              <div className="flex-1 text-center md:text-left">
+                <div className="flex items-center justify-center md:justify-start gap-2 mb-2">
+                  <span className="px-2 py-1 bg-primary text-black text-xs font-bold rounded">NEW</span>
+                  <span className="text-primary text-sm font-medium">iOS Beta on TestFlight</span>
+                </div>
+                <h3 className="text-2xl font-bold mb-2">Join the iOS Beta Waitlist</h3>
+                <p className="text-gray-400">
+                  Be among the first to experience Estate Bali on iOS. Early access for selected users.
+                </p>
+              </div>
+              <div className="flex-shrink-0">
+                <div className="btn-primary whitespace-nowrap">
+                  Request Beta Access
+                </div>
+              </div>
+            </div>
+            {/* Decorative elements */}
+            <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+            <div className="absolute bottom-0 left-0 w-24 h-24 bg-primary/5 rounded-full blur-2xl translate-y-1/2 -translate-x-1/2" />
+          </motion.div>
+        </Link>
+      </section>
+
       {/* Why Choose Us */}
       <section className="bg-dark-100 py-20">
         <div className="container mx-auto px-4">

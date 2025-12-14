@@ -13,6 +13,7 @@ export default function SitemapPage() {
     { name: "Map Search", href: "/map" },
     { name: "About", href: "/about" },
     { name: "Agents", href: "/agents" },
+    { name: "iOS Beta", href: "/beta" },
     { name: "Create Listing", href: "/create" },
     { name: "Privacy Policy", href: "/privacy" },
     { name: "Terms of Service", href: "/terms" },
