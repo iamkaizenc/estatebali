@@ -76,11 +76,19 @@ export default function BetaPage() {
         <div className="w-full max-w-[560px]">
           {/* Hero Section */}
           <div className="text-center mb-10">
-            {/* Apple Logo */}
-            <div className="flex justify-center mb-6">
+            {/* Apple Logo and Estate Bali Logo */}
+            <div className="flex justify-center items-center gap-4 mb-6">
               <svg className="w-12 h-12 text-neutral-900" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M17.05 20.28c-.98.95-2.05.88-3.08.4-1.09-.5-2.08-.48-3.24 0-1.44.62-2.2.44-3.06-.4C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09l.01-.01zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/>
               </svg>
+              <Image 
+                src="/logo.png" 
+                alt="Estate Bali Logo" 
+                width={48} 
+                height={48}
+                className="w-12 h-12 object-contain"
+                priority
+              />
             </div>
             <p className="text-[13px] font-medium tracking-wide text-[#3D7A5A] uppercase mb-3">
               Estate Bali
