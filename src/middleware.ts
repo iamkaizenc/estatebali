@@ -73,7 +73,8 @@ export function middleware(request: NextRequest) {
   // Admin routes protection
   if (pathname.startsWith('/admin') && pathname !== '/admin/login') {
     if (!token || !user) {
-      return NextResponse.redirect(new URL('/login', request.url));
+      // Redirect to home page if no session (logout scenario)
+      return NextResponse.redirect(new URL('/', request.url));
     }
     if (user.role !== 'admin' && user.role !== 'super_admin') {
       // Redirect non-admin users to their dashboard
@@ -89,7 +90,8 @@ export function middleware(request: NextRequest) {
   // User routes protection
   if (pathname.startsWith('/user')) {
     if (!token || !user) {
-      return NextResponse.redirect(new URL('/login', request.url));
+      // Redirect to home page if no session (logout scenario)
+      return NextResponse.redirect(new URL('/', request.url));
     }
     // Allow admin users to access user routes too (for testing/managing)
     // Only redirect if explicitly needed

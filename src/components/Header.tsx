@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { useAuthSafe } from "@/contexts/AuthContext";
 import { Home, Menu, X, Bell, Heart, MessageSquare, User, Plus, LogOut, Settings, ChevronDown, Shield, FileText, Building2, Scale, Users as UsersIcon, MessageCircle, Phone } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -11,6 +12,7 @@ import NotificationBell from "@/components/NotificationBell";
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [servicesDropdownOpen, setServicesDropdownOpen] = useState(false);
+  const router = useRouter();
   // Use useAuthSafe to handle SSR/static generation gracefully
   const { isAuthenticated, user, isAdmin, logout } = useAuthSafe();
 
@@ -19,30 +21,16 @@ export default function Header() {
       // Close mobile menu
       setMobileMenuOpen(false);
       
-      // Clear auth state via context
-      logout();
+      // Clear auth state via context (this handles Supabase signOut, storage, cookies, and router)
+      await logout();
       
-      // Additional cleanup
-      if (typeof window !== 'undefined') {
-        localStorage.clear();
-        sessionStorage.clear();
-      }
-      
-      // Clear cookies
-      if (typeof document !== 'undefined') {
-        document.cookie.split(";").forEach((c) => {
-          document.cookie = c
-            .replace(/^ +/, "")
-            .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
-        });
-      }
-      
-      // Force hard redirect (NOT router.push - prevents black screen)
-      window.location.href = '/login';
+      // Additional router refresh to ensure UI updates
+      router.refresh();
     } catch (error) {
       console.error('Logout error:', error);
       // Force redirect even on error
-      window.location.href = '/login';
+      router.replace('/');
+      router.refresh();
     }
   };
 

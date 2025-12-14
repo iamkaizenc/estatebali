@@ -4,12 +4,13 @@ import { createContext, useContext, useState, useEffect, ReactNode } from "react
 import { useRouter } from "next/navigation";
 import { getUser } from "@/lib/auth";
 import { AuthUser } from "@/types";
+import { supabase } from "@/lib/supabase";
 
 interface AuthContextType {
   user: AuthUser | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
-  logout: () => void;
+  logout: () => Promise<void>;
   isAuthenticated: boolean;
   isAdmin: boolean;
   isRegularUser: boolean;
@@ -40,7 +41,36 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     }
     setLoading(false);
-  }, []);
+
+    // Listen to Supabase auth state changes
+    if (supabase) {
+      const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+        console.log('[AuthContext] Auth state changed:', event, session);
+        
+        if (event === 'SIGNED_OUT') {
+          // Clear all auth state
+          setUser(null);
+          if (typeof window !== 'undefined') {
+            localStorage.clear();
+            sessionStorage.clear();
+          }
+          if (typeof document !== 'undefined') {
+            document.cookie = 'auth_token=; path=/; max-age=0; SameSite=Lax';
+            document.cookie = 'admin_token=; path=/; max-age=0; SameSite=Lax';
+          }
+          // Refresh router to update UI
+          router.refresh();
+        } else if (event === 'SIGNED_IN' && session) {
+          // If using Supabase auth, update user state
+          // For now, we rely on JWT tokens from our API
+        }
+      });
+
+      return () => {
+        subscription.unsubscribe();
+      };
+    }
+  }, [router]);
 
   const login = async (email: string, password: string) => {
     // Safety check: ensure we're in browser environment
@@ -87,8 +117,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const logout = () => {
+  const logout = async () => {
     try {
+      // Sign out from Supabase if available
+      if (supabase) {
+        await supabase.auth.signOut();
+      }
+
       // Clear storage (client-side only)
       if (typeof window !== 'undefined') {
         // Clear all localStorage
@@ -110,16 +145,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Clear user state
       setUser(null);
       
-      // Force hard redirect (NOT router.push - this causes SPA routing issues)
-      if (typeof window !== 'undefined') {
-        window.location.href = '/login';
-      }
+      // Use router.replace to prevent back button issues
+      router.replace('/');
+      // Force refresh to update all UI state
+      router.refresh();
     } catch (error) {
       console.error('Logout error:', error);
-      // Force redirect even if there's an error
+      // Clear state even on error
+      setUser(null);
       if (typeof window !== 'undefined') {
-        window.location.href = '/login';
+        localStorage.clear();
+        sessionStorage.clear();
       }
+      // Force redirect even if there's an error
+      router.replace('/');
+      router.refresh();
     }
   };
   
@@ -185,9 +225,12 @@ export function useAuthSafe() {
         // Return a safe response that won't cause errors
         return { success: false, error: 'Authentication not available during SSR' };
       },
-      logout: () => {
+      logout: async () => {
         // Safe logout that works even if context isn't available
         try {
+          if (supabase) {
+            await supabase.auth.signOut();
+          }
           if (typeof window !== 'undefined') {
             // Clear all storage
             localStorage.clear();
@@ -203,13 +246,13 @@ export function useAuthSafe() {
           }
           // Force hard redirect
           if (typeof window !== 'undefined') {
-            window.location.href = '/login';
+            window.location.href = '/';
           }
         } catch (error) {
           console.error('Logout error:', error);
           // Force redirect even on error
           if (typeof window !== 'undefined') {
-            window.location.href = '/login';
+            window.location.href = '/';
           }
         }
       },
