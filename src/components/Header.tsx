@@ -53,7 +53,7 @@ export default function Header() {
           {/* Logo */}
           <Link href="/" className="flex items-center gap-3">
             <Image 
-              src="/logo.svg" 
+              src="/logo.png" 
               alt="Estate Bali Logo" 
               width={200} 
               height={80}

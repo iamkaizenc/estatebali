@@ -61,7 +61,7 @@ export default function BetaPage() {
       <header className="w-full px-6 py-5">
         <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
           <Image 
-            src="/logo.svg" 
+            src="/logo.png" 
             alt="Estate Bali Logo" 
             width={120} 
             height={48}
@@ -197,13 +197,6 @@ export default function BetaPage() {
                 </Link>
               </div>
             )}
-          </div>
-
-          {/* App Icon */}
-          <div className="mt-8 flex justify-center">
-            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#3D7A5A] to-[#2D5A4A] shadow-sm flex items-center justify-center">
-              <span className="text-white text-[20px] font-semibold">E</span>
-            </div>
           </div>
         </div>
       </main>
