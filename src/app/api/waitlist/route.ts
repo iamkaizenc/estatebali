@@ -50,6 +50,43 @@ export async function POST(request: NextRequest): Promise<NextResponse<WaitlistR
       );
     }
 
+    // Send notification to all admin users
+    if (data && supabaseAdmin) {
+      try {
+        // Get all admin users
+        const { data: adminUsers, error: adminError } = await supabaseAdmin
+          .from('admin_users')
+          .select('id')
+          .eq('active', true);
+
+        if (!adminError && adminUsers && adminUsers.length > 0) {
+          // Create notifications for each admin
+          const notifications = adminUsers.map(admin => ({
+            user_id: admin.id,
+            type: 'system',
+            title: 'New Beta Waitlist Signup',
+            message: `New email joined the iOS beta waitlist: ${normalizedEmail}`,
+            data: {
+              email: normalizedEmail,
+              waitlist_id: data.id,
+              source: 'beta_waitlist'
+            },
+            read: false
+          }));
+
+          // Insert notifications (using service role to bypass RLS)
+          await supabaseAdmin
+            .from('notifications')
+            .insert(notifications);
+
+          console.log(`[Beta Waitlist] Sent notifications to ${adminUsers.length} admin(s) for email: ${normalizedEmail}`);
+        }
+      } catch (notifError) {
+        // Don't fail the waitlist signup if notification fails
+        console.error('[Beta Waitlist] Failed to send admin notifications:', notifError);
+      }
+    }
+
     return NextResponse.json({ status: 'success' });
   } catch (error) {
     console.error('[Beta Waitlist] Unexpected error:', error);
