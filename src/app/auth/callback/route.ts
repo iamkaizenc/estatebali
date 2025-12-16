@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
+import jwt from 'jsonwebtoken';
 
 // OAuth callback handler
 export async function GET(request: NextRequest) {
@@ -75,7 +76,6 @@ export async function GET(request: NextRequest) {
     }
 
     // Create JWT token for our auth system
-    const jwt = require('jsonwebtoken');
     const JWT_SECRET = process.env.JWT_SECRET;
 
     if (!JWT_SECRET) {
