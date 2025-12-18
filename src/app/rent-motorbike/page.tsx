@@ -135,7 +135,7 @@ export default function RentMotorbikePage() {
                 Need to rent a motorbike or get more information? Contact us directly via WhatsApp!
               </p>
               <a
-                href="https://wa.me/17423798954?text=Hi! I'm interested in renting a motorbike in Bali. Can you provide more information?"
+                href="https://wa.me/6282260613492?text=Hi! I'm interested in renting a motorbike in Bali. Can you provide more information?"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white font-semibold py-3 px-6 rounded-lg transition-colors"

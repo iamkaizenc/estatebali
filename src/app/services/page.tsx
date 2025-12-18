@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 import { motion } from "framer-motion";
 
-const WHATSAPP_NUMBER = "17423798954";
+const WHATSAPP_NUMBER = "6282260613492";
 const EMAIL = "info@estatebali.app";
 
 const services = [
