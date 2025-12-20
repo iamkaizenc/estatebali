@@ -102,17 +102,22 @@ export function middleware(request: NextRequest) {
   }
 
   // Redirect /login if already authenticated
-  // BUT: Be more lenient - only redirect if token is clearly valid and not expired
+  // BUT: Be very lenient - only redirect if token is clearly valid and not expired
   if (pathname === '/login') {
-    // Check for logout indicator in query params
+    // Check for logout indicator in query params - if present, always allow access
     const isLogoutRedirect = request.nextUrl.searchParams.get('logout') === 'true';
+    
+    if (isLogoutRedirect) {
+      // Always allow access to login page after logout, even if token exists
+      return NextResponse.next();
+    }
     
     // Only redirect if:
     // 1. We have a token
     // 2. Token decoded successfully (not expired, valid format)
     // 3. User object is complete (has id, email, role)
-    // 4. It's NOT a logout redirect
-    if (token && user && user.id && user.email && user.role && !isLogoutRedirect) {
+    // 4. Token is not expired
+    if (token && user && user.id && user.email && user.role) {
       // Double-check token is not expired by checking decoded.exp
       const decoded = decodeJWT(token);
       if (decoded && decoded.exp && decoded.exp * 1000 > Date.now()) {
@@ -125,7 +130,8 @@ export function middleware(request: NextRequest) {
       }
       // If token is expired or invalid, allow access to login page
     }
-    // If no valid token, expired token, or logout redirect, allow access to login page
+    // If no valid token or expired token, allow access to login page
+    return NextResponse.next();
   }
 
   return NextResponse.next();

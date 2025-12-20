@@ -59,8 +59,13 @@ export function ProtectedRoute({
 
       if (!hasAuth) {
         // No authentication found, redirect to login
+        // Use a one-time redirect flag to prevent loops
         if (typeof window !== 'undefined') {
-          window.location.href = redirectTo;
+          const redirectKey = `redirected_${redirectTo}_${Date.now()}`;
+          if (!sessionStorage.getItem(redirectKey)) {
+            sessionStorage.setItem(redirectKey, 'true');
+            window.location.href = redirectTo;
+          }
         }
         return;
       }
@@ -69,7 +74,12 @@ export function ProtectedRoute({
         // User doesn't have required role, redirect to appropriate dashboard
         const targetPath = currentUser.role === "admin" || currentUser.role === "super_admin" ? "/admin" : "/user";
         if (typeof window !== 'undefined') {
-          window.location.href = targetPath;
+          // Use a one-time redirect flag to prevent loops
+          const redirectKey = `redirected_${targetPath}_${Date.now()}`;
+          if (!sessionStorage.getItem(redirectKey)) {
+            sessionStorage.setItem(redirectKey, 'true');
+            window.location.href = targetPath;
+          }
         }
         return;
       }

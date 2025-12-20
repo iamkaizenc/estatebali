@@ -20,22 +20,29 @@ export default function LoginPage() {
 
   // Redirect if already authenticated (but not if coming from logout)
   useEffect(() => {
+    // Don't do anything while still loading
+    if (authLoading || loading) {
+      return;
+    }
+
     // Check if this is a logout redirect
     const isLogoutRedirect = typeof window !== 'undefined' 
       ? new URLSearchParams(window.location.search).get('logout') === 'true'
       : false;
     
-    // Only redirect if authenticated AND not a logout redirect
-    if (!authLoading && !loading && isAuthenticated && user && !isLogoutRedirect) {
-      const targetPath = user.role === "admin" || user.role === "super_admin" ? "/admin" : "/user";
-      router.replace(targetPath);
+    // If logout redirect, clean up URL immediately and don't redirect
+    if (isLogoutRedirect && typeof window !== 'undefined') {
+      window.history.replaceState({}, '', '/login');
+      return; // Don't redirect if coming from logout
     }
     
-    // If logout redirect, clean up the URL after a moment
-    if (isLogoutRedirect && typeof window !== 'undefined') {
-      setTimeout(() => {
-        window.history.replaceState({}, '', '/login');
-      }, 100);
+    // Only redirect if authenticated AND not a logout redirect AND we have a valid user
+    if (isAuthenticated && user && user.id && user.email && !isLogoutRedirect) {
+      const targetPath = user.role === "admin" || user.role === "super_admin" ? "/admin" : "/user";
+      // Use window.location for reliable redirect
+      if (typeof window !== 'undefined') {
+        window.location.href = targetPath;
+      }
     }
   }, [authLoading, loading, isAuthenticated, user, router]);
 
