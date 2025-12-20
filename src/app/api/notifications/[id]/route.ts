@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server';
 import { apiMessage, apiError, apiUnauthorized } from '@/lib/api-response';
 import { verifyAuth } from '@/lib/api-auth';
 import { supabaseAdmin, isSupabaseConfigured } from '@/lib/supabaseAdmin';
+import { logger } from '@/lib/logger';
 
 // Mark notification as read
 export async function PATCH(
@@ -40,7 +41,7 @@ export async function PATCH(
       .eq('user_id', userData.id);
 
     if (error) {
-      console.error('Notification update error:', error);
+      logger.error('Notification update error', error instanceof Error ? error : new Error(String(error)));
       return apiError('Failed to update notification: ' + error.message);
     }
 
@@ -88,7 +89,7 @@ export async function DELETE(
       .eq('user_id', userData.id);
 
     if (error) {
-      console.error('Notification delete error:', error);
+      logger.error('Notification delete error', error instanceof Error ? error : new Error(String(error)));
       return apiError('Failed to delete notification: ' + error.message);
     }
 

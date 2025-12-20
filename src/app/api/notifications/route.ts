@@ -60,7 +60,7 @@ export async function GET(request: NextRequest) {
     const { data: notifications, error, count } = await query;
 
     if (error) {
-      console.error('Notifications fetch error:', error);
+      logger.error('Notifications fetch error', error instanceof Error ? error : new Error(String(error)));
       return apiError('Failed to fetch notifications: ' + error.message);
     }
 
@@ -141,7 +141,7 @@ export async function POST(request: NextRequest) {
 
     return apiSuccess(notification, 'Notification created successfully', 201);
   } catch (error) {
-    console.error('Notification creation error:', error);
+    logger.error('Notification creation error', error instanceof Error ? error : new Error(String(error)));
     return apiError('Failed to create notification');
   }
 }
