@@ -59,12 +59,12 @@ export function ProtectedRoute({
 
       if (!hasAuth) {
         // No authentication found, redirect to login
-        // Use a one-time redirect flag to prevent loops
+        // Only redirect once - check if we're already on the redirect target
         if (typeof window !== 'undefined') {
-          const redirectKey = `redirected_${redirectTo}_${Date.now()}`;
-          if (!sessionStorage.getItem(redirectKey)) {
-            sessionStorage.setItem(redirectKey, 'true');
-            window.location.href = redirectTo;
+          const currentPath = window.location.pathname;
+          if (currentPath !== redirectTo) {
+            // Use replace to avoid adding to history
+            window.location.replace(redirectTo);
           }
         }
         return;
@@ -74,11 +74,10 @@ export function ProtectedRoute({
         // User doesn't have required role, redirect to appropriate dashboard
         const targetPath = currentUser.role === "admin" || currentUser.role === "super_admin" ? "/admin" : "/user";
         if (typeof window !== 'undefined') {
-          // Use a one-time redirect flag to prevent loops
-          const redirectKey = `redirected_${targetPath}_${Date.now()}`;
-          if (!sessionStorage.getItem(redirectKey)) {
-            sessionStorage.setItem(redirectKey, 'true');
-            window.location.href = targetPath;
+          const currentPath = window.location.pathname;
+          if (currentPath !== targetPath) {
+            // Use replace to avoid adding to history
+            window.location.replace(targetPath);
           }
         }
         return;
@@ -105,28 +104,49 @@ export function ProtectedRoute({
   const hasAuth = isAuthenticated || !!tokenUser;
   const currentUser = user || tokenUser;
 
-  if (!hasAuth) {
-    // Show loading while redirecting
-    return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
-        <div className="text-center">
-          <div className="h-8 w-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-gray-400">Redirecting...</p>
+  // Don't show redirecting screen if we're already on the redirect target
+  // This prevents the infinite redirect loop
+  if (typeof window !== 'undefined') {
+    const currentPath = window.location.pathname;
+    
+    if (!hasAuth && currentPath !== redirectTo) {
+      // Show loading while redirecting (only if not already on target)
+      return (
+        <div className="min-h-screen bg-black flex items-center justify-center">
+          <div className="text-center">
+            <div className="h-8 w-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+            <p className="text-gray-400">Redirecting...</p>
+          </div>
         </div>
-      </div>
-    );
-  }
+      );
+    }
 
-  if (allowedRoles.length > 0 && currentUser && !allowedRoles.includes(currentUser.role)) {
-    // Show loading while redirecting
-    return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
-        <div className="text-center">
-          <div className="h-8 w-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-gray-400">Redirecting...</p>
+    if (allowedRoles.length > 0 && currentUser && !allowedRoles.includes(currentUser.role)) {
+      const targetPath = currentUser.role === "admin" || currentUser.role === "super_admin" ? "/admin" : "/user";
+      if (currentPath !== targetPath) {
+        // Show loading while redirecting (only if not already on target)
+        return (
+          <div className="min-h-screen bg-black flex items-center justify-center">
+            <div className="text-center">
+              <div className="h-8 w-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+              <p className="text-gray-400">Redirecting...</p>
+            </div>
+          </div>
+        );
+      }
+    }
+  } else {
+    // SSR fallback - show redirecting if not authenticated
+    if (!hasAuth) {
+      return (
+        <div className="min-h-screen bg-black flex items-center justify-center">
+          <div className="text-center">
+            <div className="h-8 w-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+            <p className="text-gray-400">Redirecting...</p>
+          </div>
         </div>
-      </div>
-    );
+      );
+    }
   }
 
   return <>{children}</>;

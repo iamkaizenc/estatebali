@@ -25,23 +25,29 @@ export default function LoginPage() {
       return;
     }
 
+    if (typeof window === 'undefined') {
+      return;
+    }
+
     // Check if this is a logout redirect
-    const isLogoutRedirect = typeof window !== 'undefined' 
-      ? new URLSearchParams(window.location.search).get('logout') === 'true'
-      : false;
+    const isLogoutRedirect = new URLSearchParams(window.location.search).get('logout') === 'true';
     
     // If logout redirect, clean up URL immediately and don't redirect
-    if (isLogoutRedirect && typeof window !== 'undefined') {
+    if (isLogoutRedirect) {
       window.history.replaceState({}, '', '/login');
       return; // Don't redirect if coming from logout
     }
     
     // Only redirect if authenticated AND not a logout redirect AND we have a valid user
+    // AND we're not already on the target page
     if (isAuthenticated && user && user.id && user.email && !isLogoutRedirect) {
       const targetPath = user.role === "admin" || user.role === "super_admin" ? "/admin" : "/user";
-      // Use window.location for reliable redirect
-      if (typeof window !== 'undefined') {
-        window.location.href = targetPath;
+      const currentPath = window.location.pathname;
+      
+      // Only redirect if we're not already on the target page
+      if (currentPath !== targetPath) {
+        // Use replace to avoid adding to history
+        window.location.replace(targetPath);
       }
     }
   }, [authLoading, loading, isAuthenticated, user, router]);

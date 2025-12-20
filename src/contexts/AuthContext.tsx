@@ -177,17 +177,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Redirect to login page with logout param to prevent middleware redirect
       if (typeof window !== 'undefined') {
         // Small delay to ensure API call completes and cookies are cleared
-        await new Promise(resolve => setTimeout(resolve, 300));
-        // Clear any redirect flags from sessionStorage
-        if (typeof sessionStorage !== 'undefined') {
-          Object.keys(sessionStorage).forEach(key => {
-            if (key.startsWith('redirected_')) {
-              sessionStorage.removeItem(key);
-            }
-          });
-        }
-        // Redirect to login with logout param so middleware knows it's a logout
-        window.location.href = '/login?logout=true';
+        await new Promise(resolve => setTimeout(resolve, 200));
+        // Use replace instead of href to avoid adding to history
+        window.location.replace('/login?logout=true');
       } else {
         // Fallback for SSR
         router.replace('/login?logout=true');
