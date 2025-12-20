@@ -1,7 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState, useRef } from "react";
 import { useAuthSafe } from "@/contexts/AuthContext";
 import { UserRole } from "@/types";
 import { getUser } from "@/lib/auth";
@@ -18,17 +17,17 @@ export function ProtectedRoute({
   redirectTo = "/login"
 }: ProtectedRouteProps) {
   const { isAuthenticated, loading, user } = useAuthSafe();
-  const router = useRouter();
   const [mounted, setMounted] = useState(false);
-  const [hasRedirected, setHasRedirected] = useState(false);
+  const redirectAttempted = useRef(false);
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  // Only check auth and redirect once after mount and loading complete
+  // Only redirect once, and only after everything is loaded
   useEffect(() => {
-    if (!mounted || loading || hasRedirected) {
+    // Don't redirect if still loading, not mounted, or already attempted
+    if (!mounted || loading || redirectAttempted.current) {
       return;
     }
 
@@ -44,25 +43,30 @@ export function ProtectedRoute({
     const hasAuth = isAuthenticated || !!tokenUser;
     const currentUser = user || tokenUser;
 
+    // Mark redirect as attempted to prevent loops
+    redirectAttempted.current = true;
+
     if (!hasAuth) {
-      // No authentication found, redirect to login
+      // No authentication found - middleware should have handled this, but redirect just in case
       if (currentPath !== redirectTo) {
-        setHasRedirected(true);
         window.location.replace(redirectTo);
       }
       return;
     }
 
+    // Check role permissions
     if (allowedRoles.length > 0 && currentUser && !allowedRoles.includes(currentUser.role)) {
-      // User doesn't have required role, redirect to appropriate dashboard
       const targetPath = currentUser.role === "admin" || currentUser.role === "super_admin" ? "/admin" : "/user";
       if (currentPath !== targetPath) {
-        setHasRedirected(true);
         window.location.replace(targetPath);
       }
       return;
     }
-  }, [mounted, loading, isAuthenticated, user, allowedRoles, redirectTo, hasRedirected]);
+
+    // If we get here, auth is valid and role is correct - allow access
+    // Reset redirectAttempted so component can re-check if needed
+    redirectAttempted.current = false;
+  }, [mounted, loading, isAuthenticated, user, allowedRoles, redirectTo]);
 
   // Show loading while checking auth
   if (!mounted || loading) {
@@ -76,7 +80,7 @@ export function ProtectedRoute({
     );
   }
 
-  // Check token directly as fallback
+  // Check auth status
   const token = typeof window !== 'undefined' 
     ? localStorage.getItem('auth_token') || localStorage.getItem('admin_token')
     : null;
@@ -84,47 +88,28 @@ export function ProtectedRoute({
   const hasAuth = isAuthenticated || !!tokenUser;
   const currentUser = user || tokenUser;
 
-  // Show redirecting only if we're actually redirecting (hasRedirected is true)
-  if (hasRedirected) {
+  // If not authenticated, middleware should have redirected, but show loading just in case
+  if (!hasAuth) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
         <div className="text-center">
           <div className="h-8 w-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-gray-400">Redirecting...</p>
+          <p className="text-gray-400">Loading...</p>
         </div>
       </div>
     );
   }
 
-  // If not authenticated and not redirecting yet, show redirecting
-  if (!hasAuth) {
-    const currentPath = typeof window !== 'undefined' ? window.location.pathname : '';
-    if (currentPath !== redirectTo) {
-      return (
-        <div className="min-h-screen bg-black flex items-center justify-center">
-          <div className="text-center">
-            <div className="h-8 w-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-            <p className="text-gray-400">Redirecting...</p>
-          </div>
-        </div>
-      );
-    }
-  }
-
-  // If user doesn't have required role and not redirecting yet, show redirecting
+  // If user doesn't have required role, show loading (redirect should happen in useEffect)
   if (allowedRoles.length > 0 && currentUser && !allowedRoles.includes(currentUser.role)) {
-    const targetPath = currentUser.role === "admin" || currentUser.role === "super_admin" ? "/admin" : "/user";
-    const currentPath = typeof window !== 'undefined' ? window.location.pathname : '';
-    if (currentPath !== targetPath) {
-      return (
-        <div className="min-h-screen bg-black flex items-center justify-center">
-          <div className="text-center">
-            <div className="h-8 w-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-            <p className="text-gray-400">Redirecting...</p>
-          </div>
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="text-center">
+          <div className="h-8 w-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-gray-400">Loading...</p>
         </div>
-      );
-    }
+      </div>
+    );
   }
 
   // All checks passed, render children
