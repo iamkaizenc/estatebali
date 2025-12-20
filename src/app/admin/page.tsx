@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { ImageUpload } from "@/components/ImageUpload";
 import { motion, AnimatePresence } from "framer-motion";
+import { logger } from "@/lib/logger";
 
 type TabType = "properties" | "users" | "images" | "motorcycles";
 
@@ -57,7 +58,7 @@ function AdminDashboard() {
       // Force hard redirect to login (NOT router.push)
       window.location.href = '/login';
     } catch (error) {
-      console.error('Logout error:', error);
+      logger.error('Logout error', error instanceof Error ? error : new Error(String(error)));
       // Force redirect even if there's an error
       window.location.href = '/login';
     }
@@ -121,7 +122,7 @@ function AdminDashboard() {
         }
       }
     } catch (error) {
-      console.error("Error fetching users:", error);
+      logger.error("Error fetching users", error instanceof Error ? error : new Error(String(error)));
     } finally {
       setUsersLoading(false);
     }
@@ -153,7 +154,7 @@ function AdminDashboard() {
           alert(result.error || 'Failed to delete property');
         }
       } catch (error: any) {
-        console.error('Delete error:', error);
+        logger.error('Delete error', error instanceof Error ? error : new Error(String(error)));
         alert('Failed to delete property: ' + (error.message || 'Unknown error'));
       }
     }
@@ -217,7 +218,7 @@ function AdminDashboard() {
         alert(result.error || 'Failed to update property');
       }
     } catch (error: any) {
-      console.error('Toggle featured error:', error);
+      logger.error('Toggle featured error', error instanceof Error ? error : new Error(String(error)));
       alert('Error updating property: ' + (error.message || 'Unknown error'));
     }
   };
@@ -256,7 +257,7 @@ function AdminDashboard() {
         alert(result.error || 'Failed to update property show on rent motorbike status');
       }
     } catch (error: any) {
-      console.error('Toggle show on rent motorbike error:', error);
+      logger.error('Toggle show on rent motorbike error', error instanceof Error ? error : new Error(String(error)));
       alert('Error updating property: ' + (error.message || 'Unknown error'));
     }
   };
@@ -295,7 +296,7 @@ function AdminDashboard() {
         alert(result.error || 'Failed to update property');
       }
     } catch (error: any) {
-      console.error('Toggle verified error:', error);
+      logger.error('Toggle verified error', error instanceof Error ? error : new Error(String(error)));
       alert('Error updating property: ' + (error.message || 'Unknown error'));
     }
   };
@@ -334,7 +335,7 @@ function AdminDashboard() {
         alert(result.error || 'Failed to update property visibility');
       }
     } catch (error: any) {
-      console.error('Toggle available error:', error);
+      logger.error('Toggle available error', error instanceof Error ? error : new Error(String(error)));
       alert('Error updating property visibility: ' + (error.message || 'Unknown error'));
     }
   };
@@ -419,11 +420,11 @@ function AdminDashboard() {
         }
       } else {
         const error = await response.json();
-        console.error('Save error response:', error);
+        logger.error('Save error response', error instanceof Error ? error : new Error(String(error)));
         alert(error.error || error.message || 'Failed to save property');
       }
     } catch (error: any) {
-      console.error('Save error:', error);
+      logger.error('Save error', error instanceof Error ? error : new Error(String(error)));
       alert('Error saving property: ' + (error.message || 'Unknown error'));
     } finally {
       setSaving(false);
@@ -498,11 +499,11 @@ function AdminDashboard() {
         }
       } else {
         const error = await response.json();
-        console.error('Save motorcycle error response:', error);
+        logger.error('Save motorcycle error response', error instanceof Error ? error : new Error(String(error)));
         alert(error.error || error.message || 'Failed to save motorcycle');
       }
     } catch (error: any) {
-      console.error('Save motorcycle error:', error);
+      logger.error('Save motorcycle error', error instanceof Error ? error : new Error(String(error)));
       alert('Error saving motorcycle: ' + (error.message || 'Unknown error'));
     } finally {
       setSavingMotorcycle(false);
@@ -541,7 +542,7 @@ function AdminDashboard() {
           alert(result.error || 'Failed to delete motorcycle');
         }
       } catch (error: any) {
-        console.error('Delete motorcycle error:', error);
+        logger.error('Delete motorcycle error', error instanceof Error ? error : new Error(String(error)));
         alert('Failed to delete motorcycle: ' + (error.message || 'Unknown error'));
       }
     }
@@ -581,7 +582,7 @@ function AdminDashboard() {
         alert(result.error || 'Failed to update motorcycle visibility');
       }
     } catch (error: any) {
-      console.error('Toggle available motorcycle error:', error);
+      logger.error('Toggle available motorcycle error', error instanceof Error ? error : new Error(String(error)));
       alert('Error updating motorcycle visibility: ' + (error.message || 'Unknown error'));
     }
   };
@@ -615,7 +616,7 @@ function AdminDashboard() {
         alert(result.error || 'Failed to update user role');
       }
     } catch (error: any) {
-      console.error('Update user role error:', error);
+      logger.error('Update user role error', error instanceof Error ? error : new Error(String(error)));
       alert('Failed to update user role: ' + (error.message || 'Unknown error'));
     }
   };

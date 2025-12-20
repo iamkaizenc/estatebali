@@ -10,6 +10,7 @@ import { Property } from "@/types";
 import { Plus, Edit, Trash2, LogOut, User as UserIcon, Home, Heart } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { logger } from "@/lib/logger";
 
 function UserDashboard() {
   const { user, logout } = useAuthSafe();
@@ -90,7 +91,7 @@ function UserDashboard() {
       // Force hard redirect to login (NOT router.push)
       window.location.href = '/login';
     } catch (error) {
-      console.error('Logout error:', error);
+      logger.error('Logout error', error instanceof Error ? error : new Error(String(error)));
       // Force redirect even if there's an error
       window.location.href = '/login';
     }
@@ -206,7 +207,7 @@ function UserDashboard() {
                               alert(result.error || 'Failed to delete property');
                             }
                           } catch (error: any) {
-                            console.error('Delete error:', error);
+                            logger.error('Delete error', error instanceof Error ? error : new Error(String(error)));
                             alert('Error deleting property: ' + (error.message || 'Unknown error'));
                           }
                         }

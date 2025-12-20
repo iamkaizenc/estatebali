@@ -55,11 +55,27 @@ export function ProtectedRoute({
   }
 
   if (!isAuthenticated) {
-    return null;
+    // Show loading while redirecting instead of null (prevents black screen)
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="text-center">
+          <div className="h-8 w-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-gray-400">Redirecting...</p>
+        </div>
+      </div>
+    );
   }
 
   if (allowedRoles.length > 0 && user && !allowedRoles.includes(user.role)) {
-    return null;
+    // Show loading while redirecting instead of null (prevents black screen)
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="text-center">
+          <div className="h-8 w-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-gray-400">Redirecting...</p>
+        </div>
+      </div>
+    );
   }
 
   return <>{children}</>;

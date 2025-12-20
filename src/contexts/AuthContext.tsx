@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { getUser } from "@/lib/auth";
 import { AuthUser } from "@/types";
 import { supabase } from "@/lib/supabase";
+import { logger } from "@/lib/logger";
 
 interface AuthContextType {
   user: AuthUser | null;
@@ -45,7 +46,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Listen to Supabase auth state changes
     if (supabase) {
       const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-        console.log('[AuthContext] Auth state changed:', event, session);
+        logger.debug('[AuthContext] Auth state changed', { event, hasSession: !!session });
         
         if (event === 'SIGNED_OUT') {
           // Clear all auth state
@@ -78,10 +79,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return { success: false, error: 'Login is only available in the browser' };
     }
 
-    console.log('[Login] Attempting login for:', email);
+    logger.debug('[Login] Attempting login for', email);
     
     try {
-      console.log('[Login] Sending request to /api/auth/login');
+      logger.debug('[Login] Sending request to /api/auth/login');
       const response = await fetch("/api/auth/login", {
         method: "POST",
         headers: {
@@ -90,9 +91,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         body: JSON.stringify({ email, password }),
       });
 
-      console.log('[Login] Response status:', response.status, response.statusText);
+      logger.debug('[Login] Response status', { status: response.status, statusText: response.statusText });
       const result = await response.json();
-      console.log('[Login] Response data:', { success: result.success, hasToken: !!result.token, error: result.error });
+      logger.debug('[Login] Response data', { success: result.success, hasToken: !!result.token, error: result.error });
 
       if (result.success && result.token) {
         // Store token (client-side only)
@@ -150,7 +151,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Force refresh to update all UI state
       router.refresh();
     } catch (error) {
-      console.error('Logout error:', error);
+      logger.error('Logout error', error instanceof Error ? error : new Error(String(error)));
       // Clear state even on error
       setUser(null);
       if (typeof window !== 'undefined') {
@@ -249,7 +250,7 @@ export function useAuthSafe() {
             window.location.href = '/';
           }
         } catch (error) {
-          console.error('Logout error:', error);
+          logger.error('Logout error', error instanceof Error ? error : new Error(String(error)));
           // Force redirect even on error
           if (typeof window !== 'undefined') {
             window.location.href = '/';
