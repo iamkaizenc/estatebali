@@ -20,72 +20,52 @@ export function ProtectedRoute({
   const { isAuthenticated, loading, user } = useAuthSafe();
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
-  const [checkingAuth, setCheckingAuth] = useState(true);
+  const [hasRedirected, setHasRedirected] = useState(false);
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  // Check token directly from localStorage as fallback
+  // Only check auth and redirect once after mount and loading complete
   useEffect(() => {
-    if (mounted && typeof window !== 'undefined') {
-      const token = localStorage.getItem('auth_token') || localStorage.getItem('admin_token');
-      if (token) {
-        const tokenUser = getUser(token);
-        if (tokenUser) {
-          // Token exists and is valid, but context might not be updated yet
-          // Give context a moment to update before redirecting
-          const timeout = setTimeout(() => {
-            setCheckingAuth(false);
-          }, 100);
-          return () => clearTimeout(timeout);
-        }
-      }
-      setCheckingAuth(false);
-    } else if (mounted) {
-      setCheckingAuth(false);
+    if (!mounted || loading || hasRedirected) {
+      return;
     }
-  }, [mounted]);
 
-  useEffect(() => {
-    if (mounted && !loading && !checkingAuth) {
-      // Check token directly as fallback
-      const token = typeof window !== 'undefined' 
-        ? localStorage.getItem('auth_token') || localStorage.getItem('admin_token')
-        : null;
-      const tokenUser = token ? getUser(token) : null;
-      const hasAuth = isAuthenticated || !!tokenUser;
-      const currentUser = user || tokenUser;
-
-      if (!hasAuth) {
-        // No authentication found, redirect to login
-        // Only redirect once - check if we're already on the redirect target
-        if (typeof window !== 'undefined') {
-          const currentPath = window.location.pathname;
-          if (currentPath !== redirectTo) {
-            // Use replace to avoid adding to history
-            window.location.replace(redirectTo);
-          }
-        }
-        return;
-      }
-
-      if (allowedRoles.length > 0 && currentUser && !allowedRoles.includes(currentUser.role)) {
-        // User doesn't have required role, redirect to appropriate dashboard
-        const targetPath = currentUser.role === "admin" || currentUser.role === "super_admin" ? "/admin" : "/user";
-        if (typeof window !== 'undefined') {
-          const currentPath = window.location.pathname;
-          if (currentPath !== targetPath) {
-            // Use replace to avoid adding to history
-            window.location.replace(targetPath);
-          }
-        }
-        return;
-      }
+    if (typeof window === 'undefined') {
+      return;
     }
-  }, [mounted, loading, checkingAuth, isAuthenticated, user, allowedRoles, redirectTo]);
 
-  if (!mounted || loading || checkingAuth) {
+    const currentPath = window.location.pathname;
+    
+    // Check token directly as fallback
+    const token = localStorage.getItem('auth_token') || localStorage.getItem('admin_token');
+    const tokenUser = token ? getUser(token) : null;
+    const hasAuth = isAuthenticated || !!tokenUser;
+    const currentUser = user || tokenUser;
+
+    if (!hasAuth) {
+      // No authentication found, redirect to login
+      if (currentPath !== redirectTo) {
+        setHasRedirected(true);
+        window.location.replace(redirectTo);
+      }
+      return;
+    }
+
+    if (allowedRoles.length > 0 && currentUser && !allowedRoles.includes(currentUser.role)) {
+      // User doesn't have required role, redirect to appropriate dashboard
+      const targetPath = currentUser.role === "admin" || currentUser.role === "super_admin" ? "/admin" : "/user";
+      if (currentPath !== targetPath) {
+        setHasRedirected(true);
+        window.location.replace(targetPath);
+      }
+      return;
+    }
+  }, [mounted, loading, isAuthenticated, user, allowedRoles, redirectTo, hasRedirected]);
+
+  // Show loading while checking auth
+  if (!mounted || loading) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
         <div className="text-center">
@@ -104,40 +84,22 @@ export function ProtectedRoute({
   const hasAuth = isAuthenticated || !!tokenUser;
   const currentUser = user || tokenUser;
 
-  // Don't show redirecting screen if we're already on the redirect target
-  // This prevents the infinite redirect loop
-  if (typeof window !== 'undefined') {
-    const currentPath = window.location.pathname;
-    
-    if (!hasAuth && currentPath !== redirectTo) {
-      // Show loading while redirecting (only if not already on target)
-      return (
-        <div className="min-h-screen bg-black flex items-center justify-center">
-          <div className="text-center">
-            <div className="h-8 w-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-            <p className="text-gray-400">Redirecting...</p>
-          </div>
+  // Show redirecting only if we're actually redirecting (hasRedirected is true)
+  if (hasRedirected) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="text-center">
+          <div className="h-8 w-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-gray-400">Redirecting...</p>
         </div>
-      );
-    }
+      </div>
+    );
+  }
 
-    if (allowedRoles.length > 0 && currentUser && !allowedRoles.includes(currentUser.role)) {
-      const targetPath = currentUser.role === "admin" || currentUser.role === "super_admin" ? "/admin" : "/user";
-      if (currentPath !== targetPath) {
-        // Show loading while redirecting (only if not already on target)
-        return (
-          <div className="min-h-screen bg-black flex items-center justify-center">
-            <div className="text-center">
-              <div className="h-8 w-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-              <p className="text-gray-400">Redirecting...</p>
-            </div>
-          </div>
-        );
-      }
-    }
-  } else {
-    // SSR fallback - show redirecting if not authenticated
-    if (!hasAuth) {
+  // If not authenticated and not redirecting yet, show redirecting
+  if (!hasAuth) {
+    const currentPath = typeof window !== 'undefined' ? window.location.pathname : '';
+    if (currentPath !== redirectTo) {
       return (
         <div className="min-h-screen bg-black flex items-center justify-center">
           <div className="text-center">
@@ -149,6 +111,23 @@ export function ProtectedRoute({
     }
   }
 
+  // If user doesn't have required role and not redirecting yet, show redirecting
+  if (allowedRoles.length > 0 && currentUser && !allowedRoles.includes(currentUser.role)) {
+    const targetPath = currentUser.role === "admin" || currentUser.role === "super_admin" ? "/admin" : "/user";
+    const currentPath = typeof window !== 'undefined' ? window.location.pathname : '';
+    if (currentPath !== targetPath) {
+      return (
+        <div className="min-h-screen bg-black flex items-center justify-center">
+          <div className="text-center">
+            <div className="h-8 w-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+            <p className="text-gray-400">Redirecting...</p>
+          </div>
+        </div>
+      );
+    }
+  }
+
+  // All checks passed, render children
   return <>{children}</>;
 }
 
