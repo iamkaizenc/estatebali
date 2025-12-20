@@ -46,7 +46,9 @@ export async function GET(request: NextRequest) {
       return NextResponse.redirect(new URL('/login?error=service_unavailable', requestUrl.origin));
     }
     
-    const { data: existingUser } = await supabaseAdmin
+    // TypeScript type narrowing - supabaseAdmin is guaranteed non-null here
+    const adminClient = supabaseAdmin;
+    const { data: existingUser } = await adminClient
       .from('users')
       .select('id, email, name, role')
       .eq('email', email)
@@ -61,11 +63,8 @@ export async function GET(request: NextRequest) {
       userRole = existingUser.role || 'customer';
     } else {
       // Create new user in users table
-      if (!supabaseAdmin) {
-        return NextResponse.redirect(new URL('/login?error=service_unavailable', requestUrl.origin));
-      }
-      
-      const { data: newUser, error: createError } = await supabaseAdmin
+      // adminClient is already guaranteed non-null from above check
+      const { data: newUser, error: createError } = await adminClient
         .from('users')
         .insert({
           email: email,
@@ -77,7 +76,7 @@ export async function GET(request: NextRequest) {
         .single();
 
       if (createError || !newUser) {
-        console.error('[OAuth Callback] Failed to create user:', createError);
+        logger.error('[OAuth Callback] Failed to create user', createError instanceof Error ? createError : new Error(String(createError)));
         return NextResponse.redirect(new URL('/login?error=user_creation_failed', requestUrl.origin));
       }
 

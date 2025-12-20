@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { isValidEmail, normalizeEmail } from '@/lib/validators';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
+import { logger } from '@/lib/logger';
 
 type WaitlistResponse = {
   status: 'success' | 'duplicate' | 'error';
