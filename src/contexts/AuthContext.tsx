@@ -120,9 +120,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = async () => {
     try {
+      // Clear user state FIRST to prevent any UI updates
+      setUser(null);
+
       // Sign out from Supabase if available
       if (supabase) {
-        await supabase.auth.signOut();
+        try {
+          await supabase.auth.signOut();
+        } catch (supabaseError) {
+          // Continue even if Supabase signOut fails
+          logger.debug('Supabase signOut error (non-critical)', supabaseError instanceof Error ? supabaseError : new Error(String(supabaseError)));
+        }
       }
 
       // Clear storage (client-side only)
@@ -132,24 +140,47 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // Also clear sessionStorage
         sessionStorage.clear();
       }
-      // Clear cookies (if in browser)
+
+      // Clear cookies aggressively (if in browser)
       if (typeof document !== 'undefined') {
-        document.cookie = 'auth_token=; path=/; max-age=0; SameSite=Lax';
-        document.cookie = 'admin_token=; path=/; max-age=0; SameSite=Lax';
-        // Clear all cookies
+        // Clear auth cookies with all possible variations
+        const cookiePaths = ['/', '/admin', '/user', '/login'];
+        const cookieNames = ['auth_token', 'admin_token'];
+        
+        cookiePaths.forEach(path => {
+          cookieNames.forEach(name => {
+            // Clear with different expiration methods
+            document.cookie = `${name}=; path=${path}; max-age=0; SameSite=Lax; Secure`;
+            document.cookie = `${name}=; path=${path}; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax; Secure`;
+            document.cookie = `${name}=; path=${path}; max-age=0; SameSite=Strict; Secure`;
+            document.cookie = `${name}=; path=${path}; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Strict; Secure`;
+            // Also try without Secure flag
+            document.cookie = `${name}=; path=${path}; max-age=0; SameSite=Lax`;
+            document.cookie = `${name}=; path=${path}; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax`;
+          });
+        });
+
+        // Clear all cookies (fallback)
         document.cookie.split(";").forEach((c) => {
-          document.cookie = c
-            .replace(/^ +/, "")
-            .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+          const cookieName = c.split("=")[0].trim();
+          cookiePaths.forEach(path => {
+            document.cookie = `${cookieName}=; path=${path}; max-age=0; SameSite=Lax`;
+            document.cookie = `${cookieName}=; path=${path}; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax`;
+          });
         });
       }
-      // Clear user state
-      setUser(null);
       
-      // Use router.replace to prevent back button issues
-      router.replace('/');
-      // Force refresh to update all UI state
-      router.refresh();
+      // Use hard redirect to ensure cookies are cleared and middleware sees the change
+      // This prevents the redirect loop issue
+      if (typeof window !== 'undefined') {
+        // Small delay to ensure cookies are cleared
+        await new Promise(resolve => setTimeout(resolve, 100));
+        window.location.href = '/';
+      } else {
+        // Fallback for SSR
+        router.replace('/');
+        router.refresh();
+      }
     } catch (error) {
       logger.error('Logout error', error instanceof Error ? error : new Error(String(error)));
       // Clear state even on error
@@ -157,10 +188,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (typeof window !== 'undefined') {
         localStorage.clear();
         sessionStorage.clear();
+        // Force hard redirect even on error
+        window.location.href = '/';
+      } else {
+        router.replace('/');
+        router.refresh();
       }
-      // Force redirect even if there's an error
-      router.replace('/');
-      router.refresh();
     }
   };
   

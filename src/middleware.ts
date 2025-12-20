@@ -102,14 +102,25 @@ export function middleware(request: NextRequest) {
   }
 
   // Redirect /login if already authenticated
+  // BUT: Check if this is a logout redirect by checking for a special header or query param
+  // This prevents redirect loops after logout
   if (pathname === '/login') {
-    if (token && user) {
-      if (user.role === 'admin' || user.role === 'super_admin') {
-        return NextResponse.redirect(new URL('/admin', request.url));
-      } else {
-        return NextResponse.redirect(new URL('/user', request.url));
+    // Check for logout indicator in query params or referer
+    const isLogoutRedirect = request.nextUrl.searchParams.get('logout') === 'true' ||
+                              request.headers.get('referer')?.includes('/logout');
+    
+    if (token && user && !isLogoutRedirect) {
+      // Only redirect if we have a valid token AND it's not a logout redirect
+      // Verify token is not expired
+      if (user.id && user.email) {
+        if (user.role === 'admin' || user.role === 'super_admin') {
+          return NextResponse.redirect(new URL('/admin', request.url));
+        } else {
+          return NextResponse.redirect(new URL('/user', request.url));
+        }
       }
     }
+    // If no valid token or logout redirect, allow access to login page
   }
 
   return NextResponse.next();
