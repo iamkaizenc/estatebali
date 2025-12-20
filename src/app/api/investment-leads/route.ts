@@ -11,6 +11,7 @@ import {
 } from '@/lib/api-response';
 import { verifyAuth } from '@/lib/api-auth';
 import { supabaseAdmin, isSupabaseConfigured } from '@/lib/supabaseAdmin';
+import { logger } from '@/lib/logger';
 
 // Investment Leads API
 // POST /api/investment-leads - Create new investment lead
@@ -69,7 +70,7 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (error) {
-      console.error('Investment lead creation error:', error);
+      logger.error('Investment lead creation error', error instanceof Error ? error : new Error(String(error)));
       return apiError('Failed to create investment lead: ' + error.message);
     }
 
@@ -97,7 +98,7 @@ export async function POST(request: NextRequest) {
       }
     } catch (emailError) {
       // Don't fail lead creation if email fails
-      console.error('[Investment Leads] Failed to send admin notification email:', emailError);
+        logger.error('[Investment Leads] Failed to send admin notification email', emailError instanceof Error ? emailError : new Error(String(emailError)));
     }
 
     return apiSuccess(
@@ -106,7 +107,7 @@ export async function POST(request: NextRequest) {
       201
     );
   } catch (error) {
-    console.error('Investment lead creation error:', error);
+    logger.error('Investment lead creation error', error instanceof Error ? error : new Error(String(error)));
     return apiError('Failed to create investment lead');
   }
 }
@@ -147,13 +148,13 @@ export async function GET(request: NextRequest) {
     const { data: leads, error, count } = await query;
 
     if (error) {
-      console.error('Investment leads fetch error:', error);
+      logger.error('Investment leads fetch error', error instanceof Error ? error : new Error(String(error)));
       return apiError('Failed to fetch investment leads: ' + error.message);
     }
 
     return apiCollection(leads || [], count || 0, limit, offset);
   } catch (error) {
-    console.error('Investment leads fetch error:', error);
+    logger.error('Investment leads fetch error', error instanceof Error ? error : new Error(String(error)));
     return apiError('Failed to fetch investment leads');
   }
 }

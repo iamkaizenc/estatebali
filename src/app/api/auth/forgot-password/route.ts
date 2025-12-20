@@ -3,6 +3,7 @@ import { supabaseAdmin, isSupabaseConfigured } from "@/lib/supabaseAdmin";
 import { forgotPasswordSchema, validateData } from "@/lib/validation";
 import { rateLimitByEmail } from "@/lib/rate-limit";
 import { sendEmail, emailTemplates } from "@/lib/email";
+import { logger } from "@/lib/logger";
 import crypto from "crypto";
 
 // POST /api/auth/forgot-password - Send password reset email
@@ -85,14 +86,14 @@ export async function POST(request: NextRequest) {
 
     if (tokenError) {
       // eslint-disable-next-line no-console
-      console.error("Error storing reset token:", tokenError);
+      logger.error("Error storing reset token", tokenError instanceof Error ? tokenError : new Error(String(tokenError)));
       
       // Check if this is an RLS (Row Level Security) issue
       if (tokenError.code === "42501" || 
           tokenError.message?.includes("row-level security") || 
           tokenError.message?.includes("policy")) {
         // eslint-disable-next-line no-console
-        console.error("RLS Policy Error: password_reset_tokens table needs INSERT policy");
+        logger.error("RLS Policy Error: password_reset_tokens table needs INSERT policy", new Error("RLS Policy Error"));
         // Still return success for security (don't reveal if user exists)
       }
       // In production, you should ensure the table exists and has proper RLS policies
@@ -114,12 +115,10 @@ export async function POST(request: NextRequest) {
 
     // Log email result (but don't fail if email fails - security best practice)
     if (!emailResult.success) {
-      console.error("Failed to send password reset email:", emailResult.error);
+      logger.error("Failed to send password reset email", new Error(emailResult.error || 'Unknown error'));
 
       // In development, still log the URL
-      if (process.env.NODE_ENV === "development") {
-        console.log("Password reset link (DEV ONLY):", resetUrl);
-      }
+      logger.debug("Password reset link (DEV ONLY)", resetUrl);
     }
 
     return NextResponse.json({
@@ -130,7 +129,7 @@ export async function POST(request: NextRequest) {
     });
   } catch (error: any) {
     // eslint-disable-next-line no-console
-    console.error("Forgot password error:", error);
+    logger.error("Forgot password error", error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       { success: false, error: error.message || "Failed to process password reset request" },
       { status: 500 }

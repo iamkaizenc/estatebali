@@ -3,6 +3,7 @@ import { supabaseAdmin, isSupabaseConfigured } from "@/lib/supabaseAdmin";
 import { registerSchema, validateData } from "@/lib/validation";
 import { rateLimitByIP, type RateLimitResult } from "@/lib/rate-limit";
 import { sendEmail, emailTemplates } from "@/lib/email";
+import { logger } from "@/lib/logger";
 import bcrypt from "bcryptjs";
 
 // POST /api/auth/register - Register a new user
@@ -267,7 +268,7 @@ export async function POST(request: NextRequest) {
       });
     } catch (emailError) {
       // Log but don't fail registration
-      console.error("Failed to send welcome email:", emailError);
+      logger.error("Failed to send welcome email", emailError instanceof Error ? emailError : new Error(String(emailError)));
     }
 
     return NextResponse.json({

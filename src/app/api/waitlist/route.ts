@@ -25,7 +25,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<WaitlistR
     // Check if Supabase is configured
     if (!supabaseAdmin) {
       // Fallback mode: log to console if Supabase not configured
-      console.log('[Beta Waitlist] Email submitted (dev mode):', normalizedEmail);
+      logger.debug('[Beta Waitlist] Email submitted (dev mode)', normalizedEmail);
       return NextResponse.json({ status: 'success' });
     }
 
@@ -43,7 +43,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<WaitlistR
         return NextResponse.json({ status: 'duplicate' });
       }
 
-      console.error('[Beta Waitlist] Supabase error:', error);
+      logger.error('[Beta Waitlist] Supabase error', error instanceof Error ? error : new Error(String(error)));
       return NextResponse.json(
         { status: 'error', message: 'Failed to join waitlist' },
         { status: 500 }
@@ -79,17 +79,17 @@ export async function POST(request: NextRequest): Promise<NextResponse<WaitlistR
             .from('notifications')
             .insert(notifications);
 
-          console.log(`[Beta Waitlist] Sent notifications to ${adminUsers.length} admin(s) for email: ${normalizedEmail}`);
+          logger.debug(`[Beta Waitlist] Sent notifications to ${adminUsers.length} admin(s) for email`, normalizedEmail);
         }
       } catch (notifError) {
         // Don't fail the waitlist signup if notification fails
-        console.error('[Beta Waitlist] Failed to send admin notifications:', notifError);
+        logger.error('[Beta Waitlist] Failed to send admin notifications', notifError instanceof Error ? notifError : new Error(String(notifError)));
       }
     }
 
     return NextResponse.json({ status: 'success' });
   } catch (error) {
-    console.error('[Beta Waitlist] Unexpected error:', error);
+    logger.error('[Beta Waitlist] Unexpected error', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       { status: 'error', message: 'Something went wrong' },
       { status: 500 }

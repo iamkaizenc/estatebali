@@ -9,6 +9,7 @@ import {
 } from '@/lib/api-response';
 import { verifyAuth } from '@/lib/api-auth';
 import { supabaseAdmin, isSupabaseConfigured } from '@/lib/supabaseAdmin';
+import { logger } from '@/lib/logger';
 
 // Bookings API
 export async function POST(request: NextRequest) {
@@ -95,7 +96,7 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (error) {
-      console.error('Booking creation error:', error);
+      logger.error('Booking creation error', error instanceof Error ? error : new Error(String(error)));
       return apiError('Failed to create booking: ' + error.message);
     }
 
@@ -137,7 +138,7 @@ export async function GET(request: NextRequest) {
       .order('created_at', { ascending: false });
 
     if (error) {
-      console.error('Bookings fetch error:', error);
+      logger.error('Bookings fetch error', error instanceof Error ? error : new Error(String(error)));
       return apiError('Failed to fetch bookings: ' + error.message);
     }
 
