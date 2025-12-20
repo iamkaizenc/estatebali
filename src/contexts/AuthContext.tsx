@@ -171,14 +171,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
       
       // Use hard redirect to ensure cookies are cleared and middleware sees the change
-      // This prevents the redirect loop issue
+      // Redirect to login page with logout param to prevent middleware redirect
       if (typeof window !== 'undefined') {
         // Small delay to ensure cookies are cleared
-        await new Promise(resolve => setTimeout(resolve, 100));
-        window.location.href = '/';
+        await new Promise(resolve => setTimeout(resolve, 150));
+        // Redirect to login with logout param so middleware knows it's a logout
+        window.location.href = '/login?logout=true';
       } else {
         // Fallback for SSR
-        router.replace('/');
+        router.replace('/login?logout=true');
         router.refresh();
       }
     } catch (error) {

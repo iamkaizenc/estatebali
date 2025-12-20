@@ -102,25 +102,30 @@ export function middleware(request: NextRequest) {
   }
 
   // Redirect /login if already authenticated
-  // BUT: Check if this is a logout redirect by checking for a special header or query param
-  // This prevents redirect loops after logout
+  // BUT: Be more lenient - only redirect if token is clearly valid and not expired
   if (pathname === '/login') {
-    // Check for logout indicator in query params or referer
-    const isLogoutRedirect = request.nextUrl.searchParams.get('logout') === 'true' ||
-                              request.headers.get('referer')?.includes('/logout');
+    // Check for logout indicator in query params
+    const isLogoutRedirect = request.nextUrl.searchParams.get('logout') === 'true';
     
-    if (token && user && !isLogoutRedirect) {
-      // Only redirect if we have a valid token AND it's not a logout redirect
-      // Verify token is not expired
-      if (user.id && user.email) {
+    // Only redirect if:
+    // 1. We have a token
+    // 2. Token decoded successfully (not expired, valid format)
+    // 3. User object is complete (has id, email, role)
+    // 4. It's NOT a logout redirect
+    if (token && user && user.id && user.email && user.role && !isLogoutRedirect) {
+      // Double-check token is not expired by checking decoded.exp
+      const decoded = decodeJWT(token);
+      if (decoded && decoded.exp && decoded.exp * 1000 > Date.now()) {
+        // Token is valid and not expired, redirect to appropriate dashboard
         if (user.role === 'admin' || user.role === 'super_admin') {
           return NextResponse.redirect(new URL('/admin', request.url));
         } else {
           return NextResponse.redirect(new URL('/user', request.url));
         }
       }
+      // If token is expired or invalid, allow access to login page
     }
-    // If no valid token or logout redirect, allow access to login page
+    // If no valid token, expired token, or logout redirect, allow access to login page
   }
 
   return NextResponse.next();
