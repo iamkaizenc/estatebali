@@ -5,6 +5,7 @@ import { verifyAdminAuth, verifyAuth } from "@/lib/api-auth";
 import { propertySchema, validateData } from "@/lib/validation";
 import { rateLimitByIP } from "@/lib/rate-limit";
 import { sanitizeString, sanitizeHTML } from "@/lib/sanitization";
+import { logger } from "@/lib/logger";
 // Mock data import removed - production should not use mock data
 
 // GET /api/properties - Get all properties
@@ -25,7 +26,7 @@ export async function GET(request: NextRequest) {
 
     // If Supabase is not configured, return error (no mock data in production)
     if (!isSupabaseConfigured || !supabaseAdmin) {
-      console.error('[Properties API] Supabase not configured');
+      logger.error('[Properties API] Supabase not configured', new Error('Supabase not configured'));
       return NextResponse.json(
         {
           success: false,
@@ -162,7 +163,7 @@ export async function GET(request: NextRequest) {
     const { data, error } = await query;
 
     if (error) {
-      console.error("Supabase error:", error);
+      logger.error("Supabase error", error instanceof Error ? error : new Error(String(error)));
       throw error;
     }
 
@@ -175,7 +176,7 @@ export async function GET(request: NextRequest) {
       count: properties.length,
     }, { headers: corsHeaders });
   } catch (error: any) {
-    console.error("Error fetching properties:", error);
+    logger.error("Error fetching properties", error instanceof Error ? error : new Error(String(error)));
     const origin = request.headers.get('origin');
     const corsHeaders = {
       'Access-Control-Allow-Origin': origin || '*',
@@ -304,7 +305,7 @@ export async function POST(request: NextRequest) {
               error.message?.includes("policy") ||
               error.message?.includes("violates row-level security")) {
             // eslint-disable-next-line no-console
-            console.error("RLS Policy Error: properties table needs INSERT policy");
+            logger.error("RLS Policy Error: properties table needs INSERT policy", new Error("RLS Policy Error"));
             return NextResponse.json(
               { 
                 success: false, 
@@ -328,7 +329,7 @@ export async function POST(request: NextRequest) {
         }, { status: 201 });
       } catch (error: any) {
         // eslint-disable-next-line no-console
-        console.error("Error creating property:", error);
+        logger.error("Error creating property", error instanceof Error ? error : new Error(String(error)));
         return NextResponse.json(
           { success: false, error: error.message || "Failed to create property" },
           { status: 500 }

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import jwt from 'jsonwebtoken';
+import { logger } from '@/lib/logger';
 
 // OAuth callback handler
 export async function GET(request: NextRequest) {
@@ -28,7 +29,7 @@ export async function GET(request: NextRequest) {
     const { data: { session }, error } = await supabase.auth.exchangeCodeForSession(code);
 
     if (error || !session) {
-      console.error('[OAuth Callback] Error:', error);
+      logger.error('[OAuth Callback] Error', error instanceof Error ? error : new Error(String(error)));
       return NextResponse.redirect(new URL('/login?error=oauth_failed', requestUrl.origin));
     }
 
@@ -41,6 +42,10 @@ export async function GET(request: NextRequest) {
     }
 
     // Check if user exists in users table
+    if (!supabaseAdmin) {
+      return NextResponse.redirect(new URL('/login?error=service_unavailable', requestUrl.origin));
+    }
+    
     const { data: existingUser } = await supabaseAdmin
       .from('users')
       .select('id, email, name, role')
@@ -56,6 +61,10 @@ export async function GET(request: NextRequest) {
       userRole = existingUser.role || 'customer';
     } else {
       // Create new user in users table
+      if (!supabaseAdmin) {
+        return NextResponse.redirect(new URL('/login?error=service_unavailable', requestUrl.origin));
+      }
+      
       const { data: newUser, error: createError } = await supabaseAdmin
         .from('users')
         .insert({
@@ -79,7 +88,7 @@ export async function GET(request: NextRequest) {
     const JWT_SECRET = process.env.JWT_SECRET;
 
     if (!JWT_SECRET) {
-      console.error('[OAuth Callback] JWT_SECRET not configured');
+      logger.error('[OAuth Callback] JWT_SECRET not configured', new Error('JWT_SECRET not configured'));
       return NextResponse.redirect(new URL('/login?error=config_error', requestUrl.origin));
     }
 
@@ -106,7 +115,7 @@ export async function GET(request: NextRequest) {
 
     return response;
   } catch (error: any) {
-    console.error('[OAuth Callback] Unexpected error:', error);
+    logger.error('[OAuth Callback] Unexpected error', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.redirect(new URL('/login?error=unexpected', requestUrl.origin));
   }
 }

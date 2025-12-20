@@ -3,6 +3,7 @@ import { supabaseAdmin, isSupabaseConfigured } from "@/lib/supabaseAdmin";
 import { dbPropertyToProperty, propertyToDbProperty } from "@/lib/supabase";
 import { verifyAdminAuth, verifyAuth } from "@/lib/api-auth";
 import { rateLimitByIP } from "@/lib/rate-limit";
+import { logger } from "@/lib/logger";
 // Mock data import removed - production should not use mock data
 
 // GET /api/properties/[id] - Get a single property
@@ -26,7 +27,7 @@ export async function GET(
 
     // If Supabase is not configured, return error (no mock data in production)
     if (!isSupabaseConfigured || !supabaseAdmin) {
-      console.error('[Properties API] Supabase not configured');
+      logger.error('[Properties API] Supabase not configured', new Error('Supabase not configured'));
       return NextResponse.json(
         {
           success: false,
@@ -66,7 +67,7 @@ export async function GET(
       data: property,
     }, { headers: corsHeaders });
   } catch (error: any) {
-    console.error("Error fetching property:", error);
+    logger.error("Error fetching property", error instanceof Error ? error : new Error(String(error)));
     const origin = request.headers.get('origin');
     const corsHeaders = {
       'Access-Control-Allow-Origin': origin || '*',
@@ -187,7 +188,7 @@ export async function PUT(
       .single();
 
     if (error) {
-      console.error("Supabase error:", error);
+      logger.error("Supabase error", error instanceof Error ? error : new Error(String(error)));
       if (error.code === 'PGRST116') {
         return NextResponse.json(
           { success: false, error: "Property not found" },
@@ -211,7 +212,7 @@ export async function PUT(
       data: property,
     });
   } catch (error: any) {
-    console.error("Error updating property:", error);
+    logger.error("Error updating property", error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       { success: false, error: error.message || "Failed to update property" },
       { status: 500 }
@@ -288,7 +289,7 @@ export async function DELETE(
       .eq("id", params.id);
 
     if (error) {
-      console.error("Supabase error:", error);
+      logger.error("Supabase error", error instanceof Error ? error : new Error(String(error)));
       throw error;
     }
 
@@ -297,7 +298,7 @@ export async function DELETE(
       message: "Property deleted successfully",
     });
   } catch (error: any) {
-    console.error("Error deleting property:", error);
+    logger.error("Error deleting property", error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       { success: false, error: error.message || "Failed to delete property" },
       { status: 500 }

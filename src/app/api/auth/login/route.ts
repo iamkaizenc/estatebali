@@ -3,6 +3,7 @@ import { loginUser } from "@/lib/auth";
 import { loginSchema, validateData } from "@/lib/validation";
 import { rateLimitByEmail } from "@/lib/rate-limit";
 import { createClient } from '@supabase/supabase-js';
+import { logger } from "@/lib/logger";
 
 // POST /api/auth/login - Login endpoint
 export async function POST(request: NextRequest) {
@@ -41,7 +42,7 @@ export async function POST(request: NextRequest) {
       if (!runtimeUrl) missing.push('NEXT_PUBLIC_SUPABASE_URL');
       if (!runtimeServiceKey) missing.push('SUPABASE_SERVICE_ROLE_KEY');
 
-      console.error('[Login API] Missing environment variables:', missing.join(', '));
+      logger.error('[Login API] Missing environment variables', new Error(missing.join(', ')));
 
       return NextResponse.json(
         {
@@ -53,9 +54,9 @@ export async function POST(request: NextRequest) {
     }
 
     // Attempt login
-    console.log('[Login API] Attempting login for email:', email);
+    logger.debug('[Login API] Attempting login for email', email);
     const result = await loginUser(email, password);
-    console.log('[Login API] Login result:', {
+    logger.debug('[Login API] Login result', {
       success: result.success,
       hasToken: !!result.token,
       error: result.error || null,
@@ -87,7 +88,7 @@ export async function POST(request: NextRequest) {
     );
   } catch (error: any) {
     // eslint-disable-next-line no-console
-    console.error("Login API error:", error);
+    logger.error("Login API error", error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       { success: false, error: "Login failed" },
       { status: 500 }

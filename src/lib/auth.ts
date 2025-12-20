@@ -3,6 +3,7 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { AuthUser, UserRole } from "@/types";
 import { createClient } from '@supabase/supabase-js';
+import { logger } from "@/lib/logger";
 
 // Get JWT secret from environment variable
 // CRITICAL: No fallback - must be set in environment
@@ -12,26 +13,15 @@ const getJWTSecret = (): string => {
   
   if (!JWT_SECRET) {
     const errorMsg = 'CRITICAL: JWT_SECRET environment variable is not set. This is required for authentication security.';
-    if (process.env.NODE_ENV === 'production') {
-      console.error(errorMsg);
-      throw new Error(errorMsg);
-    } else {
-      console.warn('⚠️  WARNING:', errorMsg);
-      // In development, throw to prevent silent failures
-      throw new Error(errorMsg);
-    }
+    logger.error(errorMsg);
+    throw new Error(errorMsg);
   }
 
   // Additional security check: JWT_SECRET must be strong enough
   if (JWT_SECRET.length < 32) {
     const errorMsg = `CRITICAL: JWT_SECRET must be at least 32 characters long for security. Current length: ${JWT_SECRET.length}`;
-    if (process.env.NODE_ENV === 'production') {
-      console.error(errorMsg);
-      throw new Error(errorMsg);
-    } else {
-      console.warn('⚠️  WARNING:', errorMsg);
-      throw new Error(errorMsg);
-    }
+    logger.error(errorMsg);
+    throw new Error(errorMsg);
   }
   
   return JWT_SECRET;
@@ -128,7 +118,7 @@ function verifyToken(token: string): AuthUser | null {
   } catch (error) {
     // Token is invalid or expired
     if (process.env.NODE_ENV === 'development') {
-      console.error('JWT verification failed:', error instanceof Error ? error.message : 'Unknown error');
+      logger.error('JWT verification failed', error instanceof Error ? error : new Error('Unknown error'));
     }
     return null;
   }
@@ -143,13 +133,11 @@ export async function loginUser(email: string, password: string): Promise<{ succ
     // SECURITY: Only use server-side SUPABASE_SERVICE_ROLE_KEY, never NEXT_PUBLIC_ variant or legacy SUPABASE_SERVICE_KEY
     const runtimeSupabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
     
-    // Only log in development
-    if (process.env.NODE_ENV === 'development') {
-      console.log('[Login] Runtime Env Check:', {
-        hasUrl: !!runtimeSupabaseUrl,
-        hasServiceKey: !!runtimeSupabaseServiceKey,
-      });
-    }
+    // Log environment check (development only)
+    logger.debug('[Login] Runtime Env Check', {
+      hasUrl: !!runtimeSupabaseUrl,
+      hasServiceKey: !!runtimeSupabaseServiceKey,
+    });
     
     // Create admin client at runtime
     // NOTE: This function should only be called from server-side (API routes)
@@ -158,7 +146,7 @@ export async function loginUser(email: string, password: string): Promise<{ succ
       if (!runtimeSupabaseUrl) missingVars.push('NEXT_PUBLIC_SUPABASE_URL');
       if (!runtimeSupabaseServiceKey) missingVars.push('SUPABASE_SERVICE_ROLE_KEY');
       
-      console.error("[Login] Missing environment variables:", missingVars.join(', '));
+      logger.error("[Login] Missing environment variables", new Error(missingVars.join(', ')));
       
       return { 
         success: false, 
@@ -185,8 +173,8 @@ export async function loginUser(email: string, password: string): Promise<{ succ
       .eq("active", true)
       .maybeSingle();
 
-    // Debug logging for troubleshooting
-    console.log('[Login] Admin user check:', {
+    // Debug logging for troubleshooting (development only)
+    logger.debug('[Login] Admin user check', {
       email: normalizedEmail,
       originalEmail: email,
       found: !!adminUser,
@@ -202,9 +190,8 @@ export async function loginUser(email: string, password: string): Promise<{ succ
     if (adminError && adminError.code !== 'PGRST116') {
       // PGRST116 = not found (this is fine, user just doesn't exist)
       // Other errors are real problems
-      console.error('[Login] Database error fetching admin user:', {
+      logger.error('[Login] Database error fetching admin user', new Error(adminError.message), {
         email,
-        error: adminError.message,
         code: adminError.code,
         details: adminError.details,
         hint: adminError.hint,
@@ -228,7 +215,7 @@ export async function loginUser(email: string, password: string): Promise<{ succ
       try {
         const passwordMatch = await bcrypt.compare(password, adminUser.password_hash);
         
-        console.log('[Login] Password verification result:', {
+        logger.debug('[Login] Password verification result', {
           email,
           passwordMatch,
           hashFormat: adminUser.password_hash.substring(0, 7),
@@ -236,17 +223,15 @@ export async function loginUser(email: string, password: string): Promise<{ succ
         });
 
         if (!passwordMatch) {
-          console.log('[Login] Password mismatch for admin user:', email);
+          logger.debug('[Login] Password mismatch for admin user', email);
           return { 
             success: false, 
             error: "Invalid email or password" 
           };
         }
       } catch (bcryptError: any) {
-        console.error('[Login] bcrypt.compare error:', {
+        logger.error('[Login] bcrypt.compare error', bcryptError, {
           email,
-          error: bcryptError.message,
-          errorStack: bcryptError.stack,
           hashLength: adminUser.password_hash.length,
           hashPreview: adminUser.password_hash.substring(0, 20),
         });
@@ -270,7 +255,7 @@ export async function loginUser(email: string, password: string): Promise<{ succ
       };
       
       const token = createToken(user);
-      console.log('[Login] Success for admin user:', {
+      logger.debug('[Login] Success for admin user', {
         email,
         userId: user.id,
         role: user.role,
@@ -288,8 +273,8 @@ export async function loginUser(email: string, password: string): Promise<{ succ
       .eq("email", normalizedEmail)
       .maybeSingle();
 
-    // Debug logging (always log for troubleshooting)
-    console.log('[Login] Regular user check:', {
+    // Debug logging (development only)
+    logger.debug('[Login] Regular user check', {
       email: normalizedEmail,
       originalEmail: email,
       found: !!regularUser,
@@ -305,9 +290,8 @@ export async function loginUser(email: string, password: string): Promise<{ succ
     if (userError && userError.code !== 'PGRST116') {
       // PGRST116 is "not found" which is fine - user just doesn't exist
       // Other errors are real problems
-      console.error('[Login] Error fetching user:', {
+      logger.error('[Login] Error fetching user', new Error(userError.message), {
         email,
-        error: userError.message,
         code: userError.code,
         details: userError.details,
         hint: userError.hint,
@@ -322,7 +306,7 @@ export async function loginUser(email: string, password: string): Promise<{ succ
     if (regularUser) {
       // Check if user has password_hash
       if (!regularUser.password_hash) {
-        console.error('[Login] User found but no password_hash:', {
+        logger.error('[Login] User found but no password_hash', new Error('Missing password_hash'), {
           email,
           userId: regularUser.id,
         });
@@ -336,7 +320,7 @@ export async function loginUser(email: string, password: string): Promise<{ succ
       try {
         const passwordMatch = await bcrypt.compare(password, regularUser.password_hash);
         
-        console.log('[Login] Password verification:', {
+        logger.debug('[Login] Password verification', {
           email,
           passwordMatch,
           hashStartsWith: regularUser.password_hash.substring(0, 7),
@@ -349,9 +333,8 @@ export async function loginUser(email: string, password: string): Promise<{ succ
           };
         }
       } catch (bcryptError: any) {
-        console.error('[Login] bcrypt.compare error:', {
+        logger.error('[Login] bcrypt.compare error', bcryptError, {
           email,
-          error: bcryptError.message,
           hashLength: regularUser.password_hash.length,
         });
         return { 
@@ -371,7 +354,7 @@ export async function loginUser(email: string, password: string): Promise<{ succ
       };
       
       const token = createToken(user);
-      console.log('[Login] Success:', {
+      logger.debug('[Login] Success', {
         email,
         userId: user.id,
         role: user.role,
@@ -381,7 +364,7 @@ export async function loginUser(email: string, password: string): Promise<{ succ
     }
 
     // User not found in either table
-    console.log('[Login] User not found in either table:', { 
+    logger.debug('[Login] User not found in either table', { 
       email: normalizedEmail,
       originalEmail: email,
       searchedIn: ['admin_users', 'users'],
@@ -390,7 +373,7 @@ export async function loginUser(email: string, password: string): Promise<{ succ
   } catch (error: any) {
     // Always log errors
     // eslint-disable-next-line no-console
-    console.error("Login error:", error);
+    logger.error("Login error", error instanceof Error ? error : new Error(String(error)));
     return { success: false, error: "Login failed. Please try again." };
   }
 }
@@ -471,7 +454,7 @@ export function logout(): void {
     // Force hard redirect to login
     window.location.href = "/login";
   } catch (error) {
-    console.error('Logout error:', error);
+    logger.error('Logout error', error instanceof Error ? error : new Error(String(error)));
     // Force redirect even on error
     window.location.href = "/login";
   }

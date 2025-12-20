@@ -35,7 +35,12 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error("ErrorBoundary caught an error:", error, errorInfo);
+    // Use logger instead of console.error
+    const { logger } = require("@/lib/logger");
+    logger.error("ErrorBoundary caught an error", error, {
+      componentStack: errorInfo.componentStack,
+    });
+
     this.setState({
       error,
       errorInfo,
@@ -44,11 +49,6 @@ export class ErrorBoundary extends Component<Props, State> {
     // Call custom error handler if provided
     if (this.props.onError) {
       this.props.onError(error, errorInfo);
-    }
-
-    // In production, send to error reporting service (e.g., Sentry, LogRocket)
-    if (process.env.NODE_ENV === "production") {
-      // logErrorToService(error, errorInfo);
     }
   }
 
