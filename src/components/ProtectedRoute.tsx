@@ -24,9 +24,10 @@ export function ProtectedRoute({
     setMounted(true);
   }, []);
 
-  // Only redirect once, and only after everything is loaded
+  // Only check role permissions - middleware handles auth
+  // This prevents conflicts between middleware (cookie-based) and client-side (localStorage-based) auth
   useEffect(() => {
-    // Don't redirect if still loading, not mounted, or already attempted
+    // Don't check if still loading, not mounted, or already attempted
     if (!mounted || loading || redirectAttempted.current) {
       return;
     }
@@ -37,25 +38,14 @@ export function ProtectedRoute({
 
     const currentPath = window.location.pathname;
     
-    // Check token directly as fallback
+    // Get user from context or token
     const token = localStorage.getItem('auth_token') || localStorage.getItem('admin_token');
     const tokenUser = token ? getUser(token) : null;
-    const hasAuth = isAuthenticated || !!tokenUser;
     const currentUser = user || tokenUser;
 
-    // Mark redirect as attempted to prevent loops
-    redirectAttempted.current = true;
-
-    if (!hasAuth) {
-      // No authentication found - middleware should have handled this, but redirect just in case
-      if (currentPath !== redirectTo) {
-        window.location.replace(redirectTo);
-      }
-      return;
-    }
-
-    // Check role permissions
+    // Only check role permissions - middleware already verified auth
     if (allowedRoles.length > 0 && currentUser && !allowedRoles.includes(currentUser.role)) {
+      redirectAttempted.current = true;
       const targetPath = currentUser.role === "admin" || currentUser.role === "super_admin" ? "/admin" : "/user";
       if (currentPath !== targetPath) {
         window.location.replace(targetPath);
@@ -63,10 +53,9 @@ export function ProtectedRoute({
       return;
     }
 
-    // If we get here, auth is valid and role is correct - allow access
-    // Reset redirectAttempted so component can re-check if needed
+    // Auth and role are valid - allow access
     redirectAttempted.current = false;
-  }, [mounted, loading, isAuthenticated, user, allowedRoles, redirectTo]);
+  }, [mounted, loading, isAuthenticated, user, allowedRoles]);
 
   // Show loading while checking auth
   if (!mounted || loading) {
