@@ -2,15 +2,16 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuthSafe } from "@/contexts/AuthContext";
 import Link from "next/link";
 import { Lock, User, AlertCircle, Eye, EyeOff } from "lucide-react";
 import { decodeJWT } from "@/lib/jwt-utils";
 import { supabase } from "@/lib/supabase";
+import { logger } from "@/lib/logger";
 
 export default function LoginPage() {
   const router = useRouter();
-  const { login, isAuthenticated, user } = useAuth();
+  const { login, isAuthenticated, user, loading: authLoading } = useAuthSafe();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -19,18 +20,15 @@ export default function LoginPage() {
 
   // Redirect if already authenticated
   useEffect(() => {
-    if (!loading && isAuthenticated && user) {
-      if (user.role === "admin" || user.role === "super_admin") {
-        router.replace("/admin");
-      } else {
-        router.replace("/user");
-      }
+    if (!authLoading && !loading && isAuthenticated && user) {
+      const targetPath = user.role === "admin" || user.role === "super_admin" ? "/admin" : "/user";
+      router.replace(targetPath);
     }
-  }, [loading, isAuthenticated, user, router]);
+  }, [authLoading, loading, isAuthenticated, user, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('[Login Page] Form submitted with email:', email);
+    logger.debug('[Login Page] Form submitted', { email });
     setError("");
     setLoading(true);
 
@@ -41,56 +39,63 @@ export default function LoginPage() {
       return;
     }
 
-    console.log('[Login Page] Calling login function...');
-    const result = await login(email, password);
-    console.log('[Login Page] Login result:', JSON.stringify(result, null, 2));
+    try {
+      logger.debug('[Login Page] Calling login function');
+      const result = await login(email, password);
+      logger.debug('[Login Page] Login result', { success: result.success, hasError: !!result.error });
 
-    if (result.success) {
-      setLoading(false);
-      // Get user from token after login
-      const token = localStorage.getItem('auth_token') || localStorage.getItem('admin_token');
-      if (token) {
-        // Decode JWT token to get user role
-        const payload = decodeJWT(token);
-        if (payload && payload.role) {
-          const userRole = payload.role;
-
-          // Auto-redirect based on role
-          if (userRole === "admin" || userRole === "super_admin") {
-            router.push("/admin");
-            return;
-          } else {
-            router.push("/user");
+      if (result.success) {
+        // Wait a moment for AuthContext to update
+        await new Promise(resolve => setTimeout(resolve, 200));
+        
+        // Get user from token after login
+        const token = typeof window !== 'undefined' 
+          ? localStorage.getItem('auth_token') || localStorage.getItem('admin_token')
+          : null;
+        
+        if (token) {
+          // Decode JWT token to get user role
+          const payload = decodeJWT(token);
+          if (payload && payload.role) {
+            const userRole = payload.role;
+            const targetPath = userRole === "admin" || userRole === "super_admin" ? "/admin" : "/user";
+            
+            // Use window.location for reliable redirect
+            if (typeof window !== 'undefined') {
+              window.location.href = targetPath;
+            }
             return;
           }
-        } else {
-          // If token parsing fails, wait for context to update
-          setTimeout(() => {
-            if (user) {
-              if (user.role === "admin" || user.role === "super_admin") {
-                router.push("/admin");
-              } else {
-                router.push("/user");
-              }
-            } else {
-              // Fallback: redirect to user dashboard if user context not ready
-              router.push("/user");
-            }
-          }, 100);
         }
+        
+        // Fallback: wait for context update then redirect
+        setTimeout(() => {
+          const currentUser = user;
+          if (currentUser) {
+            const targetPath = currentUser.role === "admin" || currentUser.role === "super_admin" ? "/admin" : "/user";
+            if (typeof window !== 'undefined') {
+              window.location.href = targetPath;
+            }
+          } else {
+            // Last resort: redirect to user dashboard
+            if (typeof window !== 'undefined') {
+              window.location.href = "/user";
+            }
+          }
+        }, 300);
       } else {
-        // No token found, redirect to user dashboard as fallback
-        setTimeout(() => router.push("/user"), 100);
+        // Show error message
+        const errorMessage = result.error;
+        if (errorMessage && !errorMessage.includes("SSR") && !errorMessage.includes("Not available")) {
+          setError(errorMessage);
+        } else {
+          setError("Invalid email or password");
+        }
+        setLoading(false);
       }
-    } else {
-      // Only show error if it's not an SSR-related error
-      // Type-safe error access
-      const errorMessage = result.error;
-      if (errorMessage && !errorMessage.includes("SSR") && !errorMessage.includes("Not available")) {
-        setError(errorMessage);
-      } else {
-        setError("Invalid email or password");
-      }
+    } catch (err: any) {
+      logger.error('Login page error', err instanceof Error ? err : new Error(String(err)));
+      setError("An unexpected error occurred. Please try again.");
       setLoading(false);
     }
   };
@@ -206,6 +211,7 @@ export default function LoginPage() {
                     });
                     if (error) throw error;
                   } catch (err: any) {
+                    logger.error('Google OAuth error', err instanceof Error ? err : new Error(String(err)));
                     setError(err.message || "Failed to sign in with Google");
                     setLoading(false);
                   }
@@ -241,6 +247,7 @@ export default function LoginPage() {
                     });
                     if (error) throw error;
                   } catch (err: any) {
+                    logger.error('Apple OAuth error', err instanceof Error ? err : new Error(String(err)));
                     setError(err.message || "Failed to sign in with Apple");
                     setLoading(false);
                   }
