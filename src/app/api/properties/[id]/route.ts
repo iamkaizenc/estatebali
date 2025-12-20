@@ -3,7 +3,7 @@ import { supabaseAdmin, isSupabaseConfigured } from "@/lib/supabaseAdmin";
 import { dbPropertyToProperty, propertyToDbProperty } from "@/lib/supabase";
 import { verifyAdminAuth, verifyAuth } from "@/lib/api-auth";
 import { rateLimitByIP } from "@/lib/rate-limit";
-import { mockProperties } from "@/data/mockData";
+// Mock data import removed - production should not use mock data
 
 // GET /api/properties/[id] - Get a single property
 export async function GET(
@@ -24,20 +24,16 @@ export async function GET(
       return new NextResponse(null, { status: 200, headers: corsHeaders });
     }
 
-    // If Supabase is not configured, return mock data
+    // If Supabase is not configured, return error (no mock data in production)
     if (!isSupabaseConfigured || !supabaseAdmin) {
-      const property = mockProperties.find(p => p.id === params.id);
-      if (!property) {
-        return NextResponse.json(
-          { success: false, error: "Property not found" },
-          { status: 404 }
-        );
-      }
-      return NextResponse.json({
-        success: true,
-        data: property,
-        usingMockData: true,
-      }, { headers: corsHeaders });
+      console.error('[Properties API] Supabase not configured');
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Database service is temporarily unavailable. Please try again later.',
+        },
+        { status: 503, headers: corsHeaders }
+      );
     }
 
     // Check if request includes admin token (to allow viewing hidden properties)

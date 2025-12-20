@@ -5,7 +5,7 @@ import { verifyAdminAuth, verifyAuth } from "@/lib/api-auth";
 import { propertySchema, validateData } from "@/lib/validation";
 import { rateLimitByIP } from "@/lib/rate-limit";
 import { sanitizeString, sanitizeHTML } from "@/lib/sanitization";
-import { mockProperties } from "@/data/mockData";
+// Mock data import removed - production should not use mock data
 
 // GET /api/properties - Get all properties
 export async function GET(request: NextRequest) {
@@ -23,33 +23,16 @@ export async function GET(request: NextRequest) {
       return new NextResponse(null, { status: 200, headers: corsHeaders });
     }
 
-    // If Supabase is not configured, return mock data
+    // If Supabase is not configured, return error (no mock data in production)
     if (!isSupabaseConfigured || !supabaseAdmin) {
-      const { searchParams } = new URL(request.url);
-      const listingType = searchParams.get("listingType");
-      const featured = searchParams.get("featured");
-      const area = searchParams.get("area");
-
-      let filteredProperties = [...mockProperties];
-
-      if (listingType) {
-        filteredProperties = filteredProperties.filter(p => p.listingType === listingType);
-      }
-      if (featured === "true") {
-        filteredProperties = filteredProperties.filter(p => p.featured);
-      }
-      if (area) {
-        filteredProperties = filteredProperties.filter(p =>
-          p.location.area.toLowerCase().includes(area.toLowerCase())
-        );
-      }
-
-      return NextResponse.json({
-        success: true,
-        data: filteredProperties,
-        count: filteredProperties.length,
-        usingMockData: true,
-      }, { headers: corsHeaders });
+      console.error('[Properties API] Supabase not configured');
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Database service is temporarily unavailable. Please try again later.',
+        },
+        { status: 503, headers: corsHeaders }
+      );
     }
 
     const { searchParams } = new URL(request.url);

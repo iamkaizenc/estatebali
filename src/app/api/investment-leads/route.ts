@@ -73,8 +73,32 @@ export async function POST(request: NextRequest) {
       return apiError('Failed to create investment lead: ' + error.message);
     }
 
-    // TODO: Send notification email to admin
-    // await sendAdminNotification(lead);
+    // Send notification email to admin (if email service is configured)
+    try {
+      const { sendEmail } = await import('@/lib/email');
+      const emailProvider = process.env.RESEND_API_KEY || process.env.SENDGRID_API_KEY;
+      if (emailProvider) {
+        await sendEmail({
+          to: process.env.FROM_EMAIL || 'admin@estatebali.app',
+          subject: `New Investment Lead: ${name}`,
+          html: `
+            <h2>New Investment Lead</h2>
+            <p><strong>Name:</strong> ${name}</p>
+            <p><strong>Email:</strong> ${email}</p>
+            <p><strong>Phone:</strong> ${phone || 'Not provided'}</p>
+            <p><strong>Investment Amount:</strong> ${investmentAmount ? `Rp ${investmentAmount.toLocaleString('id-ID')}` : 'Not specified'}</p>
+            <p><strong>Investment Type:</strong> ${investmentType || 'Not specified'}</p>
+            <p><strong>Preferred Location:</strong> ${preferredLocation || 'Not specified'}</p>
+            <p><strong>Message:</strong> ${message || 'No message'}</p>
+            <p><a href="${process.env.NEXT_PUBLIC_APP_URL || 'https://estatebali.app'}/admin/leads">View in Admin Panel</a></p>
+          `,
+          text: `New Investment Lead\n\nName: ${name}\nEmail: ${email}\nPhone: ${phone || 'Not provided'}\nInvestment Amount: ${investmentAmount || 'Not specified'}\nInvestment Type: ${investmentType || 'Not specified'}\nPreferred Location: ${preferredLocation || 'Not specified'}\nMessage: ${message || 'No message'}`,
+        });
+      }
+    } catch (emailError) {
+      // Don't fail lead creation if email fails
+      console.error('[Investment Leads] Failed to send admin notification email:', emailError);
+    }
 
     return apiSuccess(
       lead,

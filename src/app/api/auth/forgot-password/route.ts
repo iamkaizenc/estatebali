@@ -99,7 +99,9 @@ export async function POST(request: NextRequest) {
     }
 
     // Generate reset URL
-    const resetUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/reset-password?token=${resetToken}`;
+    // Use production URL, never localhost in production
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || (process.env.NODE_ENV === 'production' ? 'https://estatebali.app' : 'http://localhost:3000');
+    const resetUrl = `${appUrl}/reset-password?token=${resetToken}`;
 
     // Send password reset email
     const emailTemplate = emailTemplates.passwordReset(resetUrl, targetUser.name || 'there');

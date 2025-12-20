@@ -38,9 +38,10 @@ class ResendProvider implements EmailProvider {
           fromAddress = `EstateBali <${process.env.FROM_EMAIL}>`;
         }
       } 
-      // Priority 2: Production - try verified domain
+      // Priority 2: Production - use FROM_EMAIL or fallback
       else if (process.env.NODE_ENV === 'production') {
-        fromAddress = 'EstateBali <noreply@estatebali.com>';
+        // In production, FROM_EMAIL should be set, but fallback to verified domain
+        fromAddress = 'EstateBali <noreply@estatebali.app>';
       }
       // Priority 3: Development/fallback - use Resend's onboarding domain (always works)
       else {
@@ -140,7 +141,7 @@ class SendGridProvider implements EmailProvider {
         },
         body: JSON.stringify({
           personalizations: [{ to: [{ email: options.to }] }],
-          from: { email: 'noreply@estatebali.com', name: 'EstateBali' },
+          from: { email: process.env.FROM_EMAIL || 'noreply@estatebali.app', name: 'EstateBali' },
           subject: options.subject,
           content: [
             { type: 'text/html', value: options.html },
@@ -332,7 +333,7 @@ export const emailTemplates = {
                     <table cellpadding="0" cellspacing="0" style="margin: 30px 0;">
                       <tr>
                         <td style="border-radius: 8px; background-color: #00FF66;">
-                          <a href="${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/properties" style="display: inline-block; padding: 16px 32px; color: #000000; text-decoration: none; font-weight: bold; font-size: 16px;">
+                          <a href="${process.env.NEXT_PUBLIC_APP_URL || (process.env.NODE_ENV === 'production' ? 'https://estatebali.app' : 'http://localhost:3000')}/properties" style="display: inline-block; padding: 16px 32px; color: #000000; text-decoration: none; font-weight: bold; font-size: 16px;">
                             Browse Properties
                           </a>
                         </td>
@@ -359,6 +360,6 @@ export const emailTemplates = {
       </body>
       </html>
     `,
-    text: `Welcome to EstateBali!\n\nHi ${userName},\n\nThank you for joining EstateBali - Bali's premier real estate platform. We're excited to help you find your dream property!\n\nStart exploring luxury villas, modern apartments, and prime land for sale and rent in Bali.\n\nVisit: ${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/properties\n\n© 2025 EstateBali. All rights reserved.`,
+    text: `Welcome to EstateBali!\n\nHi ${userName},\n\nThank you for joining EstateBali - Bali's premier real estate platform. We're excited to help you find your dream property!\n\nStart exploring luxury villas, modern apartments, and prime land for sale and rent in Bali.\n\nVisit: ${process.env.NEXT_PUBLIC_APP_URL || (process.env.NODE_ENV === 'production' ? 'https://estatebali.app' : 'http://localhost:3000')}/properties\n\n© 2025 EstateBali. All rights reserved.`,
   }),
 };

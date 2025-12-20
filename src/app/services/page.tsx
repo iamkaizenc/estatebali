@@ -169,7 +169,7 @@ export default function ServicesPage() {
                 </button>
                 <div className="mt-4 flex items-center gap-2 text-gray-400">
                   <Phone className="h-4 w-4" />
-                  <span>+1 (742) 379-8954</span>
+                        <span>+6282260613492</span>
                 </div>
               </div>
             </div>
@@ -291,7 +291,7 @@ export default function ServicesPage() {
           <div className="mt-6 flex flex-col sm:flex-row gap-4 justify-center items-center text-gray-400 text-sm">
             <div className="flex items-center gap-2">
               <Phone className="h-4 w-4" />
-              <span>+1 (742) 379-8954</span>
+                        <span>+6282260613492</span>
             </div>
             <div className="flex items-center gap-2">
               <Mail className="h-4 w-4" />

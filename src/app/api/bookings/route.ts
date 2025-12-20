@@ -70,22 +70,26 @@ export async function POST(request: NextRequest) {
       return apiError('User not found', 404);
     }
 
-    // Insert into Supabase
+    // Get property owner_id for booking
+    const { data: propertyData } = await supabaseAdmin
+      .from('properties')
+      .select('owner_id, user_id')
+      .eq('id', propertyId)
+      .single();
+
+    // Insert into Supabase (using correct schema: start_date, end_date, status, guest_count)
     const { data: booking, error } = await supabaseAdmin
       .from('bookings')
       .insert({
         property_id: propertyId,
-        user_id: userData.id,
-        check_in: checkInDate.toISOString().split('T')[0],
-        check_out: checkOutDate.toISOString().split('T')[0],
-        guests,
+        customer_id: userData.id,
+        owner_id: propertyData?.owner_id || propertyData?.user_id || null,
+        start_date: checkInDate.toISOString().split('T')[0],
+        end_date: checkOutDate.toISOString().split('T')[0],
+        guest_count: guests,
         total_price: totalPrice,
-        booking_status: 'pending',
-        payment_status: 'pending',
-        special_requests: specialRequests,
-        guest_name: guestName,
-        guest_email: guestEmail,
-        guest_phone: guestPhone,
+        status: 'pending',
+        special_requests: specialRequests || null,
       })
       .select()
       .single();
@@ -125,11 +129,11 @@ export async function GET(request: NextRequest) {
       return apiError('User not found', 404);
     }
 
-    // Fetch from Supabase
+    // Fetch from Supabase (using customer_id instead of user_id)
     const { data: bookings, error, count } = await supabaseAdmin
       .from('bookings')
       .select('*, properties(*)', { count: 'exact' })
-      .eq('user_id', userData.id)
+      .eq('customer_id', userData.id)
       .order('created_at', { ascending: false });
 
     if (error) {
