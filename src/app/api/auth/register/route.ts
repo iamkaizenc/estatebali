@@ -281,8 +281,7 @@ export async function POST(request: NextRequest) {
       },
     }, { status: 201 });
   } catch (error: any) {
-    // eslint-disable-next-line no-console
-    console.error("Registration error:", error);
+    logger.error("Registration error", error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       { success: false, error: error.message || "Failed to register user" },
       { status: 500 }

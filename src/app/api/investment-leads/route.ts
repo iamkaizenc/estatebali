@@ -53,6 +53,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Insert into Supabase
+
+    // Insert into Supabase
     const { data: lead, error } = await supabaseAdmin
       .from('investment_leads')
       .insert({

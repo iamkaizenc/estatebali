@@ -3,6 +3,8 @@
  * Supports multiple providers: Resend (recommended), SendGrid
  */
 
+import { logger } from './logger';
+
 interface EmailOptions {
   to: string;
   subject: string;
@@ -74,15 +76,14 @@ class ResendProvider implements EmailProvider {
           // Use text as is
         }
 
-        console.error('Resend API Error:', {
+        logger.error('Resend API Error', new Error(errorMessage), {
           status: response.status,
           statusText: response.statusText,
-          error: errorMessage,
         });
 
         // If domain not verified error, try with onboarding domain as fallback
         if (response.status === 403 && errorMessage?.includes('domain is not verified')) {
-          console.log('⚠️  Domain not verified, falling back to onboarding@resend.dev');
+          logger.warn('Domain not verified, falling back to onboarding@resend.dev');
           
           // Retry with onboarding domain (always works)
           const fallbackResponse = await fetch('https://api.resend.com/emails', {
@@ -102,7 +103,7 @@ class ResendProvider implements EmailProvider {
 
           if (fallbackResponse.ok) {
             const result = await fallbackResponse.json();
-            console.log('✅ Email sent successfully via Resend (with fallback domain):', result.id);
+            logger.info('Email sent successfully via Resend (with fallback domain)', result.id);
             return { success: true };
           }
         }
@@ -111,11 +112,11 @@ class ResendProvider implements EmailProvider {
       }
 
       const result = await response.json();
-      console.log('✅ Email sent successfully via Resend:', result.id);
+      logger.debug('Email sent successfully via Resend', result.id);
 
       return { success: true };
     } catch (error: any) {
-      console.error('Failed to send email via Resend:', error);
+      logger.error('Failed to send email via Resend', error instanceof Error ? error : new Error(String(error)));
       return { success: false, error: error.message || 'Failed to send email' };
     }
   }
@@ -167,11 +168,11 @@ class SendGridProvider implements EmailProvider {
  */
 class MockProvider implements EmailProvider {
   async send(options: EmailOptions): Promise<{ success: boolean; error?: string }> {
-    console.log('\n📧 [Mock Email] ==================');
-    console.log('To:', options.to);
-    console.log('Subject:', options.subject);
-    console.log('HTML:', options.html.substring(0, 100) + '...');
-    console.log('=====================================\n');
+    logger.debug('[Mock Email]', {
+      to: options.to,
+      subject: options.subject,
+      htmlPreview: options.html.substring(0, 100) + '...',
+    });
     return { success: true };
   }
 }
@@ -207,7 +208,7 @@ export async function sendEmail(options: EmailOptions): Promise<{ success: boole
   const provider = getEmailProvider();
 
   if (!provider) {
-    console.error('No email provider configured. Set RESEND_API_KEY or SENDGRID_API_KEY');
+    logger.error('No email provider configured. Set RESEND_API_KEY or SENDGRID_API_KEY', new Error('Email service not configured'));
     return { success: false, error: 'Email service not configured' };
   }
 
@@ -333,7 +334,7 @@ export const emailTemplates = {
                     <table cellpadding="0" cellspacing="0" style="margin: 30px 0;">
                       <tr>
                         <td style="border-radius: 8px; background-color: #00FF66;">
-                          <a href="${process.env.NEXT_PUBLIC_APP_URL || (process.env.NODE_ENV === 'production' ? 'https://estatebali.app' : 'http://localhost:3000')}/properties" style="display: inline-block; padding: 16px 32px; color: #000000; text-decoration: none; font-weight: bold; font-size: 16px;">
+                          <a href="${process.env.NEXT_PUBLIC_APP_URL || (process.env.NODE_ENV === 'production' ? 'https://estatebali.app' : 'http://localhost:3000')}/properties" style="display: inline-block; padding: 16px 32px; background-color: #00FF66; color: #000000; text-decoration: none; font-weight: bold; font-size: 16px; border-radius: 8px;">
                             Browse Properties
                           </a>
                         </td>

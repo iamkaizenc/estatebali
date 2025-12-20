@@ -11,6 +11,7 @@ import {
 } from '@/lib/api-response';
 import { verifyAuth } from '@/lib/api-auth';
 import { supabaseAdmin, isSupabaseConfigured } from '@/lib/supabaseAdmin';
+import { logger } from '@/lib/logger';
 
 // Notifications API
 // GET /api/notifications - Get user notifications
@@ -134,7 +135,7 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (error) {
-      console.error('Notification creation error:', error);
+      logger.error('Notification creation error', error instanceof Error ? error : new Error(String(error)));
       return apiError('Failed to create notification: ' + error.message);
     }
 
