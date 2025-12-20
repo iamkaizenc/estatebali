@@ -123,6 +123,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Clear user state FIRST to prevent any UI updates
       setUser(null);
 
+      // Call logout API to clear httpOnly cookies (server-side)
+      try {
+        await fetch('/api/auth/logout', {
+          method: 'POST',
+          credentials: 'include', // Important: include cookies
+        });
+        logger.debug('[Logout] Server-side cookies cleared');
+      } catch (apiError) {
+        // Continue even if API call fails
+        logger.debug('Logout API call failed (non-critical)', apiError instanceof Error ? apiError : new Error(String(apiError)));
+      }
+
       // Sign out from Supabase if available
       if (supabase) {
         try {
@@ -141,7 +153,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         sessionStorage.clear();
       }
 
-      // Clear cookies aggressively (if in browser)
+      // Clear cookies aggressively (if in browser) - for non-httpOnly cookies
       if (typeof document !== 'undefined') {
         // Clear auth cookies with all possible variations
         const cookiePaths = ['/', '/admin', '/user', '/login'];
@@ -159,22 +171,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             document.cookie = `${name}=; path=${path}; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax`;
           });
         });
-
-        // Clear all cookies (fallback)
-        document.cookie.split(";").forEach((c) => {
-          const cookieName = c.split("=")[0].trim();
-          cookiePaths.forEach(path => {
-            document.cookie = `${cookieName}=; path=${path}; max-age=0; SameSite=Lax`;
-            document.cookie = `${cookieName}=; path=${path}; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax`;
-          });
-        });
       }
       
       // Use hard redirect to ensure cookies are cleared and middleware sees the change
       // Redirect to login page with logout param to prevent middleware redirect
       if (typeof window !== 'undefined') {
-        // Small delay to ensure cookies are cleared
-        await new Promise(resolve => setTimeout(resolve, 150));
+        // Small delay to ensure API call completes and cookies are cleared
+        await new Promise(resolve => setTimeout(resolve, 200));
         // Redirect to login with logout param so middleware knows it's a logout
         window.location.href = '/login?logout=true';
       } else {
@@ -190,9 +193,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         localStorage.clear();
         sessionStorage.clear();
         // Force hard redirect even on error
-        window.location.href = '/';
+        window.location.href = '/login?logout=true';
       } else {
-        router.replace('/');
+        router.replace('/login?logout=true');
         router.refresh();
       }
     }
