@@ -8,6 +8,7 @@ import { useAuthSafe } from "@/contexts/AuthContext";
 import { Home, Menu, X, Bell, Heart, MessageSquare, User, Plus, LogOut, Settings, ChevronDown, Shield, FileText, Building2, Scale, Users as UsersIcon, MessageCircle, Phone } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import NotificationBell from "@/components/NotificationBell";
+import { logger } from "@/lib/logger";
 
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -21,16 +22,18 @@ export default function Header() {
       // Close mobile menu
       setMobileMenuOpen(false);
       
-      // Clear auth state via context (this handles Supabase signOut, storage, cookies, and router)
+      // Clear auth state via context (this handles Supabase signOut, storage, cookies, and redirect)
+      // The logout function in AuthContext will handle the hard redirect
       await logout();
-      
-      // Additional router refresh to ensure UI updates
-      router.refresh();
     } catch (error) {
-      console.error('Logout error:', error);
-      // Force redirect even on error
-      router.replace('/');
-      router.refresh();
+      logger.error('Logout error in header', error instanceof Error ? error : new Error(String(error)));
+      // If logout fails, force hard redirect
+      if (typeof window !== 'undefined') {
+        window.location.href = '/';
+      } else {
+        router.replace('/');
+        router.refresh();
+      }
     }
   };
 
