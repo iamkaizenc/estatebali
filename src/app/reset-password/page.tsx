@@ -17,17 +17,44 @@ function ResetPasswordContent() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
+  const [validatingToken, setValidatingToken] = useState(true);
+  const [tokenValid, setTokenValid] = useState(false);
   const [passwordStrength, setPasswordStrength] = useState(0);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
+  // Validate token on mount
   useEffect(() => {
-    if (!token) {
-      setError("Invalid or missing reset token. Please check your email link.");
-    } else {
-      // Clear any previous errors when token is present
-      setError("");
-    }
+    const validateToken = async () => {
+      if (!token) {
+        setValidatingToken(false);
+        setTokenValid(false);
+        setError("Invalid or missing reset token. Please check your email link.");
+        return;
+      }
+
+      try {
+        // Check if token is valid by making a test request
+        // We'll validate it properly when submitting, but check format first
+        if (token.length < 32) {
+          setValidatingToken(false);
+          setTokenValid(false);
+          setError("Invalid reset token format.");
+          return;
+        }
+
+        // Token format looks valid
+        setTokenValid(true);
+        setError("");
+      } catch (err) {
+        setTokenValid(false);
+        setError("Failed to validate reset token.");
+      } finally {
+        setValidatingToken(false);
+      }
+    };
+
+    validateToken();
   }, [token]);
 
   // Calculate password strength
@@ -95,9 +122,15 @@ function ResetPasswordContent() {
 
       if (result.success) {
         setSuccess("Password reset successfully! Redirecting to login...");
+        setLoading(false);
+        // Use window.location for reliable redirect
         setTimeout(() => {
-          router.replace("/login?reset=true");
-        }, 2000);
+          if (typeof window !== 'undefined') {
+            window.location.replace("/login?reset=true");
+          } else {
+            router.replace("/login?reset=true");
+          }
+        }, 1500);
       } else {
         setError(result.error || "Failed to reset password");
         setLoading(false);
@@ -120,14 +153,29 @@ function ResetPasswordContent() {
     return "Strong";
   };
 
-  if (!token) {
+  // Show loading while validating token
+  if (validatingToken) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center p-4">
+        <div className="w-full max-w-md">
+          <div className="card p-8 text-center">
+            <div className="h-8 w-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+            <p className="text-gray-400">Validating reset token...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error if token is invalid
+  if (!token || !tokenValid) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center p-4">
         <div className="w-full max-w-md">
           <div className="card p-8 text-center">
             <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
             <h1 className="text-2xl font-bold mb-2">Invalid Reset Link</h1>
-            <p className="text-gray-400 mb-6">The password reset link is invalid or has expired.</p>
+            <p className="text-gray-400 mb-6">{error || "The password reset link is invalid or has expired."}</p>
             <Link href="/forgot-password" className="btn-primary">
               Request New Link
             </Link>
