@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin, isSupabaseConfigured } from "@/lib/supabaseAdmin";
 import { passwordResetSchema, validateData } from "@/lib/validation";
 import bcrypt from "bcryptjs";
+import { logger } from "@/lib/logger";
 
 // POST /api/auth/reset-password - Reset password with token
 export async function POST(request: NextRequest) {
@@ -81,8 +82,7 @@ export async function POST(request: NextRequest) {
         .eq("id", tokenData.user_id);
 
       if (updateError) {
-        // eslint-disable-next-line no-console
-        console.error("Error updating user password:", updateError);
+        logger.error("Error updating user password", updateError instanceof Error ? updateError : new Error(String(updateError)));
         throw updateError;
       }
     } else {
@@ -101,8 +101,7 @@ export async function POST(request: NextRequest) {
           .eq("id", tokenData.user_id);
 
         if (updateError) {
-          // eslint-disable-next-line no-console
-          console.error("Error updating admin password:", updateError);
+          logger.error("Error updating admin password", updateError instanceof Error ? updateError : new Error(String(updateError)));
           throw updateError;
         }
       } else {
@@ -124,8 +123,7 @@ export async function POST(request: NextRequest) {
       message: "Password reset successfully",
     });
   } catch (error: any) {
-    // eslint-disable-next-line no-console
-    console.error("Reset password error:", error);
+    logger.error("Reset password error", error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       { success: false, error: error.message || "Failed to reset password" },
       { status: 500 }

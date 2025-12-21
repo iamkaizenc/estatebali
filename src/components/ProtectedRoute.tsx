@@ -69,39 +69,43 @@ export function ProtectedRoute({
     );
   }
 
-  // Check auth status
+  // Get user for role check
   const token = typeof window !== 'undefined' 
     ? localStorage.getItem('auth_token') || localStorage.getItem('admin_token')
     : null;
   const tokenUser = token ? getUser(token) : null;
-  const hasAuth = isAuthenticated || !!tokenUser;
   const currentUser = user || tokenUser;
 
-  // If not authenticated, middleware should have redirected, but show loading just in case
-  if (!hasAuth) {
-    return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
-        <div className="text-center">
-          <div className="h-8 w-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-gray-400">Loading...</p>
-        </div>
-      </div>
-    );
-  }
-
   // If user doesn't have required role, show loading (redirect should happen in useEffect)
-  if (allowedRoles.length > 0 && currentUser && !allowedRoles.includes(currentUser.role)) {
-    return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
-        <div className="text-center">
-          <div className="h-8 w-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-gray-400">Loading...</p>
+  // Middleware already verified auth, so we only check roles here
+  if (allowedRoles.length > 0) {
+    if (!currentUser) {
+      // User not loaded yet, show loading
+      return (
+        <div className="min-h-screen bg-black flex items-center justify-center">
+          <div className="text-center">
+            <div className="h-8 w-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+            <p className="text-gray-400">Loading...</p>
+          </div>
         </div>
-      </div>
-    );
+      );
+    }
+    
+    if (!allowedRoles.includes(currentUser.role)) {
+      // Wrong role - redirecting (handled in useEffect)
+      return (
+        <div className="min-h-screen bg-black flex items-center justify-center">
+          <div className="text-center">
+            <div className="h-8 w-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+            <p className="text-gray-400">Loading...</p>
+          </div>
+        </div>
+      );
+    }
   }
 
   // All checks passed, render children
+  // Middleware already verified auth, so we trust it
   return <>{children}</>;
 }
 
