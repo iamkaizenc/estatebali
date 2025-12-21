@@ -100,9 +100,23 @@ export async function POST(request: NextRequest) {
     }
 
     // Generate reset URL
-    // Use production URL, never localhost in production
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || (process.env.NODE_ENV === 'production' ? 'https://estatebali.app' : 'http://localhost:3000');
+    // Always use estatebali.app in production, regardless of NEXT_PUBLIC_APP_URL
+    // This ensures password reset links always go to the correct domain
+    let appUrl: string;
+    if (process.env.NODE_ENV === 'production') {
+      // In production, always use estatebali.app (the canonical domain)
+      appUrl = 'https://estatebali.app';
+    } else {
+      // In development, use NEXT_PUBLIC_APP_URL or localhost fallback
+      appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+    }
     const resetUrl = `${appUrl}/reset-password?token=${resetToken}`;
+    
+    logger.debug('[Forgot Password] Generated reset URL', { 
+      appUrl, 
+      resetUrl: resetUrl.substring(0, 50) + '...',
+      nodeEnv: process.env.NODE_ENV 
+    });
 
     // Send password reset email
     const emailTemplate = emailTemplates.passwordReset(resetUrl, targetUser.name || 'there');

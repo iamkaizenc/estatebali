@@ -91,7 +91,7 @@ export async function POST(request: NextRequest) {
             <p><strong>Investment Type:</strong> ${investmentType || 'Not specified'}</p>
             <p><strong>Preferred Location:</strong> ${preferredLocation || 'Not specified'}</p>
             <p><strong>Message:</strong> ${message || 'No message'}</p>
-            <p><a href="${process.env.NEXT_PUBLIC_APP_URL || 'https://estatebali.app'}/admin/leads">View in Admin Panel</a></p>
+            <p><a href="${process.env.NODE_ENV === 'production' ? 'https://estatebali.app' : (process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000')}/admin/leads">View in Admin Panel</a></p>
           `,
           text: `New Investment Lead\n\nName: ${name}\nEmail: ${email}\nPhone: ${phone || 'Not provided'}\nInvestment Amount: ${investmentAmount || 'Not specified'}\nInvestment Type: ${investmentType || 'Not specified'}\nPreferred Location: ${preferredLocation || 'Not specified'}\nMessage: ${message || 'No message'}`,
         });

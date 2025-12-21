@@ -334,7 +334,7 @@ export const emailTemplates = {
                     <table cellpadding="0" cellspacing="0" style="margin: 30px 0;">
                       <tr>
                         <td style="border-radius: 8px; background-color: #00FF66;">
-                          <a href="${process.env.NEXT_PUBLIC_APP_URL || (process.env.NODE_ENV === 'production' ? 'https://estatebali.app' : 'http://localhost:3000')}/properties" style="display: inline-block; padding: 16px 32px; background-color: #00FF66; color: #000000; text-decoration: none; font-weight: bold; font-size: 16px; border-radius: 8px;">
+                          <a href="${process.env.NODE_ENV === 'production' ? 'https://estatebali.app' : (process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000')}/properties" style="display: inline-block; padding: 16px 32px; background-color: #00FF66; color: #000000; text-decoration: none; font-weight: bold; font-size: 16px; border-radius: 8px;">
                             Browse Properties
                           </a>
                         </td>
@@ -361,6 +361,6 @@ export const emailTemplates = {
       </body>
       </html>
     `,
-    text: `Welcome to EstateBali!\n\nHi ${userName},\n\nThank you for joining EstateBali - Bali's premier real estate platform. We're excited to help you find your dream property!\n\nStart exploring luxury villas, modern apartments, and prime land for sale and rent in Bali.\n\nVisit: ${process.env.NEXT_PUBLIC_APP_URL || (process.env.NODE_ENV === 'production' ? 'https://estatebali.app' : 'http://localhost:3000')}/properties\n\n© 2025 EstateBali. All rights reserved.`,
+    text: `Welcome to EstateBali!\n\nHi ${userName},\n\nThank you for joining EstateBali - Bali's premier real estate platform. We're excited to help you find your dream property!\n\nStart exploring luxury villas, modern apartments, and prime land for sale and rent in Bali.\n\nVisit: ${process.env.NODE_ENV === 'production' ? 'https://estatebali.app' : (process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000')}/properties\n\n© 2025 EstateBali. All rights reserved.`,
   }),
 };
