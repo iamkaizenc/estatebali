@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuthSafe } from "@/contexts/AuthContext";
 import Link from "next/link";
-import { Lock, User, AlertCircle, Eye, EyeOff } from "lucide-react";
+import { Lock, User, AlertCircle, Eye, EyeOff, CheckCircle } from "lucide-react";
 import { decodeJWT } from "@/lib/jwt-utils";
 import { supabase } from "@/lib/supabase";
 import { logger } from "@/lib/logger";
@@ -17,6 +17,20 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+
+  // Get reset success status from URL
+  const [showResetSuccess, setShowResetSuccess] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('reset') === 'true') {
+        setShowResetSuccess(true);
+        // Clean up URL
+        window.history.replaceState({}, '', '/login');
+      }
+    }
+  }, []);
 
   // Redirect if already authenticated (but not if coming from logout)
   useEffect(() => {
@@ -141,6 +155,13 @@ export default function LoginPage() {
             <h1 className="text-3xl font-bold mb-2">Login</h1>
             <p className="text-gray-400">Estate Bali - Sign in to your account</p>
           </div>
+
+          {showResetSuccess && (
+            <div className="mb-6 p-4 bg-green-500/20 border border-green-500/50 rounded-lg flex items-center gap-2 text-green-400">
+              <CheckCircle className="h-5 w-5" />
+              <span className="text-sm">Password reset successful! You can now login with your new password.</span>
+            </div>
+          )}
 
           {error && (
             <div className="mb-6 p-4 bg-red-500/20 border border-red-500/50 rounded-lg flex items-center gap-2 text-red-400">
