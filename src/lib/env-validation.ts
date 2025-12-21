@@ -113,8 +113,13 @@ export const ENV_VARIABLES: EnvVariable[] = [
     validator: (value) => value.startsWith('G-'),
     example: 'G-XXXXXXXXXX',
   },
-  // Note: Sentry DSN removed from validation as it's not currently used in the codebase
-  // If Sentry integration is added later, add it back with NEXT_PUBLIC_SENTRY_DSN
+  {
+    key: 'NEXT_PUBLIC_SENTRY_DSN',
+    description: 'Sentry DSN for error tracking (Web)',
+    required: false,
+    validator: (value) => value.startsWith('https://') && value.includes('@') && value.includes('sentry.io'),
+    example: 'https://xxx@o1234567.ingest.sentry.io/1234567',
+  },
 
   // Node Environment
   {
@@ -298,7 +303,7 @@ export function getEnvironmentHealth(): {
         !!process.env.FROM_EMAIL,
       redis: !!process.env.UPSTASH_REDIS_REST_URL && !!process.env.UPSTASH_REDIS_REST_TOKEN,
       analytics: !!process.env.NEXT_PUBLIC_GA_ID,
-      errorTracking: false, // Sentry not currently integrated
+      errorTracking: !!process.env.NEXT_PUBLIC_SENTRY_DSN,
     },
     missing: [...result.missing.required, ...result.missing.optional],
   };
