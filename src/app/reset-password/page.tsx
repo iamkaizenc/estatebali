@@ -23,7 +23,10 @@ function ResetPasswordContent() {
 
   useEffect(() => {
     if (!token) {
-      setError("Invalid or missing reset token");
+      setError("Invalid or missing reset token. Please check your email link.");
+    } else {
+      // Clear any previous errors when token is present
+      setError("");
     }
   }, [token]);
 
@@ -93,7 +96,7 @@ function ResetPasswordContent() {
       if (result.success) {
         setSuccess("Password reset successfully! Redirecting to login...");
         setTimeout(() => {
-          router.push("/login?reset=true");
+          router.replace("/login?reset=true");
         }, 2000);
       } else {
         setError(result.error || "Failed to reset password");

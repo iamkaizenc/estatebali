@@ -298,6 +298,14 @@ export default function LoginPage() {
             </Link>
           </div>
 
+          {/* Show success message if coming from password reset */}
+          {typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('reset') === 'true' && (
+            <div className="mt-4 p-4 bg-green-500/20 border border-green-500/50 rounded-lg flex items-center gap-2 text-green-400">
+              <CheckCircle className="h-5 w-5" />
+              <span className="text-sm">Password reset successful! You can now login with your new password.</span>
+            </div>
+          )}
+
           <div className="mt-4 text-center">
             <p className="text-gray-400 text-sm">
               Don't have an account?{" "}
