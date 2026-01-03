@@ -14,7 +14,7 @@ import { areas } from "@/data/mockData";
 import { getAreaImage } from "@/data/areaImages";
 import { SearchFilters } from "@/types";
 import { motion } from "framer-motion";
-import { TrendingUp, Shield, Clock, Award } from "lucide-react";
+import { TrendingUp, Shield, Clock, Award, Plus, Handshake } from "lucide-react";
 import { getMessages, isAITranslated } from "@/i18n/messages";
 import { getLocale, Locale } from "@/i18n/config";
 
@@ -175,7 +175,7 @@ export default function HomePage({ params }: HomePageProps) {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.6 }}
-            className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-6"
+            className="flex flex-col items-center justify-center gap-4 mt-6"
           >
             <Link 
               href="/beta"
@@ -187,6 +187,40 @@ export default function HomePage({ params }: HomePageProps) {
               <span>Join iOS Beta</span>
               <span className="px-2 py-0.5 bg-primary text-black text-xs font-bold rounded">New</span>
             </Link>
+
+            {/* Create Your First Listing */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.7 }}
+            >
+              <Link 
+                href="/create"
+                className="inline-flex items-center gap-2 px-6 py-3 bg-dark-200/50 hover:bg-dark-200/70 backdrop-blur-sm border border-white/10 rounded-full text-white font-medium transition-all duration-200 hover:scale-105"
+              >
+                <Plus className="w-5 h-5" />
+                <span>Create Your First Listing</span>
+              </Link>
+            </motion.div>
+
+            {/* Partnership Section */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.8 }}
+              className="text-center"
+            >
+              <Link 
+                href="/services"
+                className="inline-flex items-center gap-2 px-6 py-3 bg-dark-200/50 hover:bg-dark-200/70 backdrop-blur-sm border border-white/10 rounded-full text-white font-medium transition-all duration-200 hover:scale-105"
+              >
+                <Handshake className="w-5 h-5" />
+                <span>Partner With Us</span>
+              </Link>
+              <p className="text-sm text-gray-400 mt-2 max-w-md mx-auto">
+                Would you like to partner with us for visa services and scooters and work with us?
+              </p>
+            </motion.div>
           </motion.div>
         </div>
         
