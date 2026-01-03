@@ -66,7 +66,7 @@ export default function Footer() {
             
             {/* App Store and Google Play Badges */}
             <div className="flex flex-col gap-2">
-              <p className="text-sm text-gray-400 mb-2">Download our app <span className="text-primary text-xs">(Coming Soon)</span></p>
+              <p className="text-sm text-gray-400 mb-2">Download our app</p>
               <Link
                 href="/beta"
                 className="inline-block hover:opacity-80 transition-opacity"

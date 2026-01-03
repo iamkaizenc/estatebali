@@ -127,7 +127,7 @@ export default function RentMotorbikePage() {
             <div className="flex-1">
               <h3 className="font-semibold text-orange-400 mb-2">Coming Soon</h3>
               <p className="text-gray-300 text-sm mb-4">
-                Motorbike rental service coming soon! Full booking system launching soon. 
+                Motorbike rental service is currently under development. 
                 We're working on bringing you the best motorbike rental options in Bali. 
                 Browse our available bikes below and stay tuned for updates!
               </p>

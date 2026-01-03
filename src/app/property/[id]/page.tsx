@@ -156,11 +156,6 @@ export default function PropertyDetailPage() {
                   {formatPrice(property.price)}
                   {property.listingType === "rent" && <span className="text-lg text-gray-400">/mo</span>}
                 </p>
-                {property.shortTermBooking && (
-                  <p className="text-lg text-gray-400">
-                    Short-term: {formatPrice(property.shortTermBooking.pricePerNight)}/night
-                  </p>
-                )}
               </div>
 
               {/* Details */}

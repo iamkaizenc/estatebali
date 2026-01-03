@@ -11,8 +11,13 @@ import { verifyAuth } from '@/lib/api-auth';
 import { supabaseAdmin, isSupabaseConfigured } from '@/lib/supabaseAdmin';
 import { logger } from '@/lib/logger';
 
-// Bookings API
+// Bookings API - DISABLED FOR PRODUCTION
+// This feature is not ready for production release
 export async function POST(request: NextRequest) {
+  return NextResponse.json(
+    { success: false, error: "Booking system is currently unavailable" },
+    { status: 503 }
+  );
   try {
     // Verify authentication
     const auth = verifyAuth(request);
@@ -108,6 +113,11 @@ export async function POST(request: NextRequest) {
 }
 
 export async function GET(request: NextRequest) {
+  // Booking system disabled for production
+  return NextResponse.json(
+    { success: true, bookings: [], total: 0 },
+    { status: 200 }
+  );
   try {
     // Verify authentication
     const auth = verifyAuth(request);

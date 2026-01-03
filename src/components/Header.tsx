@@ -107,12 +107,7 @@ export default function Header() {
                     exit={{ opacity: 0, y: 10 }}
                     className="absolute top-full left-0 mt-2 w-80 bg-dark-100 border border-dark-300 rounded-xl shadow-2xl z-50 overflow-hidden"
                   >
-                    <div className="p-4 border-b border-dark-300 bg-orange-500/10">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="px-2 py-0.5 bg-orange-500/20 text-orange-400 rounded text-xs font-medium border border-orange-500/30">
-                          🚧 Coming Soon
-                        </span>
-                      </div>
+                    <div className="p-4 border-b border-dark-300">
                       <p className="text-xs text-gray-400">Visa, Residency & Company Services</p>
                     </div>
 
