@@ -11,7 +11,8 @@ export default function TestSentryPage() {
     try {
       setTestResult("Testing error...");
       // This will throw an error
-      myUndefinedFunction();
+      // @ts-expect-error - Intentionally calling undefined function for testing
+      (window as any).myUndefinedFunction();
     } catch (error) {
       // Sentry should automatically capture this
       Sentry.captureException(error);
