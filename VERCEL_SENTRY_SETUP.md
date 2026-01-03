@@ -46,11 +46,33 @@ NEXT_PUBLIC_SENTRY_DSN=https://a7080ae41a4338e73c3b9be22d80700a@o451056792757862
 
 ---
 
+## 📊 Vercel Log Drain Entegrasyonu (Opsiyonel ama Önerilen)
+
+Vercel'in server-side loglarını Sentry'ye göndermek için Log Drain ekle:
+
+### Adımlar:
+1. **Vercel Dashboard** → **Project Settings** → **Log Drains**
+2. **"Create Log Drain"** butonuna tıkla
+3. **Endpoint URL:** Aşağıdaki URL'i yapıştır:
+   ```
+   https://o4510567927578624.ingest.us.sentry.io/api/4510647298621440/integration/vercel/logs
+   ```
+4. **Sources:** Tüm log tiplerini seç (veya istediğin log tiplerini)
+5. **Save** butonuna tıkla
+
+### Ne İşe Yarar?
+- Vercel server-side loglarını Sentry'ye gönderir
+- API route hatalarını Sentry'de görürsün
+- Production'daki tüm logları merkezi bir yerde toplar
+
+---
+
 ## 📋 Checklist
 
 - [x] DSN bulundu
 - [x] Local `.env.local` dosyasına eklendi
-- [ ] Vercel'e environment variable eklendi
+- [ ] Vercel'e environment variable eklendi (`NEXT_PUBLIC_SENTRY_DSN`)
+- [ ] Vercel Log Drain eklendi (opsiyonel)
 - [ ] Vercel'de redeploy yapıldı
 - [ ] Test sayfasında test edildi
 - [ ] Sentry Dashboard'da hatalar görünüyor
