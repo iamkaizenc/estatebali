@@ -4,7 +4,8 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuthSafe } from "@/contexts/AuthContext";
 import Link from "next/link";
-import { Lock, User, AlertCircle, Eye, EyeOff, CheckCircle } from "lucide-react";
+import { Lock, User, AlertCircle, Eye, EyeOff, CheckCircle, Home } from "lucide-react";
+import Image from "next/image";
 import { decodeJWT } from "@/lib/jwt-utils";
 import { logger } from "@/lib/logger";
 
@@ -144,6 +145,24 @@ export default function LoginPage() {
       <div className="absolute inset-0 z-0 opacity-10">
         <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-transparent to-primary/20" />
       </div>
+
+      {/* Homepage Logo Button */}
+      <Link 
+        href="/"
+        className="absolute top-6 left-6 z-20 flex items-center gap-2 text-white hover:text-primary transition-colors"
+        aria-label="Go to homepage"
+      >
+        <div className="relative w-10 h-10">
+          <Image
+            src="/logo.png"
+            alt="Estate Bali Logo"
+            fill
+            className="object-contain"
+            priority
+          />
+        </div>
+        <span className="font-semibold hidden sm:inline">EstateBali</span>
+      </Link>
 
       <div className="relative z-10 w-full max-w-md px-4">
         <div className="card p-8">
