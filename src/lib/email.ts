@@ -79,6 +79,7 @@ class ResendProvider implements EmailProvider {
         logger.error('Resend API Error', new Error(errorMessage), {
           status: response.status,
           statusText: response.statusText,
+          errorMessage,
         });
 
         // If domain not verified error, try with onboarding domain as fallback

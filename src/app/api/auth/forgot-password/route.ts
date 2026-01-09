@@ -129,10 +129,24 @@ export async function POST(request: NextRequest) {
 
     // Log email result (but don't fail if email fails - security best practice)
     if (!emailResult.success) {
-      logger.error("Failed to send password reset email", new Error(emailResult.error || 'Unknown error'));
+      logger.error("Failed to send password reset email", new Error(emailResult.error || 'Unknown error'), {
+        email: targetUser.email,
+        error: emailResult.error,
+        hasResendKey: !!process.env.RESEND_API_KEY,
+        hasFromEmail: !!process.env.FROM_EMAIL,
+        nodeEnv: process.env.NODE_ENV,
+      });
 
       // In development, still log the URL
-      logger.debug("Password reset link (DEV ONLY)", resetUrl);
+      if (process.env.NODE_ENV === 'development') {
+        logger.debug("Password reset link (DEV ONLY)", { resetUrl });
+      }
+    } else {
+      logger.info("Password reset email sent successfully", {
+        email: targetUser.email,
+        hasResendKey: !!process.env.RESEND_API_KEY,
+        hasFromEmail: !!process.env.FROM_EMAIL,
+      });
     }
 
     return NextResponse.json({
