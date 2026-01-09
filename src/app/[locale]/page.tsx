@@ -244,10 +244,14 @@ export default function HomePage({ params }: HomePageProps) {
             <p className="text-gray-400">Loading properties...</p>
           </div>
         ) : mostViewedProperties.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {mostViewedProperties.slice(0, 6).map((property) => (
-              <PropertyCard key={property.id} property={property} />
-            ))}
+          <div className="overflow-x-auto pb-4 -mx-4 px-4">
+            <div className="flex gap-6 min-w-max">
+              {mostViewedProperties.slice(0, 6).map((property) => (
+                <div key={property.id} className="flex-shrink-0 w-80 md:w-96">
+                  <PropertyCard property={property} />
+                </div>
+              ))}
+            </div>
           </div>
         ) : (
           <EmptyState
@@ -375,10 +379,14 @@ export default function HomePage({ params }: HomePageProps) {
             <p className="text-gray-400">Loading properties...</p>
           </div>
         ) : properties.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {properties.slice(0, 6).map((property) => (
-              <PropertyCard key={property.id} property={property} />
-            ))}
+          <div className="overflow-x-auto pb-4 -mx-4 px-4">
+            <div className="flex gap-6 min-w-max">
+              {properties.slice(0, 6).map((property) => (
+                <div key={property.id} className="flex-shrink-0 w-80 md:w-96">
+                  <PropertyCard property={property} />
+                </div>
+              ))}
+            </div>
           </div>
         ) : (
           <EmptyState
