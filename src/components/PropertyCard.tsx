@@ -3,11 +3,14 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Heart, MapPin, Bed, Bath, Square, Clock } from "lucide-react";
+import { Heart, MapPin, Bed, Bath, Square, Clock, ChevronLeft, ChevronRight } from "lucide-react";
 import { Property } from "@/types";
 import { motion } from "framer-motion";
 import { useAuthSafe } from "@/contexts/AuthContext";
 import { getPropertyImage } from "@/lib/constants";
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Navigation, Pagination } from "swiper/modules";
+import type { Swiper as SwiperType } from "swiper";
 
 interface PropertyCardProps {
   property: Property;
@@ -18,6 +21,12 @@ export default function PropertyCard({ property }: PropertyCardProps) {
   const [liked, setLiked] = useState(false);
   const [loading, setLoading] = useState(false);
   const [daysAgo, setDaysAgo] = useState<number | null>(null);
+  const [swiperInstance, setSwiperInstance] = useState<SwiperType | null>(null);
+  
+  // Get all images for the property
+  const propertyImages = property.images && property.images.length > 0 
+    ? property.images 
+    : [getPropertyImage(property)];
 
   // Calculate days ago (client-side only to avoid hydration mismatch)
   useEffect(() => {
@@ -124,18 +133,70 @@ export default function PropertyCard({ property }: PropertyCardProps) {
       className="card group cursor-pointer relative"
     >
       <Link href={`/property/${property.id}`}>
-        {/* Image Container */}
-        <div className="relative h-64 overflow-hidden">
-          <Image
-            src={getPropertyImage(property)}
-            alt={property.title}
-            fill
-            className="object-cover group-hover:scale-110 transition-transform duration-500"
-            unoptimized
-          />
+        {/* Image Container with Swiper */}
+        <div className="relative h-64 overflow-hidden group/image-container">
+          {propertyImages.length > 1 ? (
+            <>
+              <Swiper
+                modules={[Navigation, Pagination]}
+                onSwiper={setSwiperInstance}
+                navigation={true}
+                pagination={{
+                  clickable: true,
+                  dynamicBullets: true,
+                }}
+                className="h-full w-full"
+                loop={propertyImages.length > 1}
+              >
+                {propertyImages.map((image, index) => (
+                  <SwiperSlide key={index}>
+                    <Image
+                      src={image}
+                      alt={`${property.title} - Image ${index + 1}`}
+                      fill
+                      className="object-cover group-hover:scale-110 transition-transform duration-500"
+                      unoptimized
+                    />
+                  </SwiperSlide>
+                ))}
+              </Swiper>
+              
+              {/* Custom Navigation Buttons */}
+              <button
+                className="absolute left-2 top-1/2 -translate-y-1/2 z-20 p-2 glass rounded-full hover:bg-white/30 transition-opacity opacity-0 group-hover/image-container:opacity-100"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  swiperInstance?.slidePrev();
+                }}
+                aria-label="Previous image"
+              >
+                <ChevronLeft className="h-5 w-5 text-white" />
+              </button>
+              <button
+                className="absolute right-2 top-1/2 -translate-y-1/2 z-20 p-2 glass rounded-full hover:bg-white/30 transition-opacity opacity-0 group-hover/image-container:opacity-100"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  swiperInstance?.slideNext();
+                }}
+                aria-label="Next image"
+              >
+                <ChevronRight className="h-5 w-5 text-white" />
+              </button>
+            </>
+          ) : (
+            <Image
+              src={propertyImages[0]}
+              alt={property.title}
+              fill
+              className="object-cover group-hover:scale-110 transition-transform duration-500"
+              unoptimized
+            />
+          )}
           
           {/* Badges */}
-          <div className="absolute top-4 left-4 flex gap-2">
+          <div className="absolute top-4 left-4 flex gap-2 z-10">
             <span className="badge bg-primary text-black">
               {property.listingType === "sale" ? "FOR SALE" : "FOR RENT"}
             </span>
@@ -156,7 +217,7 @@ export default function PropertyCard({ property }: PropertyCardProps) {
             <button
               onClick={handleFavoriteToggle}
               disabled={loading}
-              className="absolute top-4 right-4 p-2 glass rounded-full hover:bg-white/20 transition-colors disabled:opacity-50"
+              className="absolute top-4 right-4 p-2 glass rounded-full hover:bg-white/20 transition-colors disabled:opacity-50 z-10"
               title={liked ? "Remove from favorites" : "Add to favorites"}
             >
               <Heart 
@@ -166,8 +227,8 @@ export default function PropertyCard({ property }: PropertyCardProps) {
           )}
 
           {/* Image Counter */}
-          <div className="absolute bottom-4 left-4 px-2 py-1 glass rounded-lg text-xs">
-            {property.images?.length || 0} photos
+          <div className="absolute bottom-4 left-4 px-2 py-1 glass rounded-lg text-xs z-10">
+            {propertyImages.length} {propertyImages.length === 1 ? 'photo' : 'photos'}
           </div>
         </div>
 
