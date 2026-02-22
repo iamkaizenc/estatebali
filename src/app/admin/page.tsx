@@ -1967,7 +1967,7 @@ function AdminDashboard() {
                         value={motorcycleFormData.contact_whatsapp || ""}
                         onChange={(e) => setMotorcycleFormData({ ...motorcycleFormData, contact_whatsapp: e.target.value })}
                         className="w-full px-4 py-3 bg-dark-200 rounded-xl border border-dark-300 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all text-white placeholder-gray-500"
-                        placeholder="e.g., +6281234567890"
+                        placeholder="e.g., +306989273327"
                       />
                     </div>
                   </div>

@@ -42,9 +42,9 @@ export const mockProperties: Property[] = [
     ],
     contact: {
       name: "Sarah Johnson",
-      phone: "+62 812 3456 7890",
+      phone: "+306989273327",
       email: "sarah@estatebali.com",
-      whatsapp: "+62 812 3456 7890"
+      whatsapp: "+306989273327"
     },
     createdAt: new Date("2024-01-15"),
     updatedAt: new Date("2024-01-15"),
@@ -98,7 +98,7 @@ export const mockProperties: Property[] = [
     ],
     contact: {
       name: "Made Wijaya",
-      phone: "+62 813 9876 5432",
+      phone: "+306989273327",
       email: "made@estatebali.com"
     },
     createdAt: new Date("2024-02-01"),
@@ -151,7 +151,7 @@ export const mockProperties: Property[] = [
     ],
     contact: {
       name: "Ketut Dharma",
-      phone: "+62 811 2233 4455",
+      phone: "+306989273327",
       email: "ketut@estatebali.com"
     },
     createdAt: new Date("2024-02-10"),
@@ -186,7 +186,7 @@ export const mockProperties: Property[] = [
     ],
     contact: {
       name: "Putu Agung",
-      phone: "+62 815 5566 7788",
+      phone: "+306989273327",
       email: "putu@estatebali.com"
     },
     createdAt: new Date("2024-02-15"),
@@ -237,7 +237,7 @@ export const mockProperties: Property[] = [
     ],
     contact: {
       name: "John Smith",
-      phone: "+62 817 7788 9900",
+      phone: "+306989273327",
       email: "john@estatebali.com"
     },
     createdAt: new Date("2024-01-20"),
@@ -283,7 +283,7 @@ export const mockProperties: Property[] = [
     ],
     contact: {
       name: "Wayan Sari",
-      phone: "+62 812 9988 7766",
+      phone: "+306989273327",
       email: "wayan@estatebali.com"
     },
     createdAt: new Date("2024-02-05"),

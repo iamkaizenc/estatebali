@@ -164,7 +164,7 @@ describe('Sanitization Utilities', () => {
     })
 
     it('should remove invalid characters', () => {
-      const input = '+62<script>alert(1)</script>8123456789'
+      const input = '+30<script>alert(1)</script>6989273327'
       const output = sanitizePhone(input)
       expect(output).not.toContain('script')
       expect(output).toMatch(/^\+?[0-9\-\s()]+$/)

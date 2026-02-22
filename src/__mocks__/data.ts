@@ -32,7 +32,7 @@ export const mockProperty = {
   contact: {
     name: 'John Doe',
     email: 'john@example.com',
-    phone: '+628123456789',
+    phone: '+306989273327',
   },
   user_id: '123e4567-e89b-12d3-a456-426614174001',
   created_at: new Date().toISOString(),
@@ -77,7 +77,7 @@ export const mockBooking = {
   payment_status: 'paid' as const,
   guest_name: 'Test Guest',
   guest_email: 'guest@example.com',
-  guest_phone: '+628123456789',
+  guest_phone: '+306989273327',
   created_at: new Date().toISOString(),
   updated_at: new Date().toISOString(),
 }

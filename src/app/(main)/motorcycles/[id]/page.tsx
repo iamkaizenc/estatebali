@@ -94,7 +94,7 @@ export default function MotorcycleDetailPage() {
   const whatsappMessage = `Hi! I'm interested in renting ${motorcycle.title} (${motorcycle.system_code}). Can you provide more information?`;
   const whatsappUrl = motorcycle.contact_whatsapp
     ? `https://wa.me/${motorcycle.contact_whatsapp.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(whatsappMessage)}`
-    : 'https://wa.me/6282260613492?text=' + encodeURIComponent(whatsappMessage);
+    : 'https://wa.me/306989273327?text=' + encodeURIComponent(whatsappMessage);
 
   return (
     <div className="min-h-screen bg-black text-white">

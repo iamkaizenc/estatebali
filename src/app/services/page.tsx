@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 import { motion } from "framer-motion";
 
-const WHATSAPP_NUMBER = "6282260613492";
+const WHATSAPP_NUMBER = "306989273327";
 const EMAIL = "info@estatebali.app";
 
 const services = [
@@ -169,7 +169,7 @@ export default function ServicesPage() {
                 </button>
                 <div className="mt-4 flex items-center gap-2 text-gray-400">
                   <Phone className="h-4 w-4" />
-                        <span>+6282260613492</span>
+                        <span>+306989273327</span>
                 </div>
               </div>
             </div>
@@ -291,7 +291,7 @@ export default function ServicesPage() {
           <div className="mt-6 flex flex-col sm:flex-row gap-4 justify-center items-center text-gray-400 text-sm">
             <div className="flex items-center gap-2">
               <Phone className="h-4 w-4" />
-                        <span>+6282260613492</span>
+                        <span>+306989273327</span>
             </div>
             <div className="flex items-center gap-2">
               <Mail className="h-4 w-4" />

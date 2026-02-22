@@ -114,7 +114,7 @@ describe('Validation Schemas', () => {
     })
 
     it('should accept optional phone', () => {
-      const withPhone = { ...validRegistration, phone: '+628123456789' }
+      const withPhone = { ...validRegistration, phone: '+306989273327' }
       const result = registerSchema.safeParse(withPhone)
       expect(result.success).toBe(true)
     })
@@ -191,7 +191,7 @@ describe('Validation Schemas', () => {
     it('should validate valid profile update', () => {
       const data = {
         name: 'John Doe',
-        phone: '+628123456789',
+        phone: '+306989273327',
         avatar: 'https://example.com/avatar.jpg',
       }
       const result = profileUpdateSchema.safeParse(data)

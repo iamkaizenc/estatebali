@@ -170,7 +170,7 @@ export default function Header() {
 
                     <div className="p-4 border-t border-dark-300 bg-dark-200">
                       <a
-                        href="https://wa.me/6282260613492?text=Hi! I would like to get information about your services in Bali."
+                        href="https://wa.me/306989273327?text=Hi! I would like to get information about your services in Bali."
                         target="_blank"
                         rel="noopener noreferrer"
                         className="w-full btn-primary flex items-center justify-center gap-2 text-sm mb-2"
@@ -180,7 +180,7 @@ export default function Header() {
                       </a>
                       <div className="flex items-center justify-center gap-2 text-xs text-gray-400">
                         <Phone className="h-3 w-3" />
-                        <span>+6282260613492</span>
+                        <span>+306989273327</span>
                       </div>
                     </div>
                   </motion.div>
